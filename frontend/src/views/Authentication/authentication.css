@@ -1,0 +1,146 @@
+
+body {
+    background-color: #080710;
+}
+
+.authPage .background {
+    width: 430px;
+    height: 520px;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    left: 50%;
+    top: 50%;
+}
+
+.authPage .background .shape {
+    height: 200px;
+    width: 200px;
+    position: absolute;
+    border-radius: 50%;
+}
+
+.authPage .shape:first-child {
+    background: linear-gradient(#1845ad,
+            #23a2f6);
+    left: -160px;
+    top: -80px;
+}
+
+.authPage .shape:last-child {
+    background: linear-gradient(to right,
+            #ff512f,
+            #f09819);
+    right: -150px;
+    bottom: -80px;
+}
+
+.authPage form { 
+    width: 400px;
+    background-color: rgba(255, 255, 255, 0.13);
+    position: absolute;
+    transform: translate(-50%, -50%);
+    top: 50%;
+    left: 50%;
+    border-radius: 10px;
+    /* backdrop-filter: blur(100px); */
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 40px rgba(8, 7, 16, 0.6);
+    padding: 50px 35px;
+}
+
+
+.authPage form * {
+    font-family: 'Poppins', sans-serif;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    outline: none;
+    border: none;
+}
+
+.authPage form h3 {
+    font-size: 32px;
+    font-weight: 500;
+    line-height: 42px;
+    text-align: center;
+}
+
+.authPage label {
+    display: block;
+    margin-top: 30px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.authPage input {
+    display: block;
+    height: 50px;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.07);
+    border-radius: 3px;
+    padding: 0 10px;
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 300;
+    
+}
+
+.authPage ::placeholder {
+    color: #e5e5e5;
+}
+
+.authPage button {
+    margin-top: 50px;
+    width: 100%;
+    background-color: #ffffff;
+    color: #080710;
+    padding: 15px 0;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.authPage .selection-div {
+    margin-top: 30px;
+    display: flex;
+}
+
+.authPage .selection-div div {
+    width: 150px;
+    border-radius: 3px;
+    padding: 8px 5px 8px 5px;
+    text-align: center;
+}
+.selection-div .login,
+.selection-div .signup {
+  cursor: pointer;
+  display: inline-block;
+  margin-right: 10px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: black;
+  transition: background-color 0.2s ease, backdrop-filter 0.3s ease;
+}
+.selection-div .login.active,
+.selection-div .signup.active {
+  backdrop-filter: blur(5px);
+  background-color: rgba(255, 255, 255, 0.3);
+  color: white; 
+}
+
+.authPage .selection-div div:hover {
+    background-color: rgba(255, 255, 255, 0.47);
+}
+
+.authPage .selection-div .signup {
+    margin-left: 25px;
+}
+
+.authPage .selection-div i {
+    margin-right: 4px;
+}
+
+.authPage .error {
+    color: red;
+    font-size: 12px;
+    margin-top: 5px;
+  }
