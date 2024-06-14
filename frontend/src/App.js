@@ -6,13 +6,14 @@ import {
   RouterProvider,
 
 } from 'react-router-dom';
+import { isTokenExpired } from './config/jwtUtils';
 import UserHeader from './views/User/UserHeader';
 import AuthenticationPage from './views/Authentication/Authentication';
 import UserHomePage from './views/User/UserHomePage';
 import AdminHeader from './views/Admin/AdminHeader'
 import AdminHomePage from './views/Admin/AdminHomePage'
 import PrivateRoute from './views/MiddleWare/PrivateRoute';
-
+import { useEffect } from 'react';
 
 const UserLayout = () => {
   return (
@@ -33,6 +34,18 @@ const AdminLayout = () => {
 };
 
 function App() {
+  useEffect(() => {
+    const checkTokenExp = () => {
+      const token = sessionStorage.getItem('accessToken')
+      if(token && isTokenExpired(token)){
+        sessionStorage.removeItem('accessToken')
+        window.location.href = '/authentication'
+      }
+    }
+    const intervalId = setInterval(checkTokenExp, 1000);
+
+    return () => clearInterval(intervalId);
+  },[])
 
   const router = createBrowserRouter(
     createRoutesFromElements(

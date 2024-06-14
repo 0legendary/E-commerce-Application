@@ -18,11 +18,6 @@ const createAdmin = async () => {
   console.log('Admin created');
 }
 
-// router.post('/verify-token', authenticateToken, (req, res) => {
-//   console.log(req.user);
-//   let status = req.user ? true: false
-//   res.status(200).json({status });
-// });
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body
