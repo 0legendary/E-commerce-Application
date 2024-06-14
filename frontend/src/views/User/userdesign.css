@@ -1,0 +1,8 @@
+.user-home-page{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 90vh;
+    color: white;
+    font-family: 'Courier New', Courier, monospace;
+}

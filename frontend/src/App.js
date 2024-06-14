@@ -8,6 +8,7 @@ import {
 } from 'react-router-dom';
 import UserHeader from './views/User/UserHeader';
 import AuthenticationPage from './views/Authentication/Authentication';
+import UserHomePage from './views/User/UserHomePage';
 
 const UserLayout= () => {
   return (
@@ -24,7 +25,7 @@ function App() {
     createRoutesFromElements(
       <Route>
         <Route path="/" element={<UserLayout/>}>
-          <Route index element={<UserHeader/>} />
+          <Route index element={<UserHomePage/>} />
         </Route>
         <Route path="/authentication" element={<AuthenticationPage/>}></Route>
       </Route>

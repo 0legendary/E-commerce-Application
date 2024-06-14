@@ -1,36 +1,41 @@
 import React, { useState } from 'react';
+import axios from 'axios'
 import './authentication.css';
+import { useNavigate } from 'react-router-dom';
 
 function Authentication() {
   const [activeTab, setActiveTab] = useState('login');
   const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
+    username: 'alen.m',
+    email: 'alen@gmail.com',
+    password: 'a1234567',
+    confirmPassword: 'a1234567',
   });
   const [errors, setErrors] = useState({});
-
+  const [successMsg, setSuccessMsg] = useState('')
+  const navigate = useNavigate()
   const handleLoginClick = () => {
+    setSuccessMsg('')
     setActiveTab('login');
     setErrors({});
-    setFormData({
-      username: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-    })
+    // setFormData({
+    //   username: '',
+    //   email: '',
+    //   password: '',
+    //   confirmPassword: '',
+    // })
   };
 
   const handleSignUpClick = () => {
+    setSuccessMsg('')
     setActiveTab('signup');
     setErrors({});
-    setFormData({
-      username: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-    })
+    // setFormData({
+    //   username: '',
+    //   email: '',
+    //   password: '',
+    //   confirmPassword: '',
+    // })
   };
 
   const handleChange = (e) => {
@@ -42,8 +47,9 @@ function Authentication() {
     setErrors({
       ...errors,
       [id]: '',
+      unAuthorised:''
     });
-    
+
   };
 
   const validateEmail = (email) => {
@@ -52,7 +58,6 @@ function Authentication() {
   };
 
   const validatePassword = (password) => {
-    // Minimum eight characters, at least one letter and one number
     const condition = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
     return condition.test(password);
   };
@@ -103,15 +108,50 @@ function Authentication() {
           email: formData.email,
           password: formData.password,
         };
-        console.log('Login Data:', loginData);
+        //console.log('Login Data:', loginData);
+        axios.post('http://localhost:4000/login', loginData)
+          .then(response => {
+            console.log('Login response:', response.data);
+            if (response.data.status) {
+              setErrors({})
+              setSuccessMsg('Login successful')
+              setTimeout(() => {
+                if(response.data.control === 'user'){
+                  navigate("/")
+                }else{
+                  navigate("/admin")
+                }
+              }, 3000)
+            } else {
+              setErrors({ unAuthorised: 'Wrong Email or Password' })
+            }
+
+          })
+          .catch(error => {
+            setErrors({ unAuthorised: 'Wrong Email or Password' })
+            console.error('Error sending login data:', error);
+          });
       } else {
         const signupData = {
           username: formData.username,
           email: formData.email,
           password: formData.password,
-          confirmPassword: formData.confirmPassword,
         };
-        console.log('Sign Up Data:', signupData);
+        axios.post('http://localhost:4000/signup', signupData)
+          .then(response => {
+            if (response.data.status) {
+              setSuccessMsg('Account created successfully')
+              setErrors({})
+              setTimeout(() => {
+                handleLoginClick()
+              }, 3000)
+            } else {
+              setErrors({ username: 'Already taken, try another one' })
+            }
+          })
+          .catch(error => {
+            console.error('Error sending login data:', error);
+          });
       }
     }
   };
@@ -159,7 +199,7 @@ function Authentication() {
           onChange={handleChange}
           required
         ></input>
-         {errors.email && <div className="error">{errors.email}</div>}
+        {errors.email && <div className="error">{errors.email}</div>}
 
         <label htmlFor="password">Password</label>
         <input
@@ -184,7 +224,12 @@ function Authentication() {
             {errors.confirmPassword && <div className="error">{errors.confirmPassword}</div>}
           </>
         )}
+        {errors.unAuthorised && <p className='successMsg text-danger'>{errors.unAuthorised}</p>}
         <button type="submit">{activeTab === 'login' ? 'Log In' : 'Sign Up'}</button>
+        {successMsg !== '' && (
+          <p className='successMsg text-success'>{successMsg}</p>
+        )}
+
       </form>
     </div>
   );

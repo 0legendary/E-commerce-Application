@@ -144,3 +144,9 @@ body {
     font-size: 12px;
     margin-top: 5px;
   }
+
+.authPage .successMsg{
+    display: flex;
+    justify-content: center;
+    padding-top: 2rem;
+}

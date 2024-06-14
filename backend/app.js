@@ -1,15 +1,18 @@
-const express = require('express');
+import express, { json } from 'express';
+import cors from 'cors';
+import { connectDB } from './config/db.js';
+import indexRouter from './routes/index.js';
+// import usersRouter from './routes/users.js';
+
+
 const app = express();
+connectDB()
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-
-
-app.use(express.json());
+app.use(cors());
+app.use(json());
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+//app.use('/user', usersRouter);
 
 const PORT = 4000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
