@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import axios from 'axios'
+import axiosInstance from '../../config/axiosConfig';
 import './authentication.css';
 import { useNavigate } from 'react-router-dom';
+
 
 function Authentication() {
   const [activeTab, setActiveTab] = useState('login');
@@ -109,13 +110,15 @@ function Authentication() {
           password: formData.password,
         };
         //console.log('Login Data:', loginData);
-        axios.post('http://localhost:4000/login', loginData)
+        axiosInstance.post('/login', loginData)
           .then(response => {
             console.log('Login response:', response.data);
             if (response.data.status) {
+              sessionStorage.setItem('accessToken', response.data.accessToken);
               setErrors({})
               setSuccessMsg('Login successful')
               setTimeout(() => {
+                
                 if(response.data.control === 'user'){
                   navigate("/")
                 }else{
@@ -137,9 +140,11 @@ function Authentication() {
           email: formData.email,
           password: formData.password,
         };
-        axios.post('http://localhost:4000/signup', signupData)
+        axiosInstance.post('/signup', signupData)
           .then(response => {
             if (response.data.status) {
+              //console.log(response.data.accessToken);
+              
               setSuccessMsg('Account created successfully')
               setErrors({})
               setTimeout(() => {

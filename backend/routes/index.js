@@ -1,8 +1,11 @@
 import { Router } from 'express';
 import { getDB, Collections } from '../config/db.js';
 import bcrypt from 'bcrypt';
+import {authenticateToken, generateAccessToken} from '../middleware/authMiddleware.js';
 
 const router = Router();
+
+
 
 const createAdmin = async () => {
   const db = getDB();
@@ -14,6 +17,12 @@ const createAdmin = async () => {
   await db.collection(Collections.admin).insertOne({ adminName, adminEmail, password: hashedPassword, createdAt: new Date() });
   console.log('Admin created');
 }
+
+// router.post('/verify-token', authenticateToken, (req, res) => {
+//   console.log(req.user);
+//   let status = req.user ? true: false
+//   res.status(200).json({status });
+// });
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body
@@ -31,19 +40,21 @@ router.post('/login', async (req, res) => {
       console.log(2);
       return res.status(400).json({ status: false, message: 'Invalid email or password' });
     }
+    //creating JWT for user for authorization
+    const accessToken = generateAccessToken(user ? user.username : Admin.adminEmail)
     let control = user ? 'user' : 'admin'
-    
-    res.status(200).json({ status: true, control, message: 'Login successful' });
+    res.status(200).json({ status: true, control, message: 'Login successful', accessToken })
+
+
   } catch (error) {
     res.status(500).json({ status: false, message: 'Server error' });
     console.error('Login error:', error);
   }
-
 });
 
 
+
 router.post('/signup', async (req, res) => {
-  console.log(req.body);
   const { username, email, password} = req.body;
   const db = getDB();
   try {

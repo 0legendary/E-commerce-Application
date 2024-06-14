@@ -1,9 +1,12 @@
-// db.js
 import { MongoClient } from 'mongodb';
 import Collections from '../model/collections.js'
+import dotenv from 'dotenv';
+dotenv.config();
 
-const MONGO_URI = 'mongodb://localhost:27017';
-const DATABASE_NAME = 'app-management';
+
+const MONGO_URI = process.env.MONGO_URI
+const DATABASE_NAME = process.env.DATABASE_NAME
+
 
 let db;
 
@@ -17,6 +20,7 @@ const connectDB = async () => {
     throw error;
   }
 };
+
 
 const getDB = () => {
   if (!db) {
