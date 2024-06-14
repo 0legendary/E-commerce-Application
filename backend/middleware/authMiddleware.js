@@ -18,4 +18,6 @@ const generateAccessToken = (user) => {
     return  jwt.sign({ username: user }, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '15s'})
 }
 
+
+
 export {authenticateToken, generateAccessToken}
