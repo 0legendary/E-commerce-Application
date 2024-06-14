@@ -1,0 +1,12 @@
+.user-card {
+    transition: transform 0.2s;
+  }
+  
+  .user-card:hover {
+    transform: scale(1.05);
+  }
+  
+  .user-card .card-body {
+    text-align: center;
+  }
+  

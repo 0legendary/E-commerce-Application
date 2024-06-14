@@ -1,4 +1,3 @@
-
 body {
     background-color: #080710;
 }
@@ -34,7 +33,7 @@ body {
     bottom: -80px;
 }
 
-.authPage form { 
+.authPage form {
     width: 400px;
     background-color: rgba(255, 255, 255, 0.13);
     position: absolute;
@@ -81,7 +80,7 @@ body {
     margin-top: 8px;
     font-size: 14px;
     font-weight: 300;
-    
+
 }
 
 .authPage ::placeholder {
@@ -111,20 +110,22 @@ body {
     padding: 8px 5px 8px 5px;
     text-align: center;
 }
+
 .selection-div .login,
 .selection-div .signup {
-  cursor: pointer;
-  display: inline-block;
-  margin-right: 10px;
-  background-color: rgba(255, 255, 255, 0.1);
-  color: black;
-  transition: background-color 0.2s ease, backdrop-filter 0.3s ease;
+    cursor: pointer;
+    display: inline-block;
+    margin-right: 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: black;
+    transition: background-color 0.2s ease, backdrop-filter 0.3s ease;
 }
+
 .selection-div .login.active,
 .selection-div .signup.active {
-  backdrop-filter: blur(5px);
-  background-color: rgba(255, 255, 255, 0.3);
-  color: white; 
+    backdrop-filter: blur(5px);
+    background-color: rgba(255, 255, 255, 0.3);
+    color: white;
 }
 
 .authPage .selection-div div:hover {
@@ -143,10 +144,16 @@ body {
     color: red;
     font-size: 12px;
     margin-top: 5px;
-  }
+}
 
-.authPage .successMsg{
+.authPage .successMsg {
     display: flex;
     justify-content: center;
     padding-top: 2rem;
+}
+
+.authPage .redirect-text {
+    display: inline-block;
+    margin-left: 5px;
+    color: green;
 }

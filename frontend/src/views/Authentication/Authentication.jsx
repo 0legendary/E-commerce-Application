@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axiosInstance from '../../config/axiosConfig';
 import './authentication.css';
 import { useNavigate } from 'react-router-dom';
@@ -7,11 +7,12 @@ import { useNavigate } from 'react-router-dom';
 function Authentication() {
   const [activeTab, setActiveTab] = useState('login');
   const [formData, setFormData] = useState({
-    username: 'alen.m',
-    email: 'alen@gmail.com',
-    password: 'a1234567',
+    username: '',
+    email: 'admin@gmail.com',
+    password: 'admin123',
     confirmPassword: 'a1234567',
   });
+  const [countdown, setCountdown] = useState(null);
   const [errors, setErrors] = useState({});
   const [successMsg, setSuccessMsg] = useState('')
   const navigate = useNavigate()
@@ -118,13 +119,13 @@ function Authentication() {
               setErrors({})
               setSuccessMsg('Login successful')
               setTimeout(() => {
-                
                 if(response.data.control === 'user'){
                   navigate("/")
                 }else{
                   navigate("/admin")
                 }
               }, 3000)
+              setCountdown(3)
             } else {
               setErrors({ unAuthorised: 'Wrong Email or Password' })
             }
@@ -149,7 +150,8 @@ function Authentication() {
               setErrors({})
               setTimeout(() => {
                 handleLoginClick()
-              }, 3000)
+              }, 1000)
+              
             } else {
               setErrors({ username: 'Already taken, try another one' })
             }
@@ -160,6 +162,15 @@ function Authentication() {
       }
     }
   };
+
+  useEffect(() => {
+    if (countdown === null) return;
+    const timer = setTimeout(() => {
+      setCountdown(countdown - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [countdown]);
 
   return (
     <div className='authPage'>
@@ -232,9 +243,8 @@ function Authentication() {
         {errors.unAuthorised && <p className='successMsg text-danger'>{errors.unAuthorised}</p>}
         <button type="submit">{activeTab === 'login' ? 'Log In' : 'Sign Up'}</button>
         {successMsg !== '' && (
-          <p className='successMsg text-success'>{successMsg}</p>
+          <p className='successMsg text-success'>{successMsg}... <span className='redirect-text'>{countdown && countdown}</span></p>
         )}
-
       </form>
     </div>
   );
