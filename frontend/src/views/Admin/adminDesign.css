@@ -78,3 +78,13 @@
   font-size: 14px;
   margin-top: 5px;
 }
+.update-form .success {
+  color: green;
+  font-size: 14px;
+  margin-top: 5px;
+}
+.update-form .alignText{
+  display: flex;
+  justify-content: center;
+}
+

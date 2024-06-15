@@ -6,6 +6,8 @@ function AdminHomePage() {
   const [users, setUsers] = useState([])
   const [formData, setFormData] = useState({})
   const [errors, setErrors] = useState({});
+  const [success, setSuccess] = useState({})
+  const [changes, setChanges] = useState({})
 
   useEffect(() => {
     axiosInstance.get('/admin/get-users')
@@ -34,7 +36,8 @@ function AdminHomePage() {
   const handleEdit = (objID) => {
     const user = users && users.filter((data) => data._id === objID)
     console.log(user[0]);
-    setFormData({ username: user[0].username, email: user[0].email, newPassword: '' })
+    setChanges({username:user[0].username, email: user[0].email, newPassword: '', confirmPassword: ''})
+    setFormData({_id: user[0]._id ,username: user[0].username, email: user[0].email, newPassword: '',confirmPassword: ''})
   }
 
   const handleDelete = (objID) => {
@@ -49,16 +52,31 @@ function AdminHomePage() {
 
   const handleUpdate = async (e) => {
     e.preventDefault();
-    const validationErrors = await updateUserAuthenticate(formData.username, formData.email, formData.newPassword);
+    const validationErrors = await updateUserAuthenticate(formData.username, formData.email, formData.newPassword, formData.confirmPassword, changes);
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length === 0) {
-      console.log('Validation passed, proceed with update');
-      
+      axiosInstance.post('/admin/update-user', formData)
+        .then((response) => {
+          if(response.status){
+            setSuccess({update:'Updated Successfully'})
+            setUsers(users.map(user => 
+              user._id === formData._id ? { ...user, username: formData.username, email: formData.email } : user
+            ));
+            setTimeout(() => {
+              setSuccess({})
+              setFormData({})
+            },1000)
+          }else{
+            setErrors({updateErr: 'Something went wrong'})
+          }
+        }).catch((err) => {
+          console.error("Something went wrong",err)
+        })
     }
   };
 
-
   const handleChange = (e) => {
+    setErrors({changes: null})
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -104,12 +122,26 @@ function AdminHomePage() {
                 onChange={handleChange}
               />
               {errors.password && <div className="error">{errors.password}</div>}
+              {errors.notFilledPassword && <div className="error">{errors.notFilledPassword}</div>}
+            </div>
+            <div className="form-group">
+              <label className='form-labels'>Confirm Password</label>
+              <input
+                type="password"
+                className="form-control"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+              />
+              {errors.notMatching && <div className="error">{errors.notMatching}</div>}
             </div>
             <div className='d-flex gap-2'>
               <button type="submit" className="btn btn-success mt-3 w-50">Save</button>
               <button className="btn btn-primary mt-3 w-50" onClick={(()=> handleCancelEdit())}>Cancel</button>
             </div>
-
+            {success.update && <div className="success alignText">{success.update}</div>}
+            {errors.updateErr && <div className="error alignText">{errors.updateErr}</div>}
+            {errors.changes && <div className="error alignText">{errors.changes}</div>}
           </form>
         </div>
       )}

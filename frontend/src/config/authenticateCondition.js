@@ -50,8 +50,17 @@ const signUpAuthenticate = (username, email, password, confirmPassword) => {
     return newErrors
 }
 
-const updateUserAuthenticate = async(username, email, password) => {
+const updateUserAuthenticate = async (username, email, password, confirmPassword, changes) => {
+    console.log(changes);
     const newErrors = {};
+    if (changes.username === username &&
+        changes.email === email &&
+        changes.newPassword === password &&
+        changes.confirmPassword === confirmPassword
+    ) {
+        console.log('nothing changed');
+        newErrors.changes = 'Need to change something to save'
+    }
     if (!username) {
         newErrors.username = 'Username is required.';
     } else if (username.length < 4) {
@@ -64,12 +73,23 @@ const updateUserAuthenticate = async(username, email, password) => {
         newErrors.email = 'Invalid email format.';
     }
 
-    if(password !== ''){
-        if(!validatePassword(password)){
+    if (password !== '') {
+        if (!validatePassword(password)) {
             newErrors.password = 'Password must be at least 8 characters long and contain at least one letter and one number.';
+        }
+        else if (password !== confirmPassword) {
+            newErrors.notMatching = 'Passwords do not match'
+        }
+    }
+
+    if(confirmPassword !== ''){
+        if (password === '') {
+            newErrors.notFilledPassword = 'Enter the new password'
         }
     }
     return newErrors
 }
+
+
 
 export { loginAuthenticate, signUpAuthenticate, updateUserAuthenticate }
