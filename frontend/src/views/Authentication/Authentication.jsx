@@ -124,8 +124,8 @@ function Authentication() {
                 }else{
                   navigate("/admin")
                 }
-              }, 3000)
-              setCountdown(3)
+              },1000)
+              setCountdown(1)
             } else {
               setErrors({ unAuthorised: 'Wrong Email or Password' })
             }

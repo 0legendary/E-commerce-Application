@@ -6,7 +6,7 @@ const router = Router();
 router.get('/get-users', authenticateToken, async (req, res) => {
     const db = getDB()
     try {
-        const users = await db.collection(Collections.users).find().toArray();
+        const users = await db.collection(Collections.users).find({}, { projection: { password: 0 } }).toArray();
         res.status(200).json(users);
     } catch (error) {
         res.status(500).json({ message: 'Failed to fetch users' });
