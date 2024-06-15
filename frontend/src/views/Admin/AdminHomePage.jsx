@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../../config/axiosConfig';
 import '../Admin/adminDesign.css'
+import { updateUserAuthenticate } from '../../config/authenticateCondition';
 function AdminHomePage() {
   const [users, setUsers] = useState([])
   const [formData, setFormData] = useState({})
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     axiosInstance.get('/admin/get-users')
@@ -41,12 +43,18 @@ function AdminHomePage() {
 
   const handleCancelEdit = () => {
     setFormData({})
+    console.log(errors);
+
   }
 
-  const handleSubmit = (e) => {
+  const handleUpdate = async (e) => {
     e.preventDefault();
-
-    console.log(formData);
+    const validationErrors = await updateUserAuthenticate(formData.username, formData.email, formData.newPassword);
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length === 0) {
+      console.log('Validation passed, proceed with update');
+      
+    }
   };
 
 
@@ -61,7 +69,7 @@ function AdminHomePage() {
       {Object.keys(formData).length > 0 && (
         <div className="update-form">
           <h2 className='d-flex justify-content-center txt-heading'>Update User</h2>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleUpdate}>
             <div className="form-group">
               <label className='form-labels'>Username</label>
               <input
@@ -72,6 +80,7 @@ function AdminHomePage() {
                 onChange={handleChange}
                 required
               />
+              {errors.username && <div className="error">{errors.username}</div>}
             </div>
             <div className="form-group">
               <label className='form-labels'>Email</label>
@@ -83,6 +92,7 @@ function AdminHomePage() {
                 onChange={handleChange}
                 required
               />
+              {errors.email && <div className="error">{errors.email}</div>}
             </div>
             <div className="form-group">
               <label className='form-labels'>New Password</label>
@@ -93,6 +103,7 @@ function AdminHomePage() {
                 value={formData.newPassword}
                 onChange={handleChange}
               />
+              {errors.password && <div className="error">{errors.password}</div>}
             </div>
             <div className='d-flex gap-2'>
               <button type="submit" className="btn btn-success mt-3 w-50">Save</button>

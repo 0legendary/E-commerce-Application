@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axiosInstance from '../../config/axiosConfig';
 import './authentication.css';
 import { useNavigate } from 'react-router-dom';
-
+import { loginAuthenticate, signUpAuthenticate } from '../../config/authenticateCondition';
 
 function Authentication() {
   const [activeTab, setActiveTab] = useState('login');
@@ -40,6 +40,7 @@ function Authentication() {
     // })
   };
 
+
   const handleChange = (e) => {
     const { id, value } = e.target;
     setFormData({
@@ -54,52 +55,14 @@ function Authentication() {
 
   };
 
-  const validateEmail = (email) => {
-    const condition = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return condition.test(email);
-  };
-
-  const validatePassword = (password) => {
-    const condition = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-    return condition.test(password);
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newErrors = {};
+    
+    let newErrors = {};
     if (activeTab === 'login') {
-      if (!formData.email) {
-        newErrors.email = 'Email is required.';
-      } else if (!validateEmail(formData.email)) {
-        newErrors.email = 'Invalid email format.';
-      }
-      if (!formData.password) {
-        newErrors.password = 'Password is required.';
-      }
+      newErrors = loginAuthenticate(formData.email, formData.password)
     } else {
-      if (!formData.username) {
-        newErrors.username = 'Username is required.';
-      } else if (formData.username.length < 4) {
-        newErrors.username = 'Username must be at least 4 characters long.';
-      }
-
-      if (!formData.email) {
-        newErrors.email = 'Email is required.';
-      } else if (!validateEmail(formData.email)) {
-        newErrors.email = 'Invalid email format.';
-      }
-
-      if (!formData.password) {
-        newErrors.password = 'Password is required.';
-      } else if (!validatePassword(formData.password)) {
-        newErrors.password = 'Password must be at least 8 characters long and contain at least one letter and one number.';
-      }
-
-      if (!formData.confirmPassword) {
-        newErrors.confirmPassword = 'Confirm Password is required.';
-      } else if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = 'Passwords do not match.';
-      }
+      newErrors = signUpAuthenticate(formData.username,formData.email,formData.password,formData.confirmPassword)
     }
 
     setErrors(newErrors);
@@ -110,7 +73,6 @@ function Authentication() {
           email: formData.email,
           password: formData.password,
         };
-        //console.log('Login Data:', loginData);
         axiosInstance.post('/login', loginData)
           .then(response => {
             console.log('Login response:', response.data);
