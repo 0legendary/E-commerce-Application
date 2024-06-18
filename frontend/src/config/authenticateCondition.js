@@ -9,7 +9,7 @@ const validatePassword = (password) => {
 };
 
 const loginAuthenticate = (email, password) => {
-    const newErrors = {};
+    let newErrors = {};
     if (!email) {
         newErrors.email = 'Email is required.';
     } else if (!validateEmail(email)) {
@@ -21,8 +21,9 @@ const loginAuthenticate = (email, password) => {
     return newErrors
 }
 
+
 const signUpAuthenticate = (username, email, password, confirmPassword) => {
-    const newErrors = {};
+    let newErrors = {};
     if (!username) {
         newErrors.username = 'Username is required.';
     } else if (username.length < 4) {
@@ -52,7 +53,7 @@ const signUpAuthenticate = (username, email, password, confirmPassword) => {
 
 const updateUserAuthenticate = async (username, email, password, confirmPassword, changes) => {
     console.log(changes);
-    const newErrors = {};
+    let newErrors = {};
     if (changes.username === username &&
         changes.email === email &&
         changes.newPassword === password &&
@@ -84,11 +85,12 @@ const updateUserAuthenticate = async (username, email, password, confirmPassword
 
     if(confirmPassword !== ''){
         if (password === '') {
-            newErrors.notFilledPassword = 'Enter the new password'
+            newErrors.notFilledPassword = 'New password is required'
         }
     }
     return newErrors
 }
+
 
 
 

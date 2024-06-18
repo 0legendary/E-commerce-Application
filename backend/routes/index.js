@@ -19,6 +19,7 @@ const createAdmin = async () => {
 }
 
 
+
 router.post('/login', async (req, res) => {
   const { email, password } = req.body
   const db = getDB();
@@ -58,8 +59,17 @@ router.post('/signup', async (req, res) => {
       res.status(200).json({ status: false, message: 'Username is already taken' });
     } else {
       const hashedPassword = await bcrypt.hash(password, 10);
-      await db.collection(Collections.users).insertOne({ username, email, password: hashedPassword, createdAt: new Date() });
-      res.status(201).json({ status: true, message: 'User created successfully' });
+      const createdAt = new Date() 
+      const insertion = await db.collection(Collections.users).insertOne({ username, email, password: hashedPassword, createdAt: createdAt});
+      console.log(insertion);
+      if(insertion.insertedId){
+        const created ={
+          _id : insertion.insertedId,
+          createdAt: createdAt
+        }
+        res.status(201).json({ status: true, message: 'User created successfully',created });
+      }
+      
     }
   } catch (error) {
     res.status(500).json({ status: false, message: 'Server error' });

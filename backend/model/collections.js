@@ -1,6 +1,7 @@
 const collections = {
     users: 'users',
-    admin: 'admin'
+    admin: 'admin',
+    trashUsers: 'trashUsers'
 };
 
 export default collections;
