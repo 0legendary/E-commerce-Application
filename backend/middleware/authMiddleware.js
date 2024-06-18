@@ -2,23 +2,35 @@ import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv';
 dotenv.config();
 
-const authenticateToken = (req,res,next) => {
-    //console.log('trying1');
+const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization']
     const token = authHeader && authHeader.split(' ')[1]
-    if(token == null) return res.status(401)
-    //console.log('trying2');
-    
+    if (token == null) return res.status(401)   
+
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-        //console.log('trying3');
-        if(err) return res.status(401); 
+        if (err) return res.status(401);
         req.user = user
+        if (req.user.isAdmin) return res.status(401)
         next()
     })
 }
 
-const generateAccessToken = (user) => {
-    return  jwt.sign({ username: user }, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '15m'})
+const authenticateTokenAdmin = (req, res, next) => {
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+    if (token == null) return res.status(401)   
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+        if (err) return res.status(401);
+        req.user = user
+        if (!req.user.isAdmin) return res.status(401)
+        next()
+    })
 }
 
-export {authenticateToken, generateAccessToken}
+
+const generateAccessToken = (user) => {
+    return jwt.sign({ username: user.username, isAdmin: user.isAdmin }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' })
+}
+
+export { authenticateToken, generateAccessToken, authenticateTokenAdmin }

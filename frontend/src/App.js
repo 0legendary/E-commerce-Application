@@ -13,7 +13,9 @@ import UserHomePage from './views/User/UserHomePage';
 import AdminHeader from './views/Admin/AdminHeader'
 import AdminHomePage from './views/Admin/AdminHomePage'
 import PrivateRoute from './views/MiddleWare/PrivateRoute';
+import PrivateRouteAdmin from './views/MiddleWare/PrivateRouteAdmin';
 import { useEffect } from 'react';
+
 
 const UserLayout = () => {
   return (
@@ -37,7 +39,7 @@ function App() {
   useEffect(() => {
     const checkTokenExp = () => {
       const token = sessionStorage.getItem('accessToken')
-      if(token && isTokenExpired(token)){
+      if (token && isTokenExpired(token)) {
         sessionStorage.removeItem('accessToken')
         window.location.href = '/authentication'
       }
@@ -45,22 +47,25 @@ function App() {
     const intervalId = setInterval(checkTokenExp, 1000);
 
     return () => clearInterval(intervalId);
-  },[])
+  }, [])
 
   const router = createBrowserRouter(
     createRoutesFromElements(
       <Route>
         <Route path="/authentication" element={<AuthenticationPage />}></Route>
 
-        <Route element={<PrivateRoute/>}>
+        <Route element={<PrivateRoute />}>
           <Route path="/" element={<UserLayout />}>
             <Route index element={<UserHomePage />} />
           </Route>
-
+        </Route>
+        <Route element={<PrivateRouteAdmin/>}>
           <Route path='/admin' element={<AdminLayout />}>
             <Route index element={<AdminHomePage />} />
           </Route>
         </Route>
+
+
       </Route>
     )
   );

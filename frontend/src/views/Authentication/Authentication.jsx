@@ -8,8 +8,8 @@ function Authentication() {
   const [activeTab, setActiveTab] = useState('login');
   const [formData, setFormData] = useState({
     username: '',
-    email: 'admin@gmail.com',
-    password: 'admin123',
+    email: 'user@gmail.com',
+    password: 'a1234567',
     confirmPassword: 'a1234567',
   });
   const [countdown, setCountdown] = useState(null);
@@ -75,7 +75,6 @@ function Authentication() {
         };
         axiosInstance.post('/login', loginData)
           .then(response => {
-            console.log('Login response:', response.data);
             if (response.data.status) {
               sessionStorage.setItem('accessToken', response.data.accessToken);
               setErrors({})
@@ -105,9 +104,7 @@ function Authentication() {
         };
         axiosInstance.post('/signup', signupData)
           .then(response => {
-            if (response.data.status) {
-              //console.log(response.data.accessToken);
-              
+            if (response.data.status) {              
               setSuccessMsg('Account created successfully')
               setErrors({})
               setTimeout(() => {

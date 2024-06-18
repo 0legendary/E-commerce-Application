@@ -3,13 +3,13 @@ import { Navigate, Outlet } from 'react-router-dom';
 import axiosInstance from '../../config/axiosConfig';
 
 
-const PrivateRoute = () => {
+const PrivateRouteAdmin = () => {
 
   const [isVerified, setIsVerified] = useState(null);
   useEffect(() => {
     const verifyToken = async () => {
       try {
-        const response = await axiosInstance.post('/verify-token')
+        const response = await axiosInstance.post('/verify-token-admin')
         if (response.status === 200) {
           setIsVerified(true);
         } else {
@@ -31,4 +31,4 @@ const PrivateRoute = () => {
   return isVerified ? <Outlet /> : <Navigate to='/authentication' />;
 };
 
-export default PrivateRoute;
+export default PrivateRouteAdmin;

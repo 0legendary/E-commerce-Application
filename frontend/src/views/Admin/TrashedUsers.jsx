@@ -10,7 +10,6 @@ function TrashedUsers({invokeTrash}) {
     useEffect(() => {
         axiosInstance.get('/admin/trashed-users')
             .then((response) => {
-                //console.log(response.data);
                 setTrashedUsers(response.data)
             })
             .catch((err) => {

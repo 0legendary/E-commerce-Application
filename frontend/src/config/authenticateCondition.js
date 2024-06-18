@@ -52,14 +52,12 @@ const signUpAuthenticate = (username, email, password, confirmPassword) => {
 }
 
 const updateUserAuthenticate = async (username, email, password, confirmPassword, changes) => {
-    console.log(changes);
     let newErrors = {};
     if (changes.username === username &&
         changes.email === email &&
         changes.newPassword === password &&
         changes.confirmPassword === confirmPassword
     ) {
-        console.log('nothing changed');
         newErrors.changes = 'Need to change something to save'
     }
     if (!username) {
@@ -92,6 +90,22 @@ const updateUserAuthenticate = async (username, email, password, confirmPassword
 }
 
 
+const formatDate = (dateString) => {
+    const date = new Date(dateString);
 
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const month = monthNames[date.getMonth()];
+    const day = date.getDate().toString().padStart(2, '0');
 
-export { loginAuthenticate, signUpAuthenticate, updateUserAuthenticate }
+    let hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+
+    const formattedTime = `${hours}:${minutes} ${ampm}`;
+    return `${month} - ${day} ⏱️${formattedTime}`;
+  }
+
+export { loginAuthenticate, signUpAuthenticate, updateUserAuthenticate, formatDate }

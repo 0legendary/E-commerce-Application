@@ -16,10 +16,8 @@ axiosInstance.interceptors.request.use(config => {
 })
 
 axiosInstance.interceptors.response.use(response => {
-    //console.log('response',response);
     return response;
 }, error => {
-    console.log('error',error);
     if (error.response && error.response.status === 401) {
         console.error('Token expired or invalid, redirecting to login');
         sessionStorage.removeItem('accessToken');

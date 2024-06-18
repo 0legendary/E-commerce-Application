@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import { getDB, Collections } from '../config/db.js';
-import { authenticateToken } from '../middleware/authMiddleware.js';
+import { authenticateTokenAdmin } from '../middleware/authMiddleware.js';
 import { ObjectId } from 'mongodb';
 import bcrypt from 'bcrypt';
 
 const router = Router();
 
-router.get('/get-users', authenticateToken, async (req, res) => {
+router.get('/get-users', authenticateTokenAdmin, async (req, res) => {
     const db = getDB()
     try {
         const users = await db.collection(Collections.users).find({}, { projection: { password: 0 } }).toArray();
@@ -17,7 +17,7 @@ router.get('/get-users', authenticateToken, async (req, res) => {
 })
 
 
-router.post('/update-user', authenticateToken, async (req, res) => {
+router.post('/update-user', authenticateTokenAdmin, async (req, res) => {
     const { _id, username, email, newPassword } = req.body
     const db = getDB()
     const userId = ObjectId.createFromHexString(_id);
@@ -41,7 +41,7 @@ router.post('/update-user', authenticateToken, async (req, res) => {
     }
 })
 
-router.delete('/delete-user', authenticateToken, async (req, res) => {
+router.delete('/delete-user', authenticateTokenAdmin, async (req, res) => {
     const { status, _id } = req.body
     if (!_id) return res.status(404).json({ status: false })
     const db = getDB()
@@ -69,7 +69,7 @@ router.delete('/delete-user', authenticateToken, async (req, res) => {
     }
 })
 
-router.get('/trashed-users', authenticateToken, async (req, res) => {
+router.get('/trashed-users', authenticateTokenAdmin, async (req, res) => {
     const db = getDB()
     try {
         const users = await db.collection(Collections.trashUsers).find({}, { projection: { password: 0 } }).toArray();
@@ -79,7 +79,7 @@ router.get('/trashed-users', authenticateToken, async (req, res) => {
     }
 })
 
-router.post('/delete-users-trash', authenticateToken, async (req, res) => {
+router.post('/delete-users-trash', authenticateTokenAdmin, async (req, res) => {
     
     const  _id  = req.body.data
 
@@ -102,7 +102,7 @@ router.post('/delete-users-trash', authenticateToken, async (req, res) => {
 })
 
 
-router.post('/delete-trashed-user', authenticateToken, async (req, res) => {
+router.post('/delete-trashed-user', authenticateTokenAdmin, async (req, res) => {
     const  _id  = req.body.data
     if (!_id) return res.status(404).json({ status: false })
     const db = getDB()

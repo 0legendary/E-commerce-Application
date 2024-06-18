@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../../config/axiosConfig';
 import '../Admin/adminDesign.css'
-import { updateUserAuthenticate, signUpAuthenticate } from '../../config/authenticateCondition';
+import { updateUserAuthenticate, signUpAuthenticate, formatDate } from '../../config/authenticateCondition';
 import TrashedUsers from './TrashedUsers';
 function AdminHomePage() {
   const [users, setUsers] = useState([])
@@ -20,27 +20,9 @@ function AdminHomePage() {
   }, []);
 
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const month = monthNames[date.getMonth()];
-    const day = date.getDate().toString().padStart(2, '0');
-
-    let hours = date.getHours();
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12;
-    hours = hours ? hours : 12;
-
-    const formattedTime = `${hours}:${minutes} ${ampm}`;
-    return `${month} - ${day} ⏱️${formattedTime}`;
-  }
 
   const handleEdit = (objID) => {
     const user = users && users.filter((data) => data._id === objID)
-    console.log(user[0]);
     setChanges({ username: user[0].username, email: user[0].email, newPassword: '', confirmPassword: '' })
     setFormData({ _id: user[0]._id, username: user[0].username, email: user[0].email, newPassword: '', confirmPassword: '' })
   }
@@ -100,11 +82,9 @@ function AdminHomePage() {
       axiosInstance.post('/signup', signupData)
         .then(response => {
           const ResData = response.data
-          console.log(ResData);
           if (ResData.status) {
             setSuccess({ update: 'Account created successfully' })
             setErrors({})
-            console.log({_id:ResData.created._id,username: formData.username,email: formData.email,createdAt:ResData.created.createdAt});
             const newUser = {
               _id: ResData.created._id,
               username: formData.username,
@@ -148,7 +128,6 @@ function AdminHomePage() {
     }
     axiosInstance.delete('/admin/delete-user',{ data: reqData })
       .then((response) => {
-        console.log(response);
         if(response.data.status){
           setUsers((prevUsers) => prevUsers.filter(user => user._id !== deltUserId._id));
           setSuccess({update:status ? 'Deleted successfully' : 'Moved to Trash'})
