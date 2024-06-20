@@ -47,8 +47,8 @@ function TrashedUsers({invokeTrash}) {
     return (
         <div >
             {trashedUsers.length > 0 ? (
-                <table class="table ">
-                    <thead class="thead-dark">
+                <table className="table ">
+                    <thead className="thead-dark">
                         <tr>
                             <th scope="col">No.</th>
                             <th scope="col">User Name</th>
