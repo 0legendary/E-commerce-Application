@@ -6,15 +6,27 @@ import { loginAuthenticate, signUpAuthenticate } from '../../config/authenticate
 
 function Authentication() {
   const [activeTab, setActiveTab] = useState('login');
+  const [countdown, setCountdown] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [successMsg, setSuccessMsg] = useState('')
   const [formData, setFormData] = useState({
     username: '',
     email: 'admin@gmail.com',
     password: 'admin123',
     confirmPassword: 'a1234567',
   });
-  const [countdown, setCountdown] = useState(null);
-  const [errors, setErrors] = useState({});
-  const [successMsg, setSuccessMsg] = useState('')
+
+  // useEffect(() => {
+  //   if(sessionStorage.getItem('accessToken')){
+  //     axiosInstance.post('/verify-login')
+  //     .then((res)=>{
+  //       console.log(res.data);
+  //       if(res.data.Admin)navigate('/admin');
+  //       if(!res.data.Admin) navigate('/');
+  //     })
+  //   }
+  // }, [])
+
   const navigate = useNavigate()
   const handleLoginClick = () => {
     setSuccessMsg('')
@@ -50,19 +62,19 @@ function Authentication() {
     setErrors({
       ...errors,
       [id]: '',
-      unAuthorised:''
+      unAuthorised: ''
     });
 
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     let newErrors = {};
     if (activeTab === 'login') {
       newErrors = loginAuthenticate(formData.email, formData.password)
     } else {
-      newErrors = signUpAuthenticate(formData.username,formData.email,formData.password,formData.confirmPassword)
+      newErrors = signUpAuthenticate(formData.username, formData.email, formData.password, formData.confirmPassword)
     }
 
     setErrors(newErrors);
@@ -80,12 +92,12 @@ function Authentication() {
               setErrors({})
               setSuccessMsg('Login successful')
               setTimeout(() => {
-                if(response.data.control === 'user'){
+                if (response.data.control === 'user') {
                   navigate("/")
-                }else{
+                } else {
                   navigate("/admin")
                 }
-              },1000)
+              }, 1000)
               setCountdown(1)
             } else {
               setErrors({ unAuthorised: 'Wrong Email or Password' })
@@ -104,13 +116,13 @@ function Authentication() {
         };
         axiosInstance.post('/signup', signupData)
           .then(response => {
-            if (response.data.status) {              
+            if (response.data.status) {
               setSuccessMsg('Account created successfully')
               setErrors({})
               setTimeout(() => {
                 handleLoginClick()
               }, 1000)
-              
+
             } else {
               setErrors({ username: 'Already taken, try another one' })
             }

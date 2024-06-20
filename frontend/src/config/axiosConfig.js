@@ -10,6 +10,16 @@ axiosInstance.interceptors.request.use(config => {
     if(!token && config.url !== '/login' && config.url !== '/login'){
         window.location.href = '/authentication'
     }
+    if(!token && config.url === '/authentication'){
+        console.log('hello');
+        axiosInstance.post('/verify-login')
+        .then((res) => {
+            console.log(res);
+        })
+        .catch((err)=> {
+            console.log(err);
+        })
+    }
     if(token) config.headers.Authorization = `Bearer ${token}`;
     return config
 }, error => {

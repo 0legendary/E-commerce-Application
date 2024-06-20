@@ -14,6 +14,7 @@ import AdminHeader from './views/Admin/AdminHeader'
 import AdminHomePage from './views/Admin/AdminHomePage'
 import PrivateRoute from './views/MiddleWare/PrivateRoute';
 import PrivateRouteAdmin from './views/MiddleWare/PrivateRouteAdmin';
+import LoginMiddleware from './views/MiddleWare/LoginMiddleware'
 import { useEffect } from 'react';
 
 
@@ -52,20 +53,19 @@ function App() {
   const router = createBrowserRouter(
     createRoutesFromElements(
       <Route>
-        <Route path="/authentication" element={<AuthenticationPage />}></Route>
-
+        <Route element={<LoginMiddleware />}>
+          <Route path="/authentication" element={<AuthenticationPage />}></Route>
+        </Route>
         <Route element={<PrivateRoute />}>
           <Route path="/" element={<UserLayout />}>
             <Route index element={<UserHomePage />} />
           </Route>
         </Route>
-        <Route element={<PrivateRouteAdmin/>}>
+        <Route element={<PrivateRouteAdmin />}>
           <Route path='/admin' element={<AdminLayout />}>
             <Route index element={<AdminHomePage />} />
           </Route>
         </Route>
-
-
       </Route>
     )
   );

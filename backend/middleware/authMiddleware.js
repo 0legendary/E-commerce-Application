@@ -28,9 +28,21 @@ const authenticateTokenAdmin = (req, res, next) => {
     })
 }
 
+const CheckAlreadyLogin = (req, res, next) => {
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+    if (token == null) next()
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+        if (err) return next()
+        req.user = user
+        next()
+    })
+}
+
 
 const generateAccessToken = (user) => {
     return jwt.sign({ username: user.username, isAdmin: user.isAdmin }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' })
 }
 
-export { authenticateToken, generateAccessToken, authenticateTokenAdmin }
+export { authenticateToken, generateAccessToken, authenticateTokenAdmin,CheckAlreadyLogin }

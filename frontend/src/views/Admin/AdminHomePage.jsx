@@ -206,7 +206,7 @@ function AdminHomePage() {
             placeholderText="Select a date"
             className="form-control create-user-btn"
           />
-          <input class="form-control create-user-btn mx-0" type="search" placeholder="Search" aria-label="Search" value={searchQuery}
+          <input className="form-control create-user-btn mx-0" type="search" placeholder="Search" aria-label="Search" value={searchQuery}
             onChange={handleSearch}></input>
         </div>
       </div>
