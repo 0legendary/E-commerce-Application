@@ -3,6 +3,11 @@ import axiosInstance from '../../config/axiosConfig';
 import '../Admin/adminDesign.css'
 import { updateUserAuthenticate, signUpAuthenticate, formatDate } from '../../config/authenticateCondition';
 import TrashedUsers from './TrashedUsers';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+import moment from 'moment';
+
 function AdminHomePage() {
   const [users, setUsers] = useState([])
   const [formData, setFormData] = useState({})
@@ -13,6 +18,10 @@ function AdminHomePage() {
   const [deleteUser, setDeleteUser] = useState(false)
   const [deltUserId, setDeltUserId] = useState({})
   const [trasehedUsers, setTrasehedUsers] = useState(false)
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDate, setSelectedDate] = useState(null);
+
   useEffect(() => {
     axiosInstance.get('/admin/get-users')
       .then(response => setUsers(response.data))
@@ -34,7 +43,7 @@ function AdminHomePage() {
     setFormData({ _id: '', username: '', email: '', newPassword: '', confirmPassword: '' })
   }
 
-  
+
 
   const handleCancelEdit = () => {
     setFormData({})
@@ -78,7 +87,7 @@ function AdminHomePage() {
         username: formData.username,
         email: formData.email,
         password: formData.newPassword,
-       };
+      };
       axiosInstance.post('/signup', signupData)
         .then(response => {
           const ResData = response.data
@@ -109,16 +118,16 @@ function AdminHomePage() {
   }
 
   const handleChange = (e) => {
-    setErrors({changes: null})
+    setErrors({ changes: null })
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
 
-  const handleDeleteBtn = (objID,username) => {
+  const handleDeleteBtn = (objID, username) => {
     setDeleteUser(true)
-    setDeltUserId({_id: objID, username: username})
+    setDeltUserId({ _id: objID, username: username })
   }
 
   const handelDeleteUser = (status) => {
@@ -126,17 +135,17 @@ function AdminHomePage() {
       status: status,
       _id: deltUserId._id
     }
-    axiosInstance.delete('/admin/delete-user',{ data: reqData })
+    axiosInstance.delete('/admin/delete-user', { data: reqData })
       .then((response) => {
-        if(response.data.status){
+        if (response.data.status) {
           setUsers((prevUsers) => prevUsers.filter(user => user._id !== deltUserId._id));
-          setSuccess({update:status ? 'Deleted successfully' : 'Moved to Trash'})
-          setTimeout(()=>{
+          setSuccess({ update: status ? 'Deleted successfully' : 'Moved to Trash' })
+          setTimeout(() => {
             setDeleteUser(false)
             setErrors({})
             setSuccess({})
-          },1500)
-        }else{
+          }, 1500)
+        } else {
           setErrors({ updateErr: 'Something went wrong' })
         }
       })
@@ -155,19 +164,61 @@ function AdminHomePage() {
   const RefreshRestoredUser = (data) => {
     setUsers(prevUsers => [...prevUsers, ...data]);
   }
+
+  useEffect(() => {
+    let results = users;
+    if (searchQuery) {
+      results = results.filter(user =>
+        user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    if (selectedDate) {
+      const formattedDate = moment(selectedDate).format('YYYY-MM-DD');
+      results = results.filter(user => moment(user.createdAt).format('YYYY-MM-DD') === formattedDate);
+    }
+    setFilteredUsers(results);
+
+  }, [searchQuery, users, selectedDate]);
+
+  const handleSearch = (event) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+  };
+
+
   return (
     <div className="container mt-5">
-      <button className='create-user-btn btn btn-success' onClick={() => ShowUserBtn()}>Show Users </button>
-      <button className='create-user-btn btn btn-success' onClick={() => handleNewUser()}>Create New User ➕</button>
-      <button className='create-user-btn btn btn-success' onClick={() => handleTrasedUser()}>Trashed User 🗑️</button>
+      <div className='d-flex align-items-center justify-content-between'>
+        <div>
+          <button className='create-user-btn btn btn-success' onClick={() => ShowUserBtn()}>Show Users </button>
+          <button className='create-user-btn btn btn-success' onClick={() => handleNewUser()}>Create New User ➕</button>
+          <button className='create-user-btn btn btn-success' onClick={() => handleTrasedUser()}>Trashed User 🗑️</button>
+        </div>
+        <div className='d-flex gap-3'>
+          <DatePicker
+            selected={selectedDate}
+            onChange={handleDateChange}
+            dateFormat="yyyy-MM-dd"
+            placeholderText="Select a date"
+            className="form-control create-user-btn"
+          />
+          <input class="form-control create-user-btn mx-0" type="search" placeholder="Search" aria-label="Search" value={searchQuery}
+            onChange={handleSearch}></input>
+        </div>
+      </div>
+
       {deleteUser && (
         <div className="update-form bg-dark">
           <h5 className='text-danger d-flex justify-content-center pt-3 pb-3 txt-heading'>Are you sure to delete the user named '{deltUserId.username}' permenantly ?</h5>
           <div className='d-flex gap-2 justify-content-center pb-3'>
-            <button className='btn btn-danger w-50' onClick={()=> handelDeleteUser(true)}>Delete Permenantly</button>
-            <button className='btn btn-warning w-50' onClick={()=> handelDeleteUser(false)}>Move to Trash</button>
+            <button className='btn btn-danger w-50' onClick={() => handelDeleteUser(true)}>Delete Permenantly</button>
+            <button className='btn btn-warning w-50' onClick={() => handelDeleteUser(false)}>Move to Trash</button>
           </div>
-          <button className='btn btn-primary w-100' onClick={()=> handleCancelEdit()}>Cancel Deletion</button>
+          <button className='btn btn-primary w-100' onClick={() => handleCancelEdit()}>Cancel Deletion</button>
           {errors.updateErr && <div className="error alignText">{errors.updateErr}</div>}
           {success.update && <div className="success alignText">{success.update}</div>}
         </div>
@@ -236,26 +287,26 @@ function AdminHomePage() {
       )}
       {!trasehedUsers ? (
         <div className={`row ${Object.keys(formData).length > 0 || deleteUser ? 'blur' : ''}`}>
-        {users.map(user => (
-          <div key={user._id} className="col-lg-4 col-md-6 col-sm-12 mb-4">
-            <div className="card user-card">
-              <div className="card-body">
-                <h5 className="card-title userName">{user.username}</h5>
-                <p className="card-text email">{user.email}</p>
-                <p className="card-text email">{formatDate(user.createdAt)}</p>
-                <div className='d-flex gap-2'>
-                  <button className="btn btn-primary w-50 edit-btn" onClick={() => handleEdit(user._id)}>Edit</button>
-                  <button className="btn btn-danger w-50 dlt-btn" onClick={() => handleDeleteBtn(user._id, user.username)}>Delete</button>
+          {filteredUsers.map(user => (
+            <div key={user._id} className="col-lg-4 col-md-6 col-sm-12 mb-4">
+              <div className="card user-card">
+                <div className="card-body">
+                  <h5 className="card-title userName">{user.username}</h5>
+                  <p className="card-text email">{user.email}</p>
+                  <p className="card-text email">{formatDate(user.createdAt)}</p>
+                  <div className='d-flex gap-2'>
+                    <button className="btn btn-primary w-50 edit-btn" onClick={() => handleEdit(user._id)}>Edit</button>
+                    <button className="btn btn-danger w-50 dlt-btn" onClick={() => handleDeleteBtn(user._id, user.username)}>Delete</button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
-      ):(
-        <TrashedUsers invokeTrash={RefreshRestoredUser}/>
+          ))}
+        </div>
+      ) : (
+        <TrashedUsers invokeTrash={RefreshRestoredUser} />
       )}
-      
+
     </div>
   )
 }

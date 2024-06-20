@@ -8,8 +8,8 @@ function Authentication() {
   const [activeTab, setActiveTab] = useState('login');
   const [formData, setFormData] = useState({
     username: '',
-    email: 'user@gmail.com',
-    password: 'a1234567',
+    email: 'admin@gmail.com',
+    password: 'admin123',
     confirmPassword: 'a1234567',
   });
   const [countdown, setCountdown] = useState(null);
