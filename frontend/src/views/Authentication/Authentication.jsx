@@ -11,45 +11,35 @@ function Authentication() {
   const [successMsg, setSuccessMsg] = useState('')
   const [formData, setFormData] = useState({
     username: '',
-    email: 'admin@gmail.com',
-    password: 'admin123',
-    confirmPassword: 'a1234567',
+    email: '',
+    password: '',
+    confirmPassword: '',
   });
 
-  // useEffect(() => {
-  //   if(sessionStorage.getItem('accessToken')){
-  //     axiosInstance.post('/verify-login')
-  //     .then((res)=>{
-  //       console.log(res.data);
-  //       if(res.data.Admin)navigate('/admin');
-  //       if(!res.data.Admin) navigate('/');
-  //     })
-  //   }
-  // }, [])
 
   const navigate = useNavigate()
   const handleLoginClick = () => {
     setSuccessMsg('')
     setActiveTab('login');
     setErrors({});
-    // setFormData({
-    //   username: '',
-    //   email: '',
-    //   password: '',
-    //   confirmPassword: '',
-    // })
+    setFormData({
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    })
   };
 
   const handleSignUpClick = () => {
     setSuccessMsg('')
     setActiveTab('signup');
     setErrors({});
-    // setFormData({
-    //   username: '',
-    //   email: '',
-    //   password: '',
-    //   confirmPassword: '',
-    // })
+    setFormData({
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    })
   };
 
 
@@ -97,8 +87,8 @@ function Authentication() {
                 } else {
                   navigate("/admin")
                 }
-              }, 1000)
-              setCountdown(1)
+              }, 3000)
+              setCountdown(3)
             } else {
               setErrors({ unAuthorised: 'Wrong Email or Password' })
             }
@@ -121,7 +111,7 @@ function Authentication() {
               setErrors({})
               setTimeout(() => {
                 handleLoginClick()
-              }, 1000)
+              }, 3000)
 
             } else {
               setErrors({ username: 'Already taken, try another one' })
@@ -173,18 +163,16 @@ function Authentication() {
               id="username"
               value={formData.username}
               onChange={handleChange}
-              required
             ></input>
             {errors.username && <div className="error">{errors.username}</div>}
           </>
         )}
         <label htmlFor="email">Email</label>
         <input
-          type="email"
+          type="text"
           id="email"
           value={formData.email}
           onChange={handleChange}
-          required
         ></input>
         {errors.email && <div className="error">{errors.email}</div>}
 
@@ -194,7 +182,6 @@ function Authentication() {
           id="password"
           value={formData.password}
           onChange={handleChange}
-          required
         ></input>
         {errors.password && <div className="error">{errors.password}</div>}
 
@@ -206,7 +193,6 @@ function Authentication() {
               id="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              required
             ></input>
             {errors.confirmPassword && <div className="error">{errors.confirmPassword}</div>}
           </>
