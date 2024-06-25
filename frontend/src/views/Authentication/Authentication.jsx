@@ -59,7 +59,6 @@ function Authentication() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     let newErrors = {};
     if (activeTab === 'login') {
       newErrors = loginAuthenticate(formData.email, formData.password)
@@ -68,7 +67,6 @@ function Authentication() {
     }
 
     setErrors(newErrors);
-
     if (Object.keys(newErrors).length === 0) {
       if (activeTab === 'login') {
         const loginData = {
@@ -103,7 +101,7 @@ function Authentication() {
           username: formData.username,
           email: formData.email,
           password: formData.password,
-        };
+        };        
         axiosInstance.post('/signup', signupData)
           .then(response => {
             if (response.data.status) {

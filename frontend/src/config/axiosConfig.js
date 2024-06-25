@@ -7,11 +7,10 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(config => {
     const token = sessionStorage.getItem('accessToken')
-    if(!token && config.url !== '/login' && config.url !== '/login'){
+    if(!token && config.url !== '/login' && config.url !== '/signup'){
         window.location.href = '/authentication'
     }
     if(!token && config.url === '/authentication'){
-        console.log('hello');
         axiosInstance.post('/verify-login')
         .then((res) => {
             console.log(res);
