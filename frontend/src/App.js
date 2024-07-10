@@ -7,7 +7,7 @@ import {
 
 } from 'react-router-dom';
 import { isTokenExpired } from './config/jwtUtils';
-import UserHeader from './views/User/UserHeader';
+import UserHeader from './views/User/Header/Header'
 import AuthenticationPage from './views/Authentication/Authentication';
 import UserHomePage from './views/User/UserHomePage';
 import AdminHeader from './views/Admin/AdminHeader'
