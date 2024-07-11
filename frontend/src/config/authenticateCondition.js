@@ -3,6 +3,11 @@ const validateEmail = (email) => {
     return condition.test(email);
 };
 
+const valideMobile = (number) => {
+    const mobilePattern = /^[0-9]{10}$/;
+    return mobilePattern.test(number)
+}
+
 const validatePassword = (password) => {
     const condition = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
     return condition.test(password);
@@ -22,7 +27,7 @@ const loginAuthenticate = (email, password) => {
 }
 
 
-const signUpAuthenticate = (username, email, password, confirmPassword) => {
+const signUpAuthenticate = (username, email, mobile, password, confirmPassword) => {
     let newErrors = {};
     if (!username) {
         newErrors.username = 'Username is required.';
@@ -34,6 +39,12 @@ const signUpAuthenticate = (username, email, password, confirmPassword) => {
         newErrors.email = 'Email is required.';
     } else if (!validateEmail(email)) {
         newErrors.email = 'Invalid email format.';
+    }
+
+    if (!mobile) {
+        newErrors.mobile = 'Mobile number is required';
+    } else if (!valideMobile(mobile)) {
+        newErrors.mobile = 'Mobile number must be 10 digits long';
     }
 
     if (!password) {

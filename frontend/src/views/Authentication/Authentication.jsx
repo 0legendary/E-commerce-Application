@@ -12,6 +12,7 @@ function Authentication() {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
+    mobile: '',
     password: '',
     confirmPassword: '',
   });
@@ -25,6 +26,7 @@ function Authentication() {
     setFormData({
       username: '',
       email: '',
+      mobile: '',
       password: '',
       confirmPassword: '',
     })
@@ -37,6 +39,7 @@ function Authentication() {
     setFormData({
       username: '',
       email: '',
+      mobile: '',
       password: '',
       confirmPassword: '',
     })
@@ -63,7 +66,7 @@ function Authentication() {
     if (activeTab === 'login') {
       newErrors = loginAuthenticate(formData.email, formData.password)
     } else {
-      newErrors = signUpAuthenticate(formData.username, formData.email, formData.password, formData.confirmPassword)
+      newErrors = signUpAuthenticate(formData.username, formData.email, formData.mobile, formData.password, formData.confirmPassword)
     }
 
     setErrors(newErrors);
@@ -174,6 +177,18 @@ function Authentication() {
         ></input>
         {errors.email && <div className="error">{errors.email}</div>}
 
+        {activeTab === 'signup' && (
+          <>
+            <label htmlFor="mobile">Mobile number</label>
+            <input
+              type="text"
+              id="mobile"
+              value={formData.mobile}
+              onChange={handleChange}
+            ></input>
+            {errors.mobile && <div className="error">{errors.mobile}</div>}
+          </>
+        )}
         <label htmlFor="password">Password</label>
         <input
           type="password"
