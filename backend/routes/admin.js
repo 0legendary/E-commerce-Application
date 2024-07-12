@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getDB, Collections } from '../config/db.js';
+// import { getDB, Collections } from '../config/db.js';
 import { authenticateTokenAdmin } from '../middleware/authMiddleware.js';
 import { ObjectId } from 'mongodb';
 import bcrypt from 'bcrypt';

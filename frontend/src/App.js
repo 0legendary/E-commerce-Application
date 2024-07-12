@@ -8,7 +8,6 @@ import {
 } from 'react-router-dom';
 import { isTokenExpired } from './config/jwtUtils';
 import UserHeader from './views/User/Header/Header'
-import AuthenticationPage from './views/Authentication/Authentication';
 import UserHomePage from './views/User/UserHomePage';
 import AdminHeader from './views/Admin/AdminHeader'
 import AdminHomePage from './views/Admin/AdminHomePage'
@@ -16,6 +15,9 @@ import PrivateRoute from './views/MiddleWare/PrivateRoute';
 import PrivateRouteAdmin from './views/MiddleWare/PrivateRouteAdmin';
 import LoginMiddleware from './views/MiddleWare/LoginMiddleware'
 import { useEffect } from 'react';
+//import Authentication from './views/Authentication/Authentication';
+import Authentication from './views/User/Authentication/Authentication'
+
 
 
 const UserLayout = () => {
@@ -54,7 +56,7 @@ function App() {
     createRoutesFromElements(
       <Route>
         <Route element={<LoginMiddleware />}>
-          <Route path="/authentication" element={<AuthenticationPage />}></Route>
+          <Route path="/authentication" element={<Authentication />}></Route>
         </Route>
         <Route element={<PrivateRoute />}>
           <Route path="/" element={<UserLayout />}>
