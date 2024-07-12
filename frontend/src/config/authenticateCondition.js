@@ -90,6 +90,24 @@ const updateUserAuthenticate = async (username, email, password, confirmPassword
 }
 
 
+const signUpGoogleAuthenticate = (password, confirmPassword) => {
+    let newErrors = {};
+
+    if (!password) {
+        newErrors.password = 'Password is required.';
+    } else if (!validatePassword(password)) {
+        newErrors.password = 'Password must be at least 8 characters long and contain at least one letter and one number.';
+    }
+
+    if (!confirmPassword) {
+        newErrors.confirmPassword = 'Confirm Password is required.';
+    } else if (password !== confirmPassword) {
+        newErrors.confirmPassword = 'Passwords do not match.';
+    }
+
+    return newErrors
+}
+
 const formatDate = (dateString) => {
     const date = new Date(dateString);
 
@@ -108,4 +126,4 @@ const formatDate = (dateString) => {
     return `${month} - ${day} ⏱️${formattedTime}`;
   }
 
-export { loginAuthenticate, signUpAuthenticate, updateUserAuthenticate, formatDate }
+export { loginAuthenticate, signUpAuthenticate, updateUserAuthenticate, formatDate, signUpGoogleAuthenticate }

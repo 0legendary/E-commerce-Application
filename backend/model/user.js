@@ -10,20 +10,26 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  mobile: {
-    type: String,
-    required: true,
-    unique: true
-  },
   password: {
     type: String,
     required: true,
+  },
+  googleId: {
+    type: String,
+  },
+  profileImg: {
+    type: String,
+  },
+  isGoogleUser: {
+    type: Boolean,
   },
   createdAt: {
     type: Date,
     default: Date.now,
   },
 });
+
+
 
 const User = mongoose.model('User', userSchema);
 

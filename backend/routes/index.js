@@ -59,7 +59,7 @@ const createAdmin = async () => {
 
 
 router.post('/signup', async (req, res) => {
-  const { username, email, password, mobile } = req.body;
+  const { username, email, password } = req.body;
 
   try {
     const existingUser = await User.findOne({ username });
@@ -73,13 +73,53 @@ router.post('/signup', async (req, res) => {
     const newUser = new User({
       name: username,
       email,
-      mobile,
       password: hashedPassword,
+      isGoogleUser:false
     });
 
     // Save user to the database
     const savedUser = await newUser.save();
 
+    // Send success response
+    res.status(201).json({
+      status: true,
+      message: 'User created successfully',
+      created: {
+        _id: savedUser._id,
+        createdAt: savedUser.createdAt,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ status: false, message: 'Server error' });
+    console.error('Signup error:', error);
+  }
+});
+
+
+router.post('/google/signup', async (req, res) => {
+  const { username, email, password, googleId, profileImg } = req.body;
+  console.log(username);
+  try {
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(200).json({ status: false, message: 'Username is already taken' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create new user
+    const newUser = new User({
+      name: username,
+      email,
+      password: hashedPassword,
+      googleId,
+      profileImg,
+      isGoogleUser:true
+    });
+    console.log(newUser);
+    // Save user to the database
+    const savedUser = await newUser.save();
+    console.log(savedUser);
     // Send success response
     res.status(201).json({
       status: true,

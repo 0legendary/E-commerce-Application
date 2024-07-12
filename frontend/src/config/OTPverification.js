@@ -1,0 +1,3 @@
+const sendOTPAuth = (email,name) => {
+    
+}
