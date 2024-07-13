@@ -99,6 +99,29 @@ body {
     cursor: pointer;
 }
 
+.authPage .resend-btn {
+    margin-top: 20px;
+    width: 40%;
+    height: 30px;
+    display: flex;
+    float:right;
+    align-items: center;
+    justify-content: center;
+    background-color: #8c8c8c;
+    color: #080710;
+    padding: 5px 0;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.authPage .btn-disabled{
+    background-color: #5a5a5a;
+    cursor: wait
+}
+
+
 .authPage .selection-div {
     margin-top: 30px;
     display: flex;

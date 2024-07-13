@@ -6,22 +6,24 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import { signUpAuthenticate, signUpGoogleAuthenticate, otpVerification } from '../../../config/authenticateCondition';
 import GoogleAuth from './Google/GoogleAuth';
 import { jwtDecode } from 'jwt-decode'
+import OTPInput from 'react-otp-input';
 
 
 function SignUp({ handleLoginClick, handleSignUpClick }) {
   const [errors, setErrors] = useState({});
-  const [successMsg, setSuccessMsg] = useState('')
+  const [successMsg, setSuccessMsg] = useState({})
   const [countdown, setCountdown] = useState(null);
   const [showManualLogin, setShowManualLogin] = useState(true)
   const [showGooglePass, setShowGooglePass] = useState(false)
   const [showOtpPage, setShowOtpPage] = useState(false)
   const [googleData, setGoogleData] = useState({})
+  const [buttonEnabled, setButtonEnabled] = useState(false); // State to control button enablement
   const [formData, setFormData] = useState({
     username: 'alenmm',
     email: 'alenmullassery123@gmail.com',
     password: 'a1234567',
     confirmPassword: 'a1234567',
-    otp: null
+    otp: ''
   });
 
   //const navigate = useNavigate()
@@ -43,7 +45,11 @@ function SignUp({ handleLoginClick, handleSignUpClick }) {
   useEffect(() => {
     if (countdown === null) return;
     const timer = setTimeout(() => {
-      setCountdown(countdown - 1);
+      if (countdown > 0) {
+        setCountdown(countdown - 1);
+      } else {
+        setButtonEnabled(true); // Enable button when countdown reaches 0
+      }
     }, 1000);
 
     return () => clearTimeout(timer);
@@ -52,7 +58,7 @@ function SignUp({ handleLoginClick, handleSignUpClick }) {
   const openGoogleSignUp = (googleUserData) => {
     const decoded = jwtDecode(googleUserData.credential);
     setShowManualLogin(false)
-     setShowGooglePass(true)
+    setShowGooglePass(true)
     setErrors({})
     const { name, email, picture, sub } = decoded;
     const data = {
@@ -76,14 +82,16 @@ function SignUp({ handleLoginClick, handleSignUpClick }) {
       axiosInstance.post('/otp/verify', { email: googleData.email ? googleData.email : formData.email })
         .then(response => {
           if (response.data.status) {
+            setCountdown(10)
+            setButtonEnabled(false);
             setShowGooglePass(false)
             setShowManualLogin(false)
             setShowOtpPage(true)
-            setSuccessMsg(response.data.message)
+            setSuccessMsg({otpSendMsg: 'New OTP sended'})
             setErrors({})
-            // setTimeout(() => {
-            //   handleLoginClick()
-            // }, 3000)
+            setTimeout(() => {
+              setSuccessMsg('')
+            }, 3000)
 
           } else {
             setShowOtpPage(false)
@@ -115,7 +123,8 @@ function SignUp({ handleLoginClick, handleSignUpClick }) {
       axiosInstance.post('/google/signup', signupData)
         .then(response => {
           if (response.data.status) {
-            setSuccessMsg('Account created successfully')
+            setCountdown(3)
+            setSuccessMsg({accCreation: 'Account created successfully'})
             setErrors({})
             setTimeout(() => {
               handleLoginClick()
@@ -147,12 +156,12 @@ function SignUp({ handleLoginClick, handleSignUpClick }) {
       axiosInstance.post('/signup', signupData)
         .then(response => {
           if (response.data.status) {
-            setSuccessMsg('Account created successfully')
             setErrors({})
+            setCountdown(3)
+            setSuccessMsg({accCreation: 'Account created successfully'})
             setTimeout(() => {
-              handleLoginClick()
+              setSuccessMsg('')
             }, 3000)
-
           } else {
             setErrors({ unAuthorised: response.data.message })
           }
@@ -163,7 +172,7 @@ function SignUp({ handleLoginClick, handleSignUpClick }) {
     }
   };
 
-  
+
 
   return (
     <div>
@@ -251,28 +260,59 @@ function SignUp({ handleLoginClick, handleSignUpClick }) {
               {errors.unAuthorised && <p className='successMsg text-danger'>{errors.unAuthorised}</p>}
               <div className='d-flex gap-2'>
                 <button onClick={sendOTP}>Submit</button>
-                <button onClick={() => {setShowManualLogin(true); setShowGooglePass(false); setShowOtpPage(false)}}>Cancel</button>
+                <button onClick={() => { setShowManualLogin(true); setShowGooglePass(false); setShowOtpPage(false) }}>Cancel</button>
               </div>
-
-
             </>
           )}
           {showOtpPage && (
             <>
-              <label htmlFor="otp">Veify OTP</label>
-              <input
-                type="otp"
-                id="otp"
+              <label className='mb-4' htmlFor="otp">Enter OTP</label>
+              <OTPInput
                 value={formData.otp}
-                onChange={handleChange}
-              ></input>
+                onChange={(otp) => {
+                  setFormData((prevData) => ({
+                    ...prevData,
+                    otp: otp.replace(/[^0-9]/g, ''),
+                  }));
+                  setErrors((prevErrors) => ({
+                    ...prevErrors,
+                    otp: '',
+                    unAuthorised: ''
+                  }));
+                }}
+                numInputs={6}
+                separator={<span>-</span>}
+                inputStyle={{
+                  width: '2.5rem',
+                  height: '2.5rem',
+                  margin: '0 0.5rem',
+                  fontSize: '1rem',
+                  borderRadius: '4px',
+                  border: '1px solid #ccc',
+                }}
+                focusStyle={{
+                  border: '1px solid #007bff',
+                  outline: 'none',
+                }}
+                renderInput={(inputProps) => (
+                  <input {...inputProps} />
+                )}
+              />
+              {buttonEnabled ? (
+                <button className='resend-btn' onClick={sendOTP}>Resend OTP</button>
+              ) : (
+                <button className='resend-btn btn-disabled' disabled>Resend OTP in {countdown}</button>
+              )}
+              {errors.unAuthorised && <div className="error">{errors.unAuthorised}</div>}
               {errors.otp && <div className="error">{errors.otp}</div>}
               <button onClick={googleData.googleId ? handelGoogleSignUp : handleSubmit}>Verify OTP</button>
             </>
           )}
-
-          {successMsg !== '' && (
-            <p className='successMsg text-success'>{successMsg}... <span className='redirect-text'>{countdown && countdown}</span></p>
+          {successMsg.accCreation && (
+            <p className='successMsg text-success'>{successMsg.accCreation}... <span className='redirect-text'>{countdown && countdown}</span></p>
+          )}
+          {successMsg.otpSendMsg && (
+            <p className='successMsg text-success'>{successMsg.otpSendMsg}...</p>
           )}
         </form>
       </div>
