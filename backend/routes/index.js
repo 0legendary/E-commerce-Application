@@ -1,5 +1,7 @@
 import { Router } from 'express';
-import  User  from '../model/user.js';
+import User from '../model/user.js';
+import OTP from '../model/otp.js';
+import { generateOTP, sendOTPEmail } from '../utils/sendEmail.js'
 import bcrypt from 'bcrypt';
 import { authenticateToken, authenticateTokenAdmin, generateAccessToken, CheckAlreadyLogin } from '../middleware/authMiddleware.js';
 
@@ -59,36 +61,69 @@ const createAdmin = async () => {
 
 
 router.post('/signup', async (req, res) => {
-  const { username, email, password } = req.body;
-
+  const { username, email, password, otp } = req.body;
   try {
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
-      return res.status(200).json({ status: false, message: 'Username is already taken' });
+    const findUser = await OTP.findOne({ email });
+    if (findUser.otp === otp.toString()) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create new user
+      const newUser = new User({
+        name: username,
+        email,
+        password: hashedPassword,
+        isGoogleUser: false
+      });
+
+
+      // Save user to the database
+      const savedUser = await newUser.save();
+      await OTP.deleteOne({ email });
+      // Send success response
+      res.status(201).json({
+        status: true,
+        message: 'User created successfully',
+        created: {
+          _id: savedUser._id,
+          createdAt: savedUser.createdAt,
+        },
+      });
+    } else {
+      res.status(201).json({
+        status: false,
+        message: 'OTP not matched',
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ status: false, message: 'Server error' });
+    console.error('Signup error:', error);
+  }
+});
+
+router.post('/otp/verify', async (req, res) => {
+  const { email } = req.body;
+  try {
+    const otp = generateOTP()
+    console.log(otp);
+    const findUserOTP = await OTP.findOne({ email });
+    const findUserData = await User.findOne({ email });
+    if (!findUserData) {
+      if (findUserOTP) {
+        findUserOTP.otp = otp;
+        await findUserOTP.save();
+      } else {
+        const newOTP = new OTP({
+          email,
+          otp
+        });
+        await newOTP.save();
+      }
+      await sendOTPEmail(email, otp);
+      res.status(200).json({ status: true, message: 'OTP sent to your email for verification' });
+    }else{
+      res.status(200).json({ status: false, message: 'This email is already taken, try with another email' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create new user
-    const newUser = new User({
-      name: username,
-      email,
-      password: hashedPassword,
-      isGoogleUser:false
-    });
-
-    // Save user to the database
-    const savedUser = await newUser.save();
-
-    // Send success response
-    res.status(201).json({
-      status: true,
-      message: 'User created successfully',
-      created: {
-        _id: savedUser._id,
-        createdAt: savedUser.createdAt,
-      },
-    });
   } catch (error) {
     res.status(500).json({ status: false, message: 'Server error' });
     console.error('Signup error:', error);
@@ -97,38 +132,38 @@ router.post('/signup', async (req, res) => {
 
 
 router.post('/google/signup', async (req, res) => {
-  const { username, email, password, googleId, profileImg } = req.body;
-  console.log(username);
+  const { username, email, password, googleId, profileImg, otp } = req.body;
   try {
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
-      return res.status(200).json({ status: false, message: 'Username is already taken' });
+    const findUser = await OTP.findOne({ email });
+    if (findUser.otp === otp.toString()) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      // Create new user
+      const newUser = new User({
+        name: username,
+        email,
+        password: hashedPassword,
+        googleId,
+        profileImg,
+        isGoogleUser: true
+      });
+
+      const savedUser = await newUser.save();
+      await OTP.deleteOne({ email });
+
+      res.status(201).json({
+        status: true,
+        message: 'User created successfully',
+        created: {
+          _id: savedUser._id,
+          createdAt: savedUser.createdAt,
+        },
+      });
+    } else {
+      res.status(201).json({
+        status: false,
+        message: 'OTP not matched',
+      });
     }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create new user
-    const newUser = new User({
-      name: username,
-      email,
-      password: hashedPassword,
-      googleId,
-      profileImg,
-      isGoogleUser:true
-    });
-    console.log(newUser);
-    // Save user to the database
-    const savedUser = await newUser.save();
-    console.log(savedUser);
-    // Send success response
-    res.status(201).json({
-      status: true,
-      message: 'User created successfully',
-      created: {
-        _id: savedUser._id,
-        createdAt: savedUser.createdAt,
-      },
-    });
   } catch (error) {
     res.status(500).json({ status: false, message: 'Server error' });
     console.error('Signup error:', error);
@@ -138,3 +173,4 @@ router.post('/google/signup', async (req, res) => {
 
 
 export default router;
+

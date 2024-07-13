@@ -47,8 +47,8 @@ const signUpAuthenticate = (username, email, password, confirmPassword) => {
     } else if (password !== confirmPassword) {
         newErrors.confirmPassword = 'Passwords do not match.';
     }
-
     return newErrors
+
 }
 
 const updateUserAuthenticate = async (username, email, password, confirmPassword, changes) => {
@@ -91,6 +91,7 @@ const updateUserAuthenticate = async (username, email, password, confirmPassword
 
 
 const signUpGoogleAuthenticate = (password, confirmPassword) => {
+    
     let newErrors = {};
 
     if (!password) {
@@ -107,6 +108,22 @@ const signUpGoogleAuthenticate = (password, confirmPassword) => {
 
     return newErrors
 }
+
+
+
+const otpVerification = (otp) => {
+    let newErrors = {};
+
+    if (!otp) {
+        newErrors.otp = 'OTP is required.';
+    }
+    if (otp.length < 6) {
+        newErrors.otp = 'OTP must be at least 6 number long';
+    }
+
+    return newErrors
+}
+
 
 const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -126,4 +143,4 @@ const formatDate = (dateString) => {
     return `${month} - ${day} ⏱️${formattedTime}`;
   }
 
-export { loginAuthenticate, signUpAuthenticate, updateUserAuthenticate, formatDate, signUpGoogleAuthenticate }
+export { loginAuthenticate, signUpAuthenticate, updateUserAuthenticate, formatDate, signUpGoogleAuthenticate, otpVerification }

@@ -3,7 +3,6 @@ import { authenticateToken, authenticateTokenAdmin } from '../middleware/authMid
 // import { getDB, Collections } from '../config/db.js';
 
 const router = Router();
-
 router.post('/get-user', authenticateToken, async (req, res) => {
   const user = req.user.username
   if(user){
