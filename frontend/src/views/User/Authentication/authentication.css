@@ -115,6 +115,22 @@ body {
     border-radius: 5px;
     cursor: pointer;
 }
+.authPage .forgot-pass {
+    margin-top: 7px;
+    width: 40%;
+    height: 0px;
+    display: flex;
+    float:right;
+    align-items: center;
+    justify-content: center;
+    background-color: #ff2c2c00;
+    color: #ff4040;
+    padding: 5px 0;
+    font-size: 12px;
+    font-weight: 400;
+    border-radius: 5px;
+    cursor: pointer;
+}
 
 .authPage .btn-disabled{
     background-color: #5a5a5a;

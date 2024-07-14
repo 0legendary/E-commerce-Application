@@ -109,6 +109,19 @@ const signUpGoogleAuthenticate = (password, confirmPassword) => {
     return newErrors
 }
 
+const validateEmailForOTP = (email) => {
+    let newErrors = {};
+
+    if (!email) {
+        newErrors.email = 'Email is required.';
+    } else if (!validateEmail(email)) {
+        newErrors.email = 'Invalid email format.';
+    }
+
+    return newErrors
+}
+
+
 
 
 const otpVerification = (otp) => {
@@ -143,4 +156,4 @@ const formatDate = (dateString) => {
     return `${month} - ${day} ⏱️${formattedTime}`;
   }
 
-export { loginAuthenticate, signUpAuthenticate, updateUserAuthenticate, formatDate, signUpGoogleAuthenticate, otpVerification }
+export { loginAuthenticate, signUpAuthenticate, updateUserAuthenticate, formatDate, signUpGoogleAuthenticate, otpVerification, validateEmailForOTP }

@@ -58,6 +58,7 @@ router.post('/google/login', async (req, res) => {
   const googleClientId = process.env.CLIENT_ID
   try {
     const response = await axios.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+
     if (response.data.aud !== googleClientId) {
       return res.status(401).json({ status: false, message: 'Invalid token' });
     }
@@ -65,9 +66,9 @@ router.post('/google/login', async (req, res) => {
 
     let user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ status: false, message: 'No account found' })
+      return res.status(200).json({ status: false, message: 'No account found' })
     }
-    if(!user.isGoogleUser){
+    if (!user.isGoogleUser) {
       user.googleId = sub
       user.profileImg = picture
       user.isGoogleUser = true
@@ -76,7 +77,7 @@ router.post('/google/login', async (req, res) => {
     //creating JWT for user for authorization
     const accessToken = generateAccessToken({ email: email, isAdmin: false })
     res.status(200).json({ status: true, accessToken })
-    
+
   } catch (error) {
     res.status(500).json({ status: false, message: 'Server error' });
     console.error('Login error:', error);
@@ -104,12 +105,77 @@ router.post('/otp/verify', async (req, res) => {
 
       }
       await sendOTPEmail(email, otp);
-      
+
       res.status(200).json({ status: true, message: 'OTP sent to your email for verification' });
-    }else{
+    } else {
       res.status(200).json({ status: false, message: 'This email is already taken, try with another email' });
     }
 
+  } catch (error) {
+    res.status(500).json({ status: false, message: 'Server error' });
+    console.error('Signup error:', error);
+  }
+});
+
+
+router.post('/forgot-pass/send-otp', async (req, res) => {
+  const { email } = req.body;
+  try {
+    const otp = generateOTP()
+    console.log(otp);
+    const returnedUser = await User.findOne({ email });
+    if(returnedUser){
+      const findUserOTP = await OTP.findOne({email})
+      if(findUserOTP){
+        findUserOTP.otp = otp
+        await findUserOTP.save()
+      }else{
+        const newOTP = new OTP({
+          email,
+          otp
+        });
+        await newOTP.save();
+      }
+      await sendOTPEmail(email, otp);
+      res.status(200).json({ status: true});
+    }else{
+      res.status(200).json({ status: false});
+    }
+  } catch (error) {
+    res.status(500).json({ status: false, message: 'Server error' });
+    console.error('Signup error:', error);
+  }
+});
+
+router.post('/forgot-pass/reset-password', async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const returnedUser = await User.findOne({ email });
+    if(returnedUser){
+      const hashedPassword = await bcrypt.hash(password, 10);
+      returnedUser.password = hashedPassword;
+      returnedUser.save();
+      res.status(200).json({ status: true});
+    }else{
+      res.status(200).json({ status: false});
+    }
+  } catch (error) {
+    res.status(500).json({ status: false, message: 'Server error' });
+    console.error('Signup error:', error);
+  }
+});
+
+
+router.post('/forgot-pass/verify-otp', async (req, res) => {
+  const { email, otp } = req.body;
+  try {
+    const findUser = await OTP.findOne({ email });
+    if(findUser.otp === otp){
+      await OTP.deleteOne({ email });
+      res.status(200).json({ status: true});
+    }else{
+      res.status(200).json({ status: false});
+    }
   } catch (error) {
     res.status(500).json({ status: false, message: 'Server error' });
     console.error('Signup error:', error);

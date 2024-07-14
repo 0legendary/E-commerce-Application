@@ -48,7 +48,7 @@ function SignUp({ handleLoginClick, handleSignUpClick }) {
       if (countdown > 0) {
         setCountdown(countdown - 1);
       } else {
-        setButtonEnabled(true); // Enable button when countdown reaches 0
+        setButtonEnabled(true);
       }
     }, 1000);
 

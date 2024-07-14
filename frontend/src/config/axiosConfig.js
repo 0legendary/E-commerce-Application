@@ -13,6 +13,10 @@ axiosInstance.interceptors.request.use(config => {
         && config.url !== '/google/signup'
         && config.url !== '/otp/verify'
         && config.url !== '/google/login'
+        && config.url !== '/forgot-pass/send-otp'
+        && config.url !== '/forgot-pass/verify-otp'
+        && config.url !== '/forgot-pass/reset-password'
+
     ) {
         window.location.href = '/authentication'
 
