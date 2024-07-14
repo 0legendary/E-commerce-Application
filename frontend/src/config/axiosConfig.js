@@ -7,20 +7,26 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(config => {
     const token = sessionStorage.getItem('accessToken')
-    if(!token && config.url !== '/login' && config.url !== '/signup' && config.url !== '/google/signup' && config.url !== '/otp/verify'){
+    if (!token 
+        && config.url !== '/login'
+        && config.url !== '/signup'
+        && config.url !== '/google/signup'
+        && config.url !== '/otp/verify'
+        && config.url !== '/google/login'
+    ) {
         window.location.href = '/authentication'
-        
+
     }
-    if(!token && config.url === '/authentication'){
+    if (!token && config.url === '/authentication') {
         axiosInstance.post('/verify-login')
-        .then((res) => {
-            console.log(res);
-        })
-        .catch((err)=> {
-            console.log(err);
-        })
+            .then((res) => {
+                console.log(res);
+            })
+            .catch((err) => {
+                console.log(err);
+            })
     }
-    if(token) config.headers.Authorization = `Bearer ${token}`;
+    if (token) config.headers.Authorization = `Bearer ${token}`;
     return config
 }, error => {
     return Promise.reject(error)

@@ -4,7 +4,7 @@ import SignUp from './SignUp';
 import SignIn from './SignIn';
 
 function Authentication() {
-  const [activeTab, setActiveTab] = useState('signup');
+  const [activeTab, setActiveTab] = useState('signin');
 
   const handleLoginClick = () => {
     setActiveTab('signin');

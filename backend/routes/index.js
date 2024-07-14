@@ -3,6 +3,7 @@ import User from '../model/user.js';
 import OTP from '../model/otp.js';
 import { generateOTP, sendOTPEmail } from '../utils/sendEmail.js'
 import bcrypt from 'bcrypt';
+import axios from 'axios';
 import { authenticateToken, authenticateTokenAdmin, generateAccessToken, CheckAlreadyLogin } from '../middleware/authMiddleware.js';
 
 const router = Router();
@@ -34,30 +35,53 @@ const createAdmin = async () => {
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body
-  const db = getDB();
   try {
-    const user = await db.collection(Collections.users).findOne({ email });
-    const Admin = await db.collection(Collections.admin).findOne({ adminEmail: email });
-    if (!user && !Admin) {
+    const user = await User.findOne({ email });
+    if (!user) {
       return res.status(400).json({ status: false, message: 'Invalid email or password' });
     }
-    const isPasswordValid = user ? await bcrypt.compare(password, user.password) : false;
-    const isPasswordValidAdmin = Admin ? await bcrypt.compare(password, Admin.password) : false;
-    if (!isPasswordValid && !isPasswordValidAdmin) {
+    const isPasswordValid = await bcrypt.compare(password, user.password)
+    if (!isPasswordValid) {
       return res.status(400).json({ status: false, message: 'Invalid email or password' });
     }
     //creating JWT for user for authorization
-    const accessToken = generateAccessToken(user ? { username: user.username, isAdmin: false } : { username: Admin.adminEmail, isAdmin: true })
-    let control = user ? 'user' : 'admin'
-    res.status(200).json({ status: true, control, message: 'Login successful', accessToken })
-
-
+    const accessToken = generateAccessToken({ username: user.username, isAdmin: false })
+    res.status(200).json({ status: true, message: 'Login successful', accessToken })
   } catch (error) {
     res.status(500).json({ status: false, message: 'Server error' });
     console.error('Login error:', error);
   }
 });
 
+router.post('/google/login', async (req, res) => {
+  const { credential } = req.body
+  const googleClientId = process.env.CLIENT_ID
+  try {
+    const response = await axios.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+    if (response.data.aud !== googleClientId) {
+      return res.status(401).json({ status: false, message: 'Invalid token' });
+    }
+    const { email, sub, picture } = response.data;
+
+    let user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ status: false, message: 'No account found' })
+    }
+    if(!user.isGoogleUser){
+      user.googleId = sub
+      user.profileImg = picture
+      user.isGoogleUser = true
+      user.save()
+    }
+    //creating JWT for user for authorization
+    const accessToken = generateAccessToken({ email: email, isAdmin: false })
+    res.status(200).json({ status: true, accessToken })
+    
+  } catch (error) {
+    res.status(500).json({ status: false, message: 'Server error' });
+    console.error('Login error:', error);
+  }
+});
 
 
 router.post('/otp/verify', async (req, res) => {

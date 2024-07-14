@@ -4,6 +4,7 @@ import axiosInstance from '../../../config/axiosConfig';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { useNavigate } from 'react-router-dom';
 import { loginAuthenticate } from '../../../config/authenticateCondition';
+import GoogleAuth from './Google/GoogleAuth';
 
 function SignIn({ handleLoginClick, handleSignUpClick }) {
   const [errors, setErrors] = useState({});
@@ -57,11 +58,7 @@ function SignIn({ handleLoginClick, handleSignUpClick }) {
             setErrors({})
             setSuccessMsg('Login successful')
             setTimeout(() => {
-              if (response.data.control === 'user') {
-                navigate("/")
-              } else {
-                navigate("/admin")
-              }
+              navigate("/")
             }, 3000)
             setCountdown(3)
           } else {
@@ -74,6 +71,28 @@ function SignIn({ handleLoginClick, handleSignUpClick }) {
           console.error('Error sending login data:', error);
         });
 
+    }
+  };
+
+
+  const openGoogleSignIn = async (googleUserData) => {
+    setErrors({})
+    const credential = googleUserData.credential
+
+    try {
+      const response = await axiosInstance.post('/google/login', { credential });
+      if (response.data.status) {
+        sessionStorage.setItem('accessToken', response.data.accessToken);
+        setSuccessMsg('Login successful');
+        setTimeout(() => {
+          navigate("/");
+        }, 3000);
+      } else {
+        setErrors({ unAuthorised: 'This Account is not registered' });
+      }
+    } catch (error) {
+      console.error('Error verifying Google credential:', error);
+      setErrors({ unAuthorised: 'This Account is not registered' });
     }
   };
 
@@ -115,12 +134,16 @@ function SignIn({ handleLoginClick, handleSignUpClick }) {
           {errors.password && <div className="error">{errors.password}</div>}
 
 
+          
+          <div className='d-flex justify-content-end mt-3'>
+            <GoogleAuth onSuccess={openGoogleSignIn} onError={() => setErrors({ unAuthorised: 'Something went wrong, try again later' })} />
+          </div>
           {errors.unAuthorised && <p className='successMsg text-danger'>{errors.unAuthorised}</p>}
-          <i class="bi bi-google"></i>
           <button type="submit">Sign In</button>
           {successMsg !== '' && (
             <p className='successMsg text-success'>{successMsg}... <span className='redirect-text'>{countdown && countdown}</span></p>
           )}
+          
         </form>
       </div>
     </div>

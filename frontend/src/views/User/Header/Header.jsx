@@ -1,8 +1,12 @@
 import React from 'react'
 import './header.css'
+import { useNavigate } from 'react-router-dom'
+
 function Header() {
+    const navigate = useNavigate()
     const deleteAcessToken = () => {
         sessionStorage.removeItem('accessToken')
+        navigate('/authentication')
     }
     return (
         <div>

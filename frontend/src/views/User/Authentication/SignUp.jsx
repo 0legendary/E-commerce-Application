@@ -236,7 +236,7 @@ function SignUp({ handleLoginClick, handleSignUpClick }) {
 
               {errors.unAuthorised && <p className='successMsg text-danger'>{errors.unAuthorised}</p>}
               <div className='d-flex justify-content-start mt-3'>
-                <GoogleAuth onSuccess={openGoogleSignUp} onError={() => console.log('Login Failed')} />
+                <GoogleAuth onSuccess={openGoogleSignUp} onError={() => setErrors({ unAuthorised: 'Something went wrong, try again later' })} />
               </div>
               <button onClick={sendOTP}>Sign Up</button>
             </>
