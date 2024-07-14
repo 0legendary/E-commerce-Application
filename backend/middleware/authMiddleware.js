@@ -42,7 +42,7 @@ const CheckAlreadyLogin = (req, res, next) => {
 
 
 const generateAccessToken = (user) => {
-    return jwt.sign({ username: user.username, isAdmin: user.isAdmin }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '60m' })
+    return jwt.sign({ email: user.email, isAdmin: user.isAdmin }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '60m' })
 }
 
 export { authenticateToken, generateAccessToken, authenticateTokenAdmin,CheckAlreadyLogin }

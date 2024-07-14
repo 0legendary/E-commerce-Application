@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import './authentication.css';
 import axiosInstance from '../../../config/axiosConfig';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-//import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { signUpAuthenticate, signUpGoogleAuthenticate, otpVerification } from '../../../config/authenticateCondition';
 import GoogleAuth from './Google/GoogleAuth';
 import { jwtDecode } from 'jwt-decode'
@@ -26,7 +26,7 @@ function SignUp({ handleLoginClick, handleSignUpClick }) {
     otp: ''
   });
 
-  //const navigate = useNavigate()
+  const navigate = useNavigate()
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -87,7 +87,7 @@ function SignUp({ handleLoginClick, handleSignUpClick }) {
             setShowGooglePass(false)
             setShowManualLogin(false)
             setShowOtpPage(true)
-            setSuccessMsg({otpSendMsg: 'New OTP sended'})
+            setSuccessMsg({ otpSendMsg: 'New OTP sended' })
             setErrors({})
             setTimeout(() => {
               setSuccessMsg('')
@@ -123,11 +123,12 @@ function SignUp({ handleLoginClick, handleSignUpClick }) {
       axiosInstance.post('/google/signup', signupData)
         .then(response => {
           if (response.data.status) {
+            sessionStorage.setItem('accessToken', response.data.accessToken);
             setCountdown(3)
-            setSuccessMsg({accCreation: 'Account created successfully'})
+            setSuccessMsg({ accCreation: 'Account created successfully' })
             setErrors({})
             setTimeout(() => {
-              handleLoginClick()
+              navigate('/')
             }, 3000)
 
           } else {
@@ -156,11 +157,13 @@ function SignUp({ handleLoginClick, handleSignUpClick }) {
       axiosInstance.post('/signup', signupData)
         .then(response => {
           if (response.data.status) {
+            sessionStorage.setItem('accessToken', response.data.accessToken);
             setErrors({})
             setCountdown(3)
-            setSuccessMsg({accCreation: 'Account created successfully'})
+            setSuccessMsg({ accCreation: 'Account created successfully' })
             setTimeout(() => {
               setSuccessMsg('')
+              navigate('/')
             }, 3000)
           } else {
             setErrors({ unAuthorised: response.data.message })

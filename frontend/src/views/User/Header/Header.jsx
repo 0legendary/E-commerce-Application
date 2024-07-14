@@ -1,9 +1,9 @@
 import React from 'react'
 import './header.css'
 function Header() {
-    // const deleteAcessToken = () => {
-    //     sessionStorage.removeItem('accessToken')
-    //}
+    const deleteAcessToken = () => {
+        sessionStorage.removeItem('accessToken')
+    }
     return (
         <div>
             <div class="home-header-nav">
@@ -26,7 +26,7 @@ function Header() {
                             <i class="bi bi-heart home-icon02"></i>
                         </div>
                         <div class="home-item07">
-                            <i class="bi bi-person home-icon03"></i>
+                            <i class="bi bi-person home-icon03"   onClick={deleteAcessToken}></i>
                         </div>
                     </div>
                     <div class="home-searchbar">
@@ -40,7 +40,7 @@ function Header() {
                                 <div class="home-frame1sttrailingicon">
                                     <div class="home-container05">
                                         <div class="home-statelayer1">
-                                            <i class="bi bi-search home-icon03"></i>
+                                            <i class="bi bi-search home-icon03" ></i>
                                         </div>
                                     </div>
                                 </div>
@@ -52,5 +52,6 @@ function Header() {
         </div>
     )
 }
+
 
 export default Header

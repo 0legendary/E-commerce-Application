@@ -32,31 +32,31 @@ const createAdmin = async () => {
 
 
 
-// router.post('/login', async (req, res) => {
-//   const { email, password } = req.body
-//   const db = getDB();
-//   try {
-//     const user = await db.collection(Collections.users).findOne({ email });
-//     const Admin = await db.collection(Collections.admin).findOne({ adminEmail: email });
-//     if (!user && !Admin) {
-//       return res.status(400).json({ status: false, message: 'Invalid email or password' });
-//     }
-//     const isPasswordValid = user ? await bcrypt.compare(password, user.password) : false;
-//     const isPasswordValidAdmin = Admin ? await bcrypt.compare(password, Admin.password) : false;
-//     if (!isPasswordValid && !isPasswordValidAdmin) {
-//       return res.status(400).json({ status: false, message: 'Invalid email or password' });
-//     }
-//     //creating JWT for user for authorization
-//     const accessToken = generateAccessToken(user ? { username: user.username, isAdmin: false } : { username: Admin.adminEmail, isAdmin: true })
-//     let control = user ? 'user' : 'admin'
-//     res.status(200).json({ status: true, control, message: 'Login successful', accessToken })
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body
+  const db = getDB();
+  try {
+    const user = await db.collection(Collections.users).findOne({ email });
+    const Admin = await db.collection(Collections.admin).findOne({ adminEmail: email });
+    if (!user && !Admin) {
+      return res.status(400).json({ status: false, message: 'Invalid email or password' });
+    }
+    const isPasswordValid = user ? await bcrypt.compare(password, user.password) : false;
+    const isPasswordValidAdmin = Admin ? await bcrypt.compare(password, Admin.password) : false;
+    if (!isPasswordValid && !isPasswordValidAdmin) {
+      return res.status(400).json({ status: false, message: 'Invalid email or password' });
+    }
+    //creating JWT for user for authorization
+    const accessToken = generateAccessToken(user ? { username: user.username, isAdmin: false } : { username: Admin.adminEmail, isAdmin: true })
+    let control = user ? 'user' : 'admin'
+    res.status(200).json({ status: true, control, message: 'Login successful', accessToken })
 
 
-//   } catch (error) {
-//     res.status(500).json({ status: false, message: 'Server error' });
-//     console.error('Login error:', error);
-//   }
-// });
+  } catch (error) {
+    res.status(500).json({ status: false, message: 'Server error' });
+    console.error('Login error:', error);
+  }
+});
 
 
 
@@ -80,6 +80,7 @@ router.post('/otp/verify', async (req, res) => {
 
       }
       await sendOTPEmail(email, otp);
+      
       res.status(200).json({ status: true, message: 'OTP sent to your email for verification' });
     }else{
       res.status(200).json({ status: false, message: 'This email is already taken, try with another email' });
@@ -94,7 +95,6 @@ router.post('/otp/verify', async (req, res) => {
 
 router.post('/signup', async (req, res) => {
   const { username, email, password, otp } = req.body;
-  console.log("otp is",otp);
   try {
     const findUser = await OTP.findOne({ email });
     if (findUser.otp === otp.toString()) {
@@ -109,25 +109,10 @@ router.post('/signup', async (req, res) => {
       });
 
 
-      //const savedUser = await newUser.save();
+      await newUser.save();
       await OTP.deleteOne({ email });
-      // Send success response
-      // res.status(201).json({
-      //   status: true,
-      //   message: 'User created successfully',
-      //   created: {
-      //     _id: savedUser._id,
-      //     createdAt: savedUser.createdAt,
-      //   },
-      // });
-      res.status(201).json({
-        status: true,
-        message: 'User created successfully',
-        created: {
-          _id: 'asdfsdfasdf',
-          createdAt: 'asdfsdfsdga',
-        },
-      });
+      const accessToken = generateAccessToken({ email: email, isAdmin: false })
+      res.status(201).json({ status: true, accessToken })
     } else {
       res.status(201).json({
         status: false,
@@ -156,25 +141,11 @@ router.post('/google/signup', async (req, res) => {
         isGoogleUser: true
       });
 
-      //const savedUser = await newUser.save();
+      await newUser.save();
       await OTP.deleteOne({ email });
+      const accessToken = generateAccessToken({ email: email, isAdmin: false })
+      res.status(201).json({ status: true, accessToken })
 
-      // res.status(201).json({
-      //   status: true,
-      //   message: 'User created successfully',
-      //   created: {
-      //     _id: savedUser._id,
-      //     createdAt: savedUser.createdAt,
-      //   },
-      // });
-      res.status(201).json({
-        status: true,
-        message: 'User created successfully',
-        created: {
-          _id: 'asdfsdfasdf',
-          createdAt: 'asdfsdfsdga',
-        },
-      });
     } else {
       res.status(201).json({
         status: false,
