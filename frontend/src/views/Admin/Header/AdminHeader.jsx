@@ -1,7 +1,11 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
+
 function AdminHeader() {
+  const navigate = useNavigate()
   const deleteAcessToken = () => {
     sessionStorage.removeItem('accessToken')
+    navigate('/admin/auth')
   }
   return (
     <div>

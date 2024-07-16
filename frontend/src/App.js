@@ -18,6 +18,8 @@ import { useEffect } from 'react';
 //import Authentication from './views/Authentication/Authentication';
 import Authentication from './views/User/Authentication/Authentication'
 import ShoppingPage from './views/User/Shopping-page/ShoppingPage';
+import Login from './views/Admin/Authentication/Login';
+
 
 
 
@@ -59,12 +61,15 @@ function App() {
         <Route element={<LoginMiddleware />}>
           <Route path="/authentication" element={<Authentication />}></Route>
         </Route>
+        <Route path='/admin/auth' element={<AdminLayout />}>
+            <Route index element={<Login/>} />
+          </Route>
         <Route element={<PrivateRoute />}>
           <Route path="/" element={<UserLayout />}>
             <Route index element={<UserHomePage />} />
           </Route>
           <Route path="/shop" element={<UserLayout />}>
-            <Route index element={<ShoppingPage/>} />
+            <Route index element={<ShoppingPage />} />
           </Route>
         </Route>
         <Route element={<PrivateRouteAdmin />}>
