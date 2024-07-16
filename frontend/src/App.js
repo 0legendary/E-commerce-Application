@@ -8,7 +8,7 @@ import {
 } from 'react-router-dom';
 import { isTokenExpired } from './config/jwtUtils';
 import UserHeader from './views/User/Header/Header'
-import UserHomePage from './views/User/UserHomePage';
+import UserHomePage from './views/User/Homepage/UserHomePage';
 import AdminHeader from './views/Admin/AdminHeader'
 import AdminHomePage from './views/Admin/AdminHomePage'
 import PrivateRoute from './views/MiddleWare/PrivateRoute';

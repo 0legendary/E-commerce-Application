@@ -17,10 +17,74 @@
   background-color: rgba(255, 255, 255, 1);
 }
 
+/* Container for product cards */
+.home-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 columns */
+  gap: 20px; /* Space between product cards */
+  padding: 20px; /* Optional padding */
+}
+
+/* Product card */
+.product-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #fff; /* Optional background color */
+  padding: 10px;
+  border-radius: 10px; /* Optional border radius */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional box shadow */
+}
+
+/* Image styling */
+.home-image {
+  width: 100%;
+  height: auto;
+}
+
+/* Heading styling */
+.home-heading {
+  margin-top: 10px;
+}
+
+/* Text styling */
+.home-text082,
+.home-text084,
+.home-text086 {
+  margin-top: 5px;
+}
+
+/* Additional styling */
+.home-text082 {
+  color: #000;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.home-text084 {
+  color: #000;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.home-text086 {
+  color: #ccc;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: line-through;
+}
+
+/* Icon styling */
+.home-icon {
+  width: 24px;
+  height: 24px;
+}
+
+
 .home-section {
   top: 0px;
   left: 0px;
-  width: 1906px;
+  width: 100%;
   height: 896px;
   display: flex;
   position: absolute;
@@ -31,9 +95,8 @@
 }
 
 .home-bgimage1 {
-  top: -2px;
-  left: -6px;
-  width: 1912px;
+
+  width: 100%;
   height: 898px;
   position: absolute;
 }
@@ -143,7 +206,6 @@
   align-items: flex-start;
   flex-shrink: 0;
   background-size: cover;
-  background-image: url("public/external/tq_rnlvg4glbc-mj8-1500h.png");
 }
 
 .home-container02 {
@@ -209,6 +271,7 @@
   align-items: flex-start;
   flex-shrink: 0;
   background-color: rgba(255, 255, 255, 1);
+  z-index: 10;
 }
 
 .home-container04 {
