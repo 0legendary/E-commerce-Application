@@ -1,0 +1,25 @@
+.bg-image-section {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bg-image-section .heading-container{
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    margin-right: 3rem;
+}
+.bg-image-section .breadcrumb {
+    margin-top: 20px;
+}
+
+.bg-image-section .breadcrumb-item + .breadcrumb-item::before {
+    color: #fff;
+}
+
+.bg-image-section h1 {
+    margin-bottom: 20px;
+}

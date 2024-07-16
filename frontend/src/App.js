@@ -17,6 +17,7 @@ import LoginMiddleware from './views/MiddleWare/LoginMiddleware'
 import { useEffect } from 'react';
 //import Authentication from './views/Authentication/Authentication';
 import Authentication from './views/User/Authentication/Authentication'
+import ShoppingPage from './views/User/Shopping-page/ShoppingPage';
 
 
 
@@ -61,6 +62,9 @@ function App() {
         <Route element={<PrivateRoute />}>
           <Route path="/" element={<UserLayout />}>
             <Route index element={<UserHomePage />} />
+          </Route>
+          <Route path="/shop" element={<UserLayout />}>
+            <Route index element={<ShoppingPage/>} />
           </Route>
         </Route>
         <Route element={<PrivateRouteAdmin />}>
