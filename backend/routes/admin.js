@@ -1,8 +1,9 @@
 import { Router } from 'express';
-// import { getDB, Collections } from '../config/db.js';
 import { authenticateTokenAdmin } from '../middleware/authMiddleware.js';
 import { ObjectId } from 'mongodb';
 import bcrypt from 'bcrypt';
+import Image from '../model/image.js';
+import Product from '../model/product.js';
 
 const router = Router();
 
@@ -13,6 +14,32 @@ router.get('/get-users', authenticateTokenAdmin, async (req, res) => {
         res.status(200).json(users);
     } catch (error) {
         res.status(500).json({ message: 'Failed to fetch users' });
+    }
+})
+
+router.post('/uploadImage', authenticateTokenAdmin, async (req, res) => {
+    const { base64 } = req.body;
+    try {
+        const newImage = new Image({ image: base64 });
+        const savedImage = await newImage.save();
+        res.status(201).json({ imageId: savedImage._id });
+    } catch (error) {
+        res.status(500).json({ error: 'Error uploading image' });
+    }
+});
+
+
+router.post('/addProduct', authenticateTokenAdmin, async (req, res) => {
+    try {
+        const newProduct = new Product({
+            ...req.body,
+        });
+        console.log(newProduct.name);
+
+        await newProduct.save();
+        res.status(201).json({ message: 'Product created successfully', product: newProduct });
+    } catch (error) {
+        res.status(500).json({ error: 'Error uploading files' });
     }
 })
 
@@ -80,8 +107,8 @@ router.get('/trashed-users', authenticateTokenAdmin, async (req, res) => {
 })
 
 router.post('/delete-users-trash', authenticateTokenAdmin, async (req, res) => {
-    
-    const  _id  = req.body.data
+
+    const _id = req.body.data
 
     if (!_id) return res.status(404).json({ status: false })
     const db = getDB()
@@ -103,16 +130,16 @@ router.post('/delete-users-trash', authenticateTokenAdmin, async (req, res) => {
 
 
 router.post('/delete-trashed-user', authenticateTokenAdmin, async (req, res) => {
-    const  _id  = req.body.data
+    const _id = req.body.data
     if (!_id) return res.status(404).json({ status: false })
     const db = getDB()
     const userId = ObjectId.createFromHexString(_id);
-        const deletion = await db.collection(Collections.trashUsers).deleteOne({ _id: userId })
-        if (deletion.deletedCount > 0) {
-            res.status(200).json({ status: true })
-        } else {
-            res.status(404).json({ status: false })
-        }
+    const deletion = await db.collection(Collections.trashUsers).deleteOne({ _id: userId })
+    if (deletion.deletedCount > 0) {
+        res.status(200).json({ status: true })
+    } else {
+        res.status(404).json({ status: false })
+    }
 })
 
 export default router;
