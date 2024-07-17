@@ -262,12 +262,10 @@ router.post('/google/signup', async (req, res) => {
 // Admin Authentication
 
 router.post('/admin/google/login', async (req, res) => {
- 
   const { credential } = req.body
   const googleClientId = process.env.CLIENT_ID
   try {
     const response = await axios.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
-
     if (response.data.aud !== googleClientId) {
       return res.status(401).json({ status: false, message: 'Invalid token' });
     }
@@ -292,6 +290,8 @@ router.post('/admin/google/login', async (req, res) => {
     console.error('Login error:', error);
   }
 });
+
+
 
 
 router.post('/admin/login', async (req, res) => {
@@ -370,7 +370,7 @@ router.post('/admin/forgot-pass/verify-otp', async (req, res) => {
 router.post('/admin/reset-password', async (req, res) => {
   const { email, password } = req.body;
   try {
-    const returnedAdmin = await User.findOne({ email });
+    const returnedAdmin = await Admin.findOne({ email });
     if(returnedAdmin){
       const hashedPassword = await bcrypt.hash(password, 10);
       returnedAdmin.password = hashedPassword;

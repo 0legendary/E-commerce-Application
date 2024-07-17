@@ -9,16 +9,36 @@ function AdminHeader() {
   }
   return (
     <div>
-      <nav className="navbar bg-dark p-3">
-        <div className="container-fluid">
-          <a className="navbar-brand text-white" href='/admin'>Admin PANEL </a>
-          <div className="d-flex" role="search">
-            <a href='/authentication'>
-              <button className="btn btn-outline-success text-white" onClick={deleteAcessToken}>Log out</button>
-            </a>
-          </div>
-        </div>
-      </nav>
+      <div class="home-header-nav" style={{"left": "0", "top":"0", "width":"100%"}}>
+                <div class="home-container04">
+                    <div class="home-link01" >
+                        <span class="home-text012"><span>Admin Panel</span></span>
+                    </div>
+                    <div class="home-list1">
+                        <div class="home-item05" onClick={deleteAcessToken}>
+                            <i class="bi bi-power home-icon01" style={{"left": "45rem", "font-size":"x-large", "top":"9px"}}></i>
+                        </div>
+                    </div>
+                    <div class="home-searchbar" style={{"left": "82rem"}}>
+                        <div class="home-statelayer">
+                            <div class="home-content">
+                                <span class="home-text024 M3bodylarge">
+                                    <span>search products</span>
+                                </span>
+                            </div>
+                            <div class="home-trailing-elements">
+                                <div class="home-frame1sttrailingicon">
+                                    <div class="home-container05">
+                                        <div class="home-statelayer1">
+                                            <i class="bi bi-search home-icon03" ></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
     </div>
   )
 }

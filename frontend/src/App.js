@@ -9,8 +9,8 @@ import {
 import { isTokenExpired } from './config/jwtUtils';
 import UserHeader from './views/User/Header/Header'
 import UserHomePage from './views/User/Homepage/UserHomePage';
-import AdminHeader from './views/Admin/AdminHeader'
-import AdminHomePage from './views/Admin/AdminHomePage'
+import AdminHeader from './views/Admin/Header/AdminHeader'
+import AdminHomePage from './views/Admin/HomePage/AdminHomePage'
 import PrivateRoute from './views/MiddleWare/PrivateRoute';
 import PrivateRouteAdmin from './views/MiddleWare/PrivateRouteAdmin';
 import LoginMiddleware from './views/MiddleWare/LoginMiddleware'
