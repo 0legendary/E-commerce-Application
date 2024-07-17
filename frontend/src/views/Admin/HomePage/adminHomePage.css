@@ -1,69 +1,70 @@
 .admin-container {
-    display: flex;
-    height: 100vh;
-  }
-  
-  .sidebar {
-    width: 20%;
-    background: #343a40;
-    color: #fff;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .sidebar-header {
-    font-size: 1.5rem;
-    text-align: center;
-    margin-bottom: 1.5rem;
-  }
-  
-  .sidebar ul {
-    padding: 0;
-  }
-  
-  .sidebar ul li {
-    padding: 10px 0;
-  }
-  
-  .sidebar ul li a {
-    color: #fff;
-    text-decoration: none;
-    padding: 10px;
-    display: block;
-  }
-  
-  .sidebar ul li a:hover {
-    background: #495057;
-    border-radius: 4px;
-  }
-  
-  .content {
-    width: 80%;
-    padding: 20px;
-    background: #f8f9fa;
-    overflow-y: auto;
-  }
-  
-  .content h2 {
-    margin-bottom: 20px;
-  }
-  
+  display: flex;
+  height: 100vh;
+}
 
-  /* AdminHomePage.css */
+.sidebar {
+  width: 20%;
+  background: #343a40;
+  color: #fff;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  font-size: 1.5rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.sidebar ul {
+  padding: 0;
+}
+
+.sidebar ul li {
+  padding: 10px 0;
+}
+
+.sidebar ul li a {
+  color: #fff;
+  text-decoration: none;
+  padding: 10px;
+  display: block;
+}
+
+.sidebar ul li a:hover {
+  background: #495057;
+  border-radius: 4px;
+}
+
+.content {
+  width: 80%;
+  padding: 20px;
+  background: #f8f9fa;
+  overflow-y: auto;
+}
+
+.content h2 {
+  margin-bottom: 20px;
+}
+
+
+/* AdminHomePage.css */
 .admin-container {
   display: flex;
   min-height: 100vh;
 }
 
 .sidebar {
-    width: 20%;
-    height: 30rem;
-    background-color: #343a40;
-    color: #fff;
-    padding: 20px;
-    padding-top: 6rem;
+  width: 18%;
+  height: 26rem;
+  background-color: #343a40;
+  color: #fff;
+  padding: 20px;
+  border-bottom-right-radius: 15px;
 }
+
 .sidebar-header {
   text-align: center;
   margin-bottom: 20px;

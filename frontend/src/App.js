@@ -20,7 +20,9 @@ import Authentication from './views/User/Authentication/Authentication'
 import ShoppingPage from './views/User/Shopping-page/ShoppingPage';
 import Login from './views/Admin/Authentication/Login';
 
-
+import './index.css'
+import AdminProducts from './views/Admin/Products/AdminProducts';
+import AddProduct from './views/Admin/AddNewProduct/AddProduct';
 
 
 const UserLayout = () => {
@@ -61,7 +63,7 @@ function App() {
         <Route element={<LoginMiddleware />}>
           <Route path="/authentication" element={<Authentication />}></Route>
         </Route>
-        <Route path='/admin/auth' element={<AdminLayout />}>
+        <Route path='/admin/auth'>
             <Route index element={<Login/>} />
           </Route>
         <Route element={<PrivateRoute />}>
@@ -73,8 +75,9 @@ function App() {
           </Route>
         </Route>
         <Route element={<PrivateRouteAdmin />}>
-          <Route path='/admin' element={<AdminLayout />}>
-            <Route index element={<AdminHomePage />} />
+          <Route path='/admin' element={<AdminHomePage />}>
+            <Route path="products" element={<AdminProducts />} />
+            <Route path="addProduct" element={<AddProduct />} />
           </Route>
         </Route>
       </Route>

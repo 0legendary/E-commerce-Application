@@ -1,4 +1,5 @@
 import React from 'react';
+import { Outlet, Link } from 'react-router-dom';
 import './adminHomePage.css';
 
 function AdminHomePage() {
@@ -7,17 +8,17 @@ function AdminHomePage() {
       <aside className="sidebar">
         <nav className="sidebar-nav">
           <ul>
-            <li><a href="#"> Dashboard</a></li>
-            <li><a href="#"> Products</a></li>
-            <li><a href="#"> Users</a></li>
-            <li><a href="#"> Orders</a></li>
-            <li><a href="#">Coupons</a></li>
+            <li><Link to="/admin">Dashboard</Link></li>
+            <li><Link to="products">Products</Link></li>
+            <li><Link to="/admin/users">Users</Link></li>
+            <li><Link to="/admin/orders">Orders</Link></li>
+            <li><Link to="/admin/coupons">Coupons</Link></li>
           </ul>
         </nav>
       </aside>
       <main className="content">
         <div>
-
+          <Outlet/>
         </div>
       </main>
     </div>
