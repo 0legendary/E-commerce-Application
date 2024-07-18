@@ -9,6 +9,8 @@ const convertFileToBase64 = (file) => {
     });
 };
 
+
+
 const uploadImage = async (image) => {
     try {
         const response = await axiosInstance.post('/admin/uploadImage', { base64: image.base64 });

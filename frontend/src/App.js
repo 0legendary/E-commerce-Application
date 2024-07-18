@@ -9,7 +9,6 @@ import {
 import { isTokenExpired } from './config/jwtUtils';
 import UserHeader from './views/User/Header/Header'
 import UserHomePage from './views/User/Homepage/UserHomePage';
-import AdminHeader from './views/Admin/Header/AdminHeader'
 import AdminHomePage from './views/Admin/HomePage/AdminHomePage'
 import PrivateRoute from './views/MiddleWare/PrivateRoute';
 import PrivateRouteAdmin from './views/MiddleWare/PrivateRouteAdmin';
@@ -22,22 +21,14 @@ import Login from './views/Admin/Authentication/Login';
 
 import './index.css'
 import AdminProducts from './views/Admin/Products/AdminProducts';
-import AddProduct from './views/Admin/AddNewProduct/AddProduct';
+import AddProduct from './views/Admin/Products/AddNewProduct/AddProduct';
+import EditProduct from './views/Admin/Products/EditProduct/EditProduct';
 
 
 const UserLayout = () => {
   return (
     <div>
       <UserHeader />
-      <Outlet />
-    </div>
-  );
-};
-
-const AdminLayout = () => {
-  return (
-    <div>
-      <AdminHeader />
       <Outlet />
     </div>
   );
@@ -78,6 +69,7 @@ function App() {
           <Route path='/admin' element={<AdminHomePage />}>
             <Route path="products" element={<AdminProducts />} />
             <Route path="addProduct" element={<AddProduct />} />
+            <Route path="editProduct/:id" element={<EditProduct />} />
           </Route>
         </Route>
       </Route>

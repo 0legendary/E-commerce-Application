@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import './addProduct.css';
-import { addProductformValidation } from '../../../config/productValidation';
-import axiosInstance from '../../../config/axiosConfig'
-import { convertFileToBase64, uploadImage } from '../../../config/uploadImage';
-import { Link } from 'react-router-dom';
+import { addProductformValidation } from '../../../../config/productValidation';
+import axiosInstance from '../../../../config/axiosConfig'
+import { convertFileToBase64, uploadImage } from '../../../../config/uploadImage';
+import { Link, useNavigate } from 'react-router-dom';
 
 function AddProduct() {
   const [newErrors, setNewErrors] = useState({})
+  const [successMsg, setSuccessMsg] = useState('')
   const [product, setProduct] = useState({
     name: 'Adidas ULTRA 4DFWD SHOES',
     description: 'RUNNING SHOES DESIGNED TO MOVE YOU FORWARD, MADE IN PART WITH PARLEY OCEAN PLASTIC.',
@@ -25,6 +26,8 @@ function AddProduct() {
     season: 'All Seasons',
   });
 
+  const navigate = useNavigate()
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setProduct({ ...product, [name]: value });
@@ -34,7 +37,6 @@ function AddProduct() {
 
   const handleImageChange = (e) => {
     const { name, files } = e.target;
-    console.log(files);
     if (name === 'mainImage') {
       setProduct({ ...product, mainImage: { file: files[0], url: URL.createObjectURL(files[0]) } });
     } else if (name === 'additionalImages') {
@@ -87,12 +89,14 @@ function AddProduct() {
         additionalImages: additionalImageIds,
       };
 
-      console.log(updatedProduct);
-
       axiosInstance.post('/admin/addProduct', updatedProduct)
         .then(response => {
           if (response.data.status) {
-            // Handle success
+            setSuccessMsg('Product created Successfully')
+            setTimeout(() => {
+              setSuccessMsg('')
+              navigate('/admin/products')
+            }, 2000);
           } else {
             // Handle error
           }
@@ -105,9 +109,11 @@ function AddProduct() {
   };
 
 
+
   return (
     <div className="add-product">
       <h1>Add New Product</h1>
+      {successMsg && <h3 className='text-success m-4'>{successMsg}</h3>}
       <form onSubmit={handleSubmit} className="form">
         <div className='d-flex w-100 gap-3'>
           <div className='w-50'>

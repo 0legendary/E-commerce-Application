@@ -29,19 +29,124 @@ router.post('/uploadImage', authenticateTokenAdmin, async (req, res) => {
 });
 
 
+router.post('/deleteImage', authenticateTokenAdmin, async (req, res) => {
+    const { _id, product_id } = req.body;
+    try {
+        const deletedImage = await Image.findByIdAndDelete(_id);
+
+        if (!deletedImage) {
+            return res.status(404).json({ error: 'Image not found' });
+        }
+        const product = await Product.findById(product_id);
+        const updatedAdditionalImages = product.additionalImages.filter(image => image !== _id);
+        product.additionalImages = updatedAdditionalImages;
+
+        await product.save();
+
+        res.status(200).json({ status: true, message: 'Image deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error deleting image', message: error.message });
+    }
+});
+
 router.post('/addProduct', authenticateTokenAdmin, async (req, res) => {
     try {
         const newProduct = new Product({
             ...req.body,
         });
-        console.log(newProduct.name);
 
         await newProduct.save();
-        res.status(201).json({ message: 'Product created successfully', product: newProduct });
+        res.status(201).json({ status:true, product: newProduct });
     } catch (error) {
         res.status(500).json({ error: 'Error uploading files' });
     }
 })
+
+const getBase64Image = async(products) => {
+    return await Promise.all(products.map(async product => {
+        const mainImage = await Image.findById(product.mainImage);
+        const additionalImages = await Promise.all(
+            product.additionalImages.map(async id => await Image.findById(id))
+        );
+
+        return {
+            ...product,
+            mainImage: mainImage.image,
+            additionalImages: additionalImages.map(image => image.image)
+        };
+    }));
+}
+
+const getOneBase64Image = async (product) => {
+
+    const mainImageDoc = await Image.findById(product.mainImage);
+    const additionalImagesDocs = await Promise.all(
+        product.additionalImages.map(async id => await Image.findById(id))
+    );
+
+    const productObj = product.toObject();
+
+    return {
+        ...productObj,
+        mainImage: [{_id: product.mainImage, url:mainImageDoc.image}],
+        additionalImages: additionalImagesDocs.map(imageDoc => ({
+            _id: imageDoc._id,
+            url: imageDoc.image
+        }))
+    };
+}
+
+
+router.get('/getProducts', authenticateTokenAdmin, async (req, res) => {
+    try {
+        const products = await Product.find({}).lean();
+        const populatedProducts = await getBase64Image(products)
+        res.status(201).json({ status: true, products: populatedProducts });
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching products' });
+    }
+});
+
+
+router.get('/edit/getProduct/:id', authenticateTokenAdmin, async (req, res) => {
+    const productId = req.params.id;
+    try {
+        const product = await Product.findById(productId);
+        const populatedProducts = await getOneBase64Image(product)
+        if (populatedProducts) {
+            res.status(200).json({ status: true, product: populatedProducts });
+        } else {
+            res.status(404).json({ status: false, message: 'Product not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ status: false, message: 'Error fetching product' });
+    }
+});
+router.put('/updateProduct', authenticateTokenAdmin, async (req, res) => {
+    const updatedProductData = req.body;
+
+    try {
+        // Fetch the product by its ID
+        const product = await Product.findById(updatedProductData._id);
+
+        if (product) {
+            // Update the product fields with the new data
+            for (const key in updatedProductData) {
+                if (updatedProductData.hasOwnProperty(key) && key !== '_id') {
+                    product[key] = updatedProductData[key];
+                }
+            }
+
+            await product.save();
+
+            res.status(200).json({ status: true });
+        } else {
+            res.status(404).json({ status: false, message: 'Product not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ status: false, message: 'Error updating product', error: error.message });
+    }
+});
 
 
 router.post('/update-user', authenticateTokenAdmin, async (req, res) => {
