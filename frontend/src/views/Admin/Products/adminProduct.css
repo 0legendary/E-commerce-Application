@@ -78,3 +78,108 @@
     display: block;
   }
   
+
+  .user-card {
+    transition: transform 0.2s;
+    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 10px;
+    background-color: #dedede;
+  
+  }
+  
+  .user-card:hover {
+    transform: scale(1.05);
+    background-color: white;
+  }
+  
+  .user-card .card-body {
+    text-align: center;
+  }
+  
+  .user-card .userName {
+    font-family: 'Courier New', Courier, monospace;
+    text-transform: capitalize;
+    font-style: italic;
+  }
+  
+  .user-card .email {
+    font-family: fangsong;
+  }
+  
+  .update-form {
+    position: absolute;
+    top: 240px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    width: 90%;
+    max-width: 500px;
+  }
+  
+  .user-card {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+  }
+  
+  .user-card .card-body {
+    text-align: center;
+  }
+  
+  .blur {
+    filter: blur(2px);
+  
+    .dlt-btn {
+      display: none;
+    }
+    .user-card {
+      background-color: rgb(182, 182, 182);
+    }
+    .edit-btn {
+      display: none;
+    }
+  }
+  
+  .update-form .txt-heading{
+    font-family: 'Courier New', Courier, monospace;
+  }
+  
+  .update-form .form-group .form-labels{
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    margin-top: 10px;
+  }
+  
+  .update-form .error {
+    color: red;
+    font-size: 14px;
+    margin-top: 5px;
+  }
+  .update-form .success {
+    color: green;
+    font-size: 14px;
+    margin-top: 5px;
+  }
+  .update-form .alignText{
+    display: flex;
+    justify-content: center;
+  }
+  
+  
+  .create-user-btn{
+    margin: 10px 10px 20px 5px;
+  
+  }
+  
+  .trashed-table{
+    border-radius: 5px;
+  }
+  
+  
+  /* adminProduct.css */
+  
+  

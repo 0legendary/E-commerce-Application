@@ -4,6 +4,8 @@ import { ObjectId } from 'mongodb';
 import bcrypt from 'bcrypt';
 import Image from '../model/image.js';
 import Product from '../model/product.js';
+import TrashedProduct from '../model/trashedProduct.js';
+
 
 const router = Router();
 
@@ -149,6 +151,53 @@ router.put('/updateProduct', authenticateTokenAdmin, async (req, res) => {
 });
 
 
+
+
+router.post('/moveToTrash', authenticateTokenAdmin, async (req, res) => {
+    const { product_id } = req.body;
+    console.log(product_id);
+    try {
+        // Find the product by ID
+        const product = await Product.findById(product_id);
+
+        if (!product) {
+            return res.status(404).json({ status: false, message: 'Product not found' });
+        }
+        // Create a new document in the trashedProducts collection
+        const trashedProduct = new TrashedProduct(product.toObject());
+        await trashedProduct.save();
+
+        // Delete the product from the Product collection
+        await Product.findByIdAndDelete(product_id);
+
+        res.status(200).json({ status: true, message: 'Product moved to trash successfully' });
+    } catch (error) {
+        res.status(500).json({ status: false, message: 'Failed to move product to trash', error: error.message });
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 router.post('/update-user', authenticateTokenAdmin, async (req, res) => {
     const { _id, username, email, newPassword } = req.body
     const db = getDB()
@@ -201,15 +250,6 @@ router.delete('/delete-user', authenticateTokenAdmin, async (req, res) => {
     }
 })
 
-router.get('/trashed-users', authenticateTokenAdmin, async (req, res) => {
-    const db = getDB()
-    try {
-        const users = await db.collection(Collections.trashUsers).find({}, { projection: { password: 0 } }).toArray();
-        res.status(200).json(users);
-    } catch (error) {
-        res.status(500).json({ message: 'Failed to fetch users' });
-    }
-})
 
 router.post('/delete-users-trash', authenticateTokenAdmin, async (req, res) => {
 
