@@ -177,6 +177,25 @@ router.post('/moveToTrash', authenticateTokenAdmin, async (req, res) => {
 });
 
 
+router.post('/deletePermenent', authenticateTokenAdmin, async (req, res) => {
+    const { product_id } = req.body;
+    console.log(product_id);
+    try {
+        // Find the product by ID
+        const product = await Product.findById(product_id);
+
+        if (!product) {
+            return res.status(404).json({ status: false, message: 'Product not found' });
+        }
+        // Delete the product from the Product collection
+        await Product.findByIdAndDelete(product_id);
+
+        res.status(200).json({ status: true, message: 'Product moved to trash successfully' });
+    } catch (error) {
+        res.status(500).json({ status: false, message: 'Failed to move product to trash', error: error.message });
+    }
+});
+
 
 
 
