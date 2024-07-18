@@ -23,6 +23,7 @@ import './index.css'
 import AdminProducts from './views/Admin/Products/AdminProducts';
 import AddProduct from './views/Admin/Products/AddNewProduct/AddProduct';
 import EditProduct from './views/Admin/Products/EditProduct/EditProduct';
+import ShowUser from './views/Admin/User/ShowUser';
 
 
 const UserLayout = () => {
@@ -70,6 +71,7 @@ function App() {
             <Route path="products" element={<AdminProducts />} />
             <Route path="addProduct" element={<AddProduct />} />
             <Route path="editProduct/:id" element={<EditProduct />} />
+            <Route path="users" element={<ShowUser />} />
           </Route>
         </Route>
       </Route>

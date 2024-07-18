@@ -1,8 +1,13 @@
 import React from 'react';
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Link, useNavigate } from 'react-router-dom';
 import './adminHomePage.css';
 
 function AdminHomePage() {
+  const navigate = useNavigate()
+  const deleteAcessToken = () => {
+    sessionStorage.removeItem('accessToken')
+    navigate('/admin/auth')
+  }
   return (
     <div className="admin-container">
       <aside className="sidebar">
@@ -10,9 +15,10 @@ function AdminHomePage() {
           <ul>
             <li><Link to="/admin">Dashboard</Link></li>
             <li><Link to="products">Products</Link></li>
-            <li><Link to="/admin/users">Users</Link></li>
-            <li><Link to="/admin/orders">Orders</Link></li>
-            <li><Link to="/admin/coupons">Coupons</Link></li>
+            <li><Link to="users">Users</Link></li>
+            <li><Link to="orders">Orders</Link></li>
+            <li><Link to="coupons">Coupons</Link></li>
+            <li onClick={deleteAcessToken}>Logout</li>
           </ul>
         </nav>
       </aside>

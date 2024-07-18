@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt';
 import Image from '../model/image.js';
 import Product from '../model/product.js';
 import TrashedProduct from '../model/trashedProduct.js';
-
+import User from '../model/user.js'
 
 const router = Router();
 
@@ -58,13 +58,13 @@ router.post('/addProduct', authenticateTokenAdmin, async (req, res) => {
         });
 
         await newProduct.save();
-        res.status(201).json({ status:true, product: newProduct });
+        res.status(201).json({ status: true, product: newProduct });
     } catch (error) {
         res.status(500).json({ error: 'Error uploading files' });
     }
 })
 
-const getBase64Image = async(products) => {
+const getBase64Image = async (products) => {
     return await Promise.all(products.map(async product => {
         const mainImage = await Image.findById(product.mainImage);
         const additionalImages = await Promise.all(
@@ -90,7 +90,7 @@ const getOneBase64Image = async (product) => {
 
     return {
         ...productObj,
-        mainImage: [{_id: product.mainImage, url:mainImageDoc.image}],
+        mainImage: [{ _id: product.mainImage, url: mainImageDoc.image }],
         additionalImages: additionalImagesDocs.map(imageDoc => ({
             _id: imageDoc._id,
             url: imageDoc.image
@@ -197,8 +197,31 @@ router.post('/deletePermenent', authenticateTokenAdmin, async (req, res) => {
 });
 
 
+router.get('/getAllUsers', authenticateTokenAdmin, async (req, res) => {
+    try {
+        const users = await User.find({})
+        res.status(201).json({ status: true, users: users });
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching products' });
+    }
+});
 
 
+router.post('/toggleBlockUser', async (req, res) => {
+    const { id, isBlocked } = req.body;
+    try {
+        const user = await User.findById(id);
+        if (user) {
+            user.isBlocked = isBlocked;
+            await user.save();
+            res.json({ status: true });
+        } else {
+            res.json({ status: false, message: 'User not found' });
+        }
+    } catch (error) {
+        res.json({ status: false, message: 'Error updating user status', error });
+    }
+});
 
 
 

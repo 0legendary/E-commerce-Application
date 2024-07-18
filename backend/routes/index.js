@@ -79,6 +79,7 @@ router.post('/google/login', async (req, res) => {
       user.googleId = sub
       user.profileImg = picture
       user.isGoogleUser = true
+      user.isBlocked = false
       user.save()
     }
     //creating JWT for user for authorization
@@ -235,7 +236,8 @@ router.post('/google/signup', async (req, res) => {
         password: hashedPassword,
         googleId,
         profileImg,
-        isGoogleUser: true
+        isGoogleUser: true,
+        isBlocked: false
       });
 
       await newUser.save();
@@ -279,6 +281,7 @@ router.post('/admin/google/login', async (req, res) => {
       admin.googleId = sub
       admin.profileImg = picture
       admin.isGoogleUser = true
+      admin.isBlocked = false
       admin.save()
     }
     //creating JWT for user for authorization

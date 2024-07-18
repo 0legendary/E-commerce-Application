@@ -23,6 +23,9 @@ const userSchema = new mongoose.Schema({
   isGoogleUser: {
     type: Boolean,
   },
+  isBlocked: {
+    type: Boolean,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
