@@ -2,19 +2,19 @@ import express from 'express';
 import cors from 'cors';
 import { connectDB } from './config/db.js';
 import dotenv from 'dotenv';
-
+import bodyParser from 'body-parser'
 
 dotenv.config();
 import indexRouter from './routes/index.js';
 import usersRouter from './routes/users.js';
 import adminRouter from './routes/admin.js'
-import { authenticateTokenAdmin } from './middleware/authMiddleware.js';
 
 const app = express();
 connectDB()
 
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 app.use('/', indexRouter);
 app.use('/user', usersRouter);

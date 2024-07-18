@@ -5,6 +5,7 @@ import { addProductformValidation } from '../../../../config/productValidation';
 import { convertFileToBase64, uploadImage } from '../../../../config/uploadImage';
 
 
+
 function EditProduct() {
   const { id } = useParams();
   const [product, setProduct] = useState([])

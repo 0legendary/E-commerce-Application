@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
+import Cropper from 'react-easy-crop';
 import './addProduct.css';
 import { addProductformValidation } from '../../../../config/productValidation';
-import axiosInstance from '../../../../config/axiosConfig'
+import axiosInstance from '../../../../config/axiosConfig';
 import { convertFileToBase64, uploadImage } from '../../../../config/uploadImage';
 import { Link, useNavigate } from 'react-router-dom';
+import {getCroppedImg} from '../../../../config/cropImage'; // Custom function to crop the image
 
 function AddProduct() {
-  const [newErrors, setNewErrors] = useState({})
-  const [successMsg, setSuccessMsg] = useState('')
+  const [newErrors, setNewErrors] = useState({});
+  const [successMsg, setSuccessMsg] = useState('');
   const [product, setProduct] = useState({
     name: 'Adidas ULTRA 4DFWD SHOES',
     description: 'RUNNING SHOES DESIGNED TO MOVE YOU FORWARD, MADE IN PART WITH PARLEY OCEAN PLASTIC.',
@@ -26,7 +28,14 @@ function AddProduct() {
     season: 'All Seasons',
   });
 
-  const navigate = useNavigate()
+  const [croppedArea, setCroppedArea] = useState(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [showCropper, setShowCropper] = useState(false);
+  const [imageSrc, setImageSrc] = useState(null);
+  const [isMainImage, setIsMainImage] = useState(true);
+
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -37,15 +46,28 @@ function AddProduct() {
 
   const handleImageChange = (e) => {
     const { name, files } = e.target;
-    if (name === 'mainImage') {
-      setProduct({ ...product, mainImage: { file: files[0], url: URL.createObjectURL(files[0]) } });
-    } else if (name === 'additionalImages') {
-      const additionalImages = Array.from(files).map(file => ({
-        file,
-        url: URL.createObjectURL(file)
-      }));
-      setProduct({ ...product, additionalImages: [...product.additionalImages, ...additionalImages] });
+    const file = files[0];
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = () => {
+      setImageSrc(reader.result);
+      setIsMainImage(name === 'mainImage');
+      setShowCropper(true);
+    };
+  };
+
+  const handleCropComplete = (croppedAreaPercentage, croppedAreaPixels) => {
+    setCroppedArea(croppedAreaPixels);
+  };
+
+  const handleCropSave = async () => {
+    const croppedImage = await getCroppedImg(imageSrc, croppedArea);
+    if (isMainImage) {
+      setProduct({ ...product, mainImage: { file: croppedImage, url: URL.createObjectURL(croppedImage) } });
+    } else {
+      setProduct({ ...product, additionalImages: [...product.additionalImages, { file: croppedImage, url: URL.createObjectURL(croppedImage) }] });
     }
+    setShowCropper(false);
   };
 
   const handleRemoveImage = (index) => {
@@ -53,19 +75,16 @@ function AddProduct() {
     setProduct({ ...product, additionalImages: newImages });
   };
 
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     let Errors = {};
     console.log(product);
-    Errors = addProductformValidation(product)
-    setNewErrors(Errors)
+    Errors = addProductformValidation(product);
+    setNewErrors(Errors);
     if (Object.keys(Errors).length === 0) {
       const mainImageBase64 = await convertFileToBase64(product.mainImage.file);
       const mainImageId = await uploadImage({ base64: mainImageBase64 });
 
-      // Convert additionalImages to Base64 and upload
       const additionalImagesBase64 = await Promise.all(
         product.additionalImages.map(async (image) => {
           const base64 = await convertFileToBase64(image.file);
@@ -78,6 +97,7 @@ function AddProduct() {
           return await uploadImage(image);
         })
       );
+
       const sizeOptionsArray = product.sizeOptions[0].split(',');
       const colorOptionsArray = product.colorOptions[0].split(',');
 
@@ -88,15 +108,16 @@ function AddProduct() {
         mainImage: mainImageId,
         additionalImages: additionalImageIds,
       };
+      console.log(updatedProduct);
 
       axiosInstance.post('/admin/addProduct', updatedProduct)
         .then(response => {
           if (response.data.status) {
-            setSuccessMsg('Product created Successfully')
+            setSuccessMsg('Product created Successfully');
             setTimeout(() => {
-              setSuccessMsg('')
-              navigate('/admin/products')
-            }, 2000);
+              setSuccessMsg('');
+              navigate('/admin/products');
+            }, 1000);
           } else {
             // Handle error
           }
@@ -107,8 +128,6 @@ function AddProduct() {
         });
     }
   };
-
-
 
   return (
     <div className="add-product">
@@ -150,9 +169,8 @@ function AddProduct() {
                 name="discountPrice"
                 value={product.discountPrice}
                 onChange={handleInputChange}
-
               />
-              {newErrors.discountPrice && <div className="error">{erronewErrorsrs.discountPrice}</div>}
+              {newErrors.discountPrice && <div className="error">{newErrors.discountPrice}</div>}
             </div>
             <div className="form-group">
               <label htmlFor="brand">Brand</label>
@@ -166,7 +184,6 @@ function AddProduct() {
               />
               {newErrors.brand && <div className="error">{newErrors.brand}</div>}
             </div>
-
           </div>
           <div className='w-50'>
             <div className="form-group">
@@ -180,7 +197,6 @@ function AddProduct() {
                 onChange={handleInputChange}
               />
               {newErrors.stock && <div className="error">{newErrors.stock}</div>}
-
             </div>
             <div className="form-group">
               <label htmlFor="sizeOptions">Size Options (comma separated)</label>
@@ -193,7 +209,6 @@ function AddProduct() {
                 onChange={handleInputChange}
               />
               {newErrors.sizeOptions && <div className="error">{newErrors.sizeOptions}</div>}
-
             </div>
             <div className="form-group">
               <label htmlFor="colorOptions">Color Options (comma separated)</label>
@@ -206,9 +221,7 @@ function AddProduct() {
                 onChange={handleInputChange}
               />
               {newErrors.colorOptions && <div className="error">{newErrors.colorOptions}</div>}
-
             </div>
-
             <div className="form-group">
               <label htmlFor="category">Category</label>
               <select
@@ -218,17 +231,15 @@ function AddProduct() {
                 value={product.category}
                 onChange={handleInputChange}
               >
-                <option value="">Select Catergory</option>
+                <option value="">Select Category</option>
                 <option value="casual">Casual</option>
                 <option value="formal">Formal</option>
                 <option value="sports">Sports</option>
               </select>
               {newErrors.category && <div className="error">{newErrors.category}</div>}
-
             </div>
           </div>
         </div>
-
         <div className="form-group">
           <label htmlFor="description">Description</label>
           <textarea
@@ -272,7 +283,6 @@ function AddProduct() {
             </div>
           </div>
           <div className='w-50'>
-
             <div className="form-group">
               <label htmlFor="season">Season</label>
               <select
@@ -344,6 +354,34 @@ function AddProduct() {
           <button className="btn btn-danger m-3">Cancel</button>
         </Link>
       </form>
+
+      {showCropper && ( 
+         <div
+         className="cropper-modal"
+         onKeyDown={(e) => {
+           if (e.key === 'Enter') {
+             handleCropSave();
+           } else if (e.key === 'Backspace') {
+             setShowCropper(false);
+           }
+         }}
+         tabIndex={0}
+       >
+          <div className="cropper-container">
+            <Cropper
+              image={imageSrc}
+              crop={crop}
+              zoom={zoom}
+              aspect={1} // Adjust aspect ratio as needed
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={handleCropComplete}
+            />
+            <button className="btn btn-success" onClick={handleCropSave}>Save</button>
+            <button className="btn btn-danger" onClick={() => setShowCropper(false)}>Cancel</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

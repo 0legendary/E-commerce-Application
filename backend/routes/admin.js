@@ -207,7 +207,7 @@ router.get('/getAllUsers', authenticateTokenAdmin, async (req, res) => {
 });
 
 
-router.post('/toggleBlockUser', async (req, res) => {
+router.post('/toggleBlockUser',authenticateTokenAdmin, async (req, res) => {
     const { id, isBlocked } = req.body;
     try {
         const user = await User.findById(id);
