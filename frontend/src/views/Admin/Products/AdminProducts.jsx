@@ -12,7 +12,6 @@ function AdminProducts() {
     axiosInstance.get('/admin/getProducts')
       .then(response => {
         if (response.data.status) {
-          console.log(response.data.products);
           setProducts(response.data.products)
         }
       })
@@ -74,12 +73,10 @@ function AdminProducts() {
           <div className="update-form bg-dark">
             <h5 className='text-danger d-flex justify-content-center pt-3 pb-3 txt-heading'>Are you sure to delete the user named '{confirmDelete.name}' permenantly ?</h5>
             <div className='d-flex gap-2 justify-content-center pb-3'>
-              <button className='btn btn-danger w-50'  onClick={() => handleDeletePermenantly(confirmDelete._id)}>Delete Permenantly</button>
+              <button className='btn btn-danger w-50' onClick={() => handleDeletePermenantly(confirmDelete._id)}>Delete Permenantly</button>
               <button className='btn btn-warning w-50' onClick={() => handleMoveToTrash(confirmDelete._id)}>Move to Trash</button>
             </div>
             <button className='btn btn-primary w-100' onClick={() => setDeleteProduct(false)}>Cancel Deletion</button>
-            {/* {errors.updateErr && <div className="error alignText">{errors.updateErr}</div>}
-          {success.update && <div className="success alignText">{success.update}</div>} */}
           </div>
         )}
         <table className="table table-striped">
@@ -100,7 +97,7 @@ function AdminProducts() {
                 <th scope="row">{index + 1}</th>
                 <td>
                   <div className="product-image-wrapper">
-                    <img src={product.mainImage} alt={product.name} className="product-image" />
+                    <img src={product.mainImage} alt={product.name} className="product-image" style={{"width": "50px","height": "50px"}}/>
                     <img src={product.mainImage} alt={product.name} className="product-image-hover" />
                   </div>
                 </td>

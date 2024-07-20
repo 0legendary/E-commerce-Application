@@ -53,12 +53,7 @@
     display: inline-block;
   }
   
-  .product-image {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 5px;
-  }
+  
   
   .product-image-hover {
     display: none;

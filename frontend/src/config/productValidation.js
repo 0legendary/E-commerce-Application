@@ -1,33 +1,3 @@
-const product = {
-    name: 'dsdf',
-    description: 'sdfs',
-    category: 'sports',
-    brand: 'dfa',
-    price: '23',
-    discountPrice: '2324',
-    stock: '324',
-    sizeOptions: '43',
-    colorOptions: '43',
-    material: '343',
-    mainImage: 'blob:http://localhost:3000/f1ec4f85-e31a-4fe6-97c0-2d70b75bb4b0',
-    // additionalImages: [
-    //   {
-    //     file: File {
-    //       name: '20221218_234648.jpg',
-    //       lastModified: -11644473600000,
-    //       lastModifiedDate: new Date('1601-01-01T00:00:24.000Z'),
-    //       webkitRelativePath: '',
-    //       size: 1415714,
-    //       type: 'image/jpeg'
-    //     },
-    //     url: 'blob:http://localhost:3000/3dc20115-8bbe-47f4-9245-c93be3599a93'
-    //   }
-    // ],
-    weight: '34',
-    gender: 'men',
-    season: 'summer',
-  }
-
 
   const addProductformValidation = (product) => {
     let newErrors = {};
@@ -115,7 +85,6 @@ const product = {
       newErrors.gender = 'Gender is required.';
     }
   
-    // Season validation
     if (!product.season) {
       newErrors.season = 'Season is required.';
     }
@@ -127,10 +96,6 @@ const product = {
     }else if(product.additionalImages.length < 3){
       newErrors.additionalImages = 'Minimum 3 images is needed'
     }
-
-    
-    
-
     return newErrors;
   };
   

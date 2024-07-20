@@ -1,0 +1,25 @@
+.main-image {
+    max-height: 400px;
+    object-fit: cover;
+    margin-bottom: 20px;
+  }
+  
+  .product-details h4 {
+    margin-bottom: 10px;
+  }
+  
+  .product-options h4 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .additional-images {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .additional-image {
+    max-height: 100px;
+    object-fit: cover;
+  }
+  

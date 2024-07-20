@@ -1,6 +1,7 @@
 import React from 'react';
 import './products.css'
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import { Link } from 'react-router-dom';
 
 const products = [
     {
@@ -55,34 +56,36 @@ function Products() {
             </div>
             <div className="products-grid">
                 {products.map((product, index) => (
-                    <div key={index} className="product-card">
-                        <img src={product.image} alt={product.name} className="product-image" />
-                        <div className="product-details">
-                            <span className="product-name"><span>{product.name}</span></span>
-                        </div>
-                        <div className='d-flex gap-3'>
-                            <span className="product-current-price"><span>{product.currentPrice}</span></span>
-                            <span className="product-original-price"><span>{product.originalPrice}</span></span>
-                        </div>
-
-                        <div className="product-actions w-100 justify-content-between">
-                            <div className='d-flex gap-1'>
-                                <div className="product-background">
-                                <i class="bi bi-cart3"></i>
-                                </div>
-                                <div className="product-background">
-                                    <i class="bi bi-heart"></i>
-                                </div>
-                                <div className="product-background">
-                                    <i class="bi bi-search"></i>
-                                </div>
-
+                    <Link to={`/singleProduct/${product._id}`}>
+                        <div key={index} className="product-card">
+                            <img src={product.image} alt={product.name} className="product-image" />
+                            <div className="product-details">
+                                <span className="product-name"><span>{product.name}</span></span>
                             </div>
-                            <div>
-                                <button className='btn border border-success text-black'>Buy</button>
+                            <div className='d-flex gap-3'>
+                                <span className="product-current-price"><span>{product.currentPrice}</span></span>
+                                <span className="product-original-price"><span>{product.originalPrice}</span></span>
+                            </div>
+
+                            <div className="product-actions w-100 justify-content-between">
+                                <div className='d-flex gap-1'>
+                                    <div className="product-background">
+                                        <i class="bi bi-cart3"></i>
+                                    </div>
+                                    <div className="product-background">
+                                        <i class="bi bi-heart"></i>
+                                    </div>
+                                    <div className="product-background">
+                                        <i class="bi bi-search"></i>
+                                    </div>
+
+                                </div>
+                                <div>
+                                    <button className='btn border border-success text-black'>Buy</button>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </Link>
                 ))}
             </div>
         </div>

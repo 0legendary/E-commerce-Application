@@ -24,6 +24,7 @@ import AdminProducts from './views/Admin/Products/AdminProducts';
 import AddProduct from './views/Admin/Products/AddNewProduct/AddProduct';
 import EditProduct from './views/Admin/Products/EditProduct/EditProduct';
 import ShowUser from './views/Admin/User/ShowUser';
+import SingleProduct from './views/User/Shopping-page/SingleProduct';
 
 
 const UserLayout = () => {
@@ -64,6 +65,7 @@ function App() {
           </Route>
           <Route path="/shop" element={<UserLayout />}>
             <Route index element={<ShoppingPage />} />
+            <Route path="singleProduct/:id" element={<SingleProduct />} />
           </Route>
         </Route>
         <Route element={<PrivateRouteAdmin />}>
