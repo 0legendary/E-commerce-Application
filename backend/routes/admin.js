@@ -32,7 +32,8 @@ router.post('/uploadImage', authenticateTokenAdmin, async (req, res) => {
 
 
 router.post('/deleteImage', authenticateTokenAdmin, async (req, res) => {
-    const { _id, product_id } = req.body;
+    const { _id, product_id, isMain } = req.body;
+    console.log(_id, product_id, isMain);
     try {
         const deletedImage = await Image.findByIdAndDelete(_id);
 
@@ -40,13 +41,15 @@ router.post('/deleteImage', authenticateTokenAdmin, async (req, res) => {
             return res.status(404).json({ error: 'Image not found' });
         }
         const product = await Product.findById(product_id);
-        const updatedAdditionalImages = product.additionalImages.filter(image => image !== _id);
-        product.additionalImages = updatedAdditionalImages;
-
-        await product.save();
+        if (!isMain) {
+            const updatedAdditionalImages = product.additionalImages.filter(image => image !== _id);
+            product.additionalImages = updatedAdditionalImages;
+            await product.save();
+        }
 
         res.status(200).json({ status: true, message: 'Image deleted successfully' });
     } catch (error) {
+        console.log(error);
         res.status(500).json({ error: 'Error deleting image', message: error.message });
     }
 });

@@ -3,21 +3,34 @@ import axiosInstance from '../../../../config/axiosConfig';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { addProductformValidation } from '../../../../config/productValidation';
 import { convertFileToBase64, uploadImage } from '../../../../config/uploadImage';
-
+import { getCroppedImg } from '../../../../config/cropImage'; // Custom function to crop the image
+import Cropper from 'react-easy-crop';
 
 
 function EditProduct() {
   const { id } = useParams();
-  const [product, setProduct] = useState([])
+  const colors = ['Red', 'Grey', 'White', 'Black'];
+  const [product, setProduct] = useState({ variations: [], additionalImages: [] })
   const [newErrors, setNewErrors] = useState({})
   const [successMsg, setSuccessMsg] = useState('')
+
+
+  const [croppedArea, setCroppedArea] = useState(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [showCropper, setShowCropper] = useState(false);
+  const [imageSrc, setImageSrc] = useState(null);
+  const [isMainImage, setIsMainImage] = useState(true);
+  const [deleteImagesId, setDeleteImagesId] = useState('')
   const navigate = useNavigate()
 
   useEffect(() => {
     axiosInstance.get(`/admin/edit/getProduct/${id}`)
       .then(response => {
         if (response.data.status) {
+          console.log(response.data.product);
           setProduct(response.data.product)
+          console.log(product);
         }
       })
       .catch(error => {
@@ -34,25 +47,90 @@ function EditProduct() {
     console.log(product);
   };
 
-  const handleImageChange = (e) => {
+
+  const handleVariationChange = (index, e) => {
+    const { name, value } = e.target;
+    const newVariations = [...product.variations];
+    newVariations[index][name] = value;
+    setProduct({ ...product, variations: newVariations });
+
+
+    const variationErrorKey = `variations[${index}].${name}`;
+    const updatedErrors = { ...newErrors };
+    delete updatedErrors[variationErrorKey];
+    setNewErrors(updatedErrors);
+  };
+
+  const handleColorChange = (index, e) => {
+    console.log(index);
+    const { value, checked } = e.target;
+    const newVariations = [...product.variations];
+    if (checked) {
+      newVariations[index].color.push(value);
+    } else {
+      newVariations[index].color = newVariations[index].color.filter(color => color !== value);
+    }
+    setProduct({ ...product, variations: newVariations });
+
+    const variationErrorKey = `variations[${index}].color`;
+    const updatedErrors = { ...newErrors };
+    delete updatedErrors[variationErrorKey];
+    setNewErrors(updatedErrors);
+  };
+
+
+  const addVariation = () => {
+    setProduct({
+      ...product,
+      variations: [...product.variations, { size: 0, stock: 0, color: [], price: 0, discountPrice: 0, weight: 0 }]
+    });
+  };
+
+  const removeVariation = (index) => {
+    const newVariations = product.variations.filter((_, i) => i !== index);
+    setProduct({ ...product, variations: newVariations });
+  };
+
+  const handleImageChange = (e,imageId) => {
+    console.log(imageId);
+    imageId && setDeleteImagesId(imageId)
     const { name, files } = e.target;
-    console.log(files);
-    if (name === 'mainImage') {
-      setProduct({ ...product, mainImage: { file: files[0], url: URL.createObjectURL(files[0]) } });
-    } else if (name === 'additionalImages') {
-      const additionalImages = Array.from(files).map(file => ({
-        file,
-        url: URL.createObjectURL(file)
-      }));
-      setProduct({ ...product, additionalImages: [...product.additionalImages, ...additionalImages] });
+    if (files && files.length > 0) {
+      const file = files[0];
+      const fileURL = URL.createObjectURL(file);
+      setImageSrc(fileURL);
+      setShowCropper(true);
+  
+      if (name === 'mainImage') {
+        setIsMainImage(true);
+      } else if (name === 'additionalImages') {
+        setIsMainImage(false);
+      }
     }
   };
+  
+
+  const handleCropComplete = (croppedAreaPercentage, croppedAreaPixels) => {
+    setCroppedArea(croppedAreaPixels);
+  };
+
+  const handleCropSave = async () => {
+    const croppedImage = await getCroppedImg(imageSrc, croppedArea);
+    if (isMainImage) {
+      
+      setProduct({ ...product, mainImage: [{ file: croppedImage, url: URL.createObjectURL(croppedImage) }] });
+    } else {
+      setProduct({ ...product, additionalImages: [...product.additionalImages, { file: croppedImage, url: URL.createObjectURL(croppedImage) }] });
+    }
+    setShowCropper(false);
+  };
+  
 
   const handleRemoveImage = async (index) => {
     const newImages = product.additionalImages.filter((_, i) => i !== index);
     setProduct({ ...product, additionalImages: newImages });
     try {
-      const response = await axiosInstance.post('/admin/deleteImage', { _id: product.additionalImages[index]._id, product_id: product._id });
+      const response = await axiosInstance.post('/admin/deleteImage', { _id: product.additionalImages[index]._id, product_id: product._id,isMain: false });
       if (response.data.status) {
         console.log('image deleted');
       }
@@ -73,17 +151,29 @@ function EditProduct() {
 
       let mainImageId;
 
-      if (product.mainImage.file) {
-        mainImageId = await uploadImage(convertFileToBase64(product.mainImage.file));
+      if (product.mainImage[0].file) {
+        try {
+          const response = await axiosInstance.post('/admin/deleteImage', { _id: deleteImagesId, product_id: product._id, isMain:true });
+          if (response.data.status) {
+            setDeleteImagesId('')
+          }
+        } catch (error) {
+          console.error('Error uploading image:', error);
+          throw error;
+        }
+        const data = await convertFileToBase64(product.mainImage[0].file)
+        console.log(data);
+        mainImageId = await uploadImage({base64: data});
       } else {
         mainImageId = product.mainImage[0]._id
       }
+
+      console.log(mainImageId);
 
 
       // Convert additionalImages to Base64 and upload
       const additionalImagesBase64 = await Promise.all(
         product.additionalImages.map(async (image) => {
-          console.log(image);
           if (image.file) {
             const base64 = await convertFileToBase64(image.file);
             return { ...image, base64 };
@@ -95,7 +185,6 @@ function EditProduct() {
 
       const additionalImageIds = await Promise.all(
         additionalImagesBase64.map(async (image) => {
-          console.log(image);
           if (image.file) {
             return await uploadImage(image);
           } else {
@@ -103,13 +192,9 @@ function EditProduct() {
           }
         })
       );
-      const sizeOptionsArray = product.sizeOptions[0].split(',');
-      const colorOptionsArray = product.colorOptions[0].split(',');
 
       const updatedProduct = {
         ...product,
-        sizeOptions: sizeOptionsArray,
-        colorOptions: colorOptionsArray,
         mainImage: mainImageId,
         additionalImages: additionalImageIds,
       };
@@ -119,10 +204,11 @@ function EditProduct() {
         .then(response => {
           if (response.data.status) {
             setSuccessMsg('Product Updated')
-            setTimeout(() => {
-              setSuccessMsg('')
-              navigate('/admin/products')
-            }, 2000);
+            navigate('/admin/products')
+            // setTimeout(() => {
+            //   setSuccessMsg('')
+            //   navigate('/admin/products')
+            // }, 2000);
           }
         })
         .catch(error => {
@@ -132,9 +218,13 @@ function EditProduct() {
     }
   };
 
+
+
   return (
+
     <div className="add-product">
       <h1>Add New Product</h1>
+      {successMsg && <h3 className='text-success m-4'>{successMsg}</h3>}
       <form onSubmit={handleSubmit} className="form">
         <div className='d-flex w-100 gap-3'>
           <div className='w-50'>
@@ -151,31 +241,6 @@ function EditProduct() {
               {newErrors.name && <div className="error">{newErrors.name}</div>}
             </div>
             <div className="form-group">
-              <label htmlFor="price">Price</label>
-              <input
-                type="number"
-                className="form-control"
-                id="price"
-                name="price"
-                value={product.price}
-                onChange={handleInputChange}
-              />
-              {newErrors.price && <div className="error">{newErrors.price}</div>}
-            </div>
-            <div className="form-group">
-              <label htmlFor="discountPrice">Discount Price</label>
-              <input
-                type="number"
-                className="form-control"
-                id="discountPrice"
-                name="discountPrice"
-                value={product.discountPrice}
-                onChange={handleInputChange}
-
-              />
-              {newErrors.discountPrice && <div className="error">{erronewErrorsrs.discountPrice}</div>}
-            </div>
-            <div className="form-group">
               <label htmlFor="brand">Brand</label>
               <input
                 type="text"
@@ -187,69 +252,123 @@ function EditProduct() {
               />
               {newErrors.brand && <div className="error">{newErrors.brand}</div>}
             </div>
-
           </div>
           <div className='w-50'>
             <div className="form-group">
-              <label htmlFor="stock">Stock Quantity</label>
-              <input
-                type="number"
-                className="form-control"
-                id="stock"
-                name="stock"
-                value={product.stock}
-                onChange={handleInputChange}
-              />
-              {newErrors.stock && <div className="error">{newErrors.stock}</div>}
-
+              <label htmlFor="variations">Variations</label>
+              {product && product.variations.map((variation, index) => (
+                <div key={index} className="variation w-100 d-flex border gap-3 border-secondary">
+                  <div className='w-50 m-2'>
+                    <div className='form-group '>
+                      <label htmlFor="size">Size</label>
+                      <input
+                        type="number"
+                        name="size"
+                        className="form-control"
+                        value={variation.size}
+                        onChange={(e) => handleVariationChange(index, e)}
+                        placeholder="Size"
+                      />
+                      {newErrors[`variations[${index}].size`] && <div className="error">{newErrors[`variations[${index}].size`]}</div>}
+                    </div>
+                    <div className='form-group'>
+                      <label htmlFor="size">Color</label>
+                      <div>
+                        {colors.map(color => (
+                          <div key={color}>
+                            <input
+                              type="checkbox"
+                              name="color"
+                              value={color}
+                              checked={variation.color.includes(color)}
+                              onChange={(e) => handleColorChange(index, e)}
+                            />
+                            <label>{color}</label>
+                          </div>
+                        ))}
+                      </div>
+                      {newErrors[`variations[${index}].color`] && <div className="error">{newErrors[`variations[${index}].color`]}</div>}
+                    </div>
+                    <div className='form-group'>
+                      <label htmlFor="price">Price</label>
+                      <input
+                        className="form-control"
+                        type="number"
+                        name="price"
+                        value={variation.price}
+                        onChange={(e) => handleVariationChange(index, e)}
+                        placeholder="Price"
+                      />
+                      {newErrors[`variations[${index}].price`] && <div className="error">{newErrors[`variations[${index}].price`]}</div>}
+                    </div>
+                  </div>
+                  <div className='w-50  m-2'>
+                    <div className='form-group'>
+                      <label htmlFor="stock">Stock</label>
+                      <input
+                        type="number"
+                        name="stock"
+                        className="form-control"
+                        value={variation.stock}
+                        onChange={(e) => handleVariationChange(index, e)}
+                        placeholder="Stock"
+                      />
+                      {newErrors[`variations[${index}].stock`] && <div className="error">{newErrors[`variations[${index}].stock`]}</div>}
+                    </div>
+                    <div className='form-group'>
+                      <label htmlFor="weight">Weight</label>
+                      <input
+                        className="form-control"
+                        type="number"
+                        name="weight"
+                        value={variation.weight}
+                        onChange={(e) => handleVariationChange(index, e)}
+                        placeholder="Weight"
+                      />
+                      {newErrors[`variations[${index}].weight`] && <div className="error">{newErrors[`variations[${index}].weight`]}</div>}
+                    </div>
+                    <div className='form-group'>
+                      <label htmlFor="discountePrice">Discount Price</label>
+                      <input
+                        className="form-control"
+                        type="number"
+                        name="discountPrice"
+                        value={variation.discountPrice}
+                        onChange={(e) => handleVariationChange(index, e)}
+                        placeholder="Discount Price"
+                      />
+                      {newErrors[`variations[${index}].discountPrice`] && <div className="error">{newErrors[`variations[${index}].discountPrice`]}</div>}
+                    </div>
+                    <button type="button" className='btn btn-danger btn-remove' onClick={() => removeVariation(index)}>Remove</button>
+                  </div>
+                </div>
+              ))}
+              <button type="button" className='btn btn-success mt-2' onClick={addVariation}>Add Variation</button>
             </div>
-            <div className="form-group">
-              <label htmlFor="sizeOptions">Size Options (comma separated)</label>
-              <input
-                type="text"
-                className="form-control"
-                id="sizeOptions"
-                name="sizeOptions"
-                value={product.sizeOptions}
-                onChange={handleInputChange}
-              />
-              {newErrors.sizeOptions && <div className="error">{newErrors.sizeOptions}</div>}
-
-            </div>
-            <div className="form-group">
-              <label htmlFor="colorOptions">Color Options (comma separated)</label>
-              <input
-                type="text"
-                className="form-control"
-                id="colorOptions"
-                name="colorOptions"
-                value={product.colorOptions}
-                onChange={handleInputChange}
-              />
-              {newErrors.colorOptions && <div className="error">{newErrors.colorOptions}</div>}
-
-            </div>
-
             <div className="form-group">
               <label htmlFor="category">Category</label>
               <select
                 className="form-control"
-                id="category"
-                name="category"
-                value={product.category}
+                id="categoryId"
+                name="categoryId"
+                value={product.categoryId}
                 onChange={handleInputChange}
               >
-                <option value="">Select Catergory</option>
-                <option value="casual">Casual</option>
-                <option value="formal">Formal</option>
-                <option value="sports">Sports</option>
+                <option value="">Select Category</option>
+                <option value="669df419adbef3e0af203776">Formal</option>
+                <option value="669df419adbef3e0af203776">Running</option>
+                <option value="669df419adbef3e0af203776">Sports</option>
+                <option value="669df419adbef3e0af203776">Sneakers</option>
+                <option value="669df419adbef3e0af203776">Boots</option>
+                <option value="669df419adbef3e0af203776">Sandals</option>
+                <option value="669df419adbef3e0af203776">Flats</option>
+                <option value="669df419adbef3e0af203776">Heels</option>
+                <option value="669df419adbef3e0af203776">Loafers</option>
               </select>
               {newErrors.category && <div className="error">{newErrors.category}</div>}
-
             </div>
           </div>
         </div>
-
         <div className="form-group">
           <label htmlFor="description">Description</label>
           <textarea
@@ -263,18 +382,6 @@ function EditProduct() {
         </div>
         <div className='d-flex w-100 gap-3'>
           <div className='w-50'>
-            <div className="form-group">
-              <label htmlFor="weight">Weight</label>
-              <input
-                type="number"
-                className="form-control"
-                id="weight"
-                name="weight"
-                value={product.weight}
-                onChange={handleInputChange}
-              />
-              {newErrors.weight && <div className="error">{newErrors.weight}</div>}
-            </div>
             <div className="form-group">
               <label htmlFor="gender">Gender</label>
               <select
@@ -293,7 +400,6 @@ function EditProduct() {
             </div>
           </div>
           <div className='w-50'>
-
             <div className="form-group">
               <label htmlFor="season">Season</label>
               <select
@@ -331,14 +437,15 @@ function EditProduct() {
             className="form-control-file"
             id="mainImage"
             name="mainImage"
-            onChange={handleImageChange}
+            onChange={(e) => handleImageChange(e, product.mainImage[0]?._id || '')}
           />
           {newErrors.mainImage && <div className="error">{newErrors.mainImage}</div>}
-          {product.mainImage && (
+          {product.mainImage && Array.isArray(product.mainImage) && product.mainImage.length > 0 && (
             <div className="image-preview">
               <img src={product.mainImage[0].url} alt="Main" className="img-thumbnail" />
             </div>
           )}
+
         </div>
         <div className="form-group">
           <label htmlFor="additionalImages">Additional Images</label>
@@ -352,7 +459,7 @@ function EditProduct() {
           />
           {newErrors.additionalImages && <div className="error">{newErrors.additionalImages}</div>}
           <div className="additional-images-preview">
-            {product.additionalImages && product.additionalImages.map((image, index) => (
+            {product.additionalImages.map((image, index) => (
               <div key={index} className="image-container">
                 <img src={image.url} alt={`Additional ${index}`} className="img-thumbnail" />
                 <button type="button" className="btn btn-danger btn-sm" onClick={() => handleRemoveImage(index)}>Remove</button>
@@ -360,14 +467,41 @@ function EditProduct() {
             ))}
           </div>
         </div>
-        <button type="submit" className="btn btn-primary">Update Product</button>
+        <button type="submit" className="btn btn-primary">Add Product</button>
         <Link to='/admin/products'>
           <button className="btn btn-danger m-3">Cancel</button>
         </Link>
       </form>
-      {successMsg && <h3 className='text-success m-4'>{successMsg}</h3>}
+
+      {showCropper && (
+        <div
+          className="cropper-modal"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleCropSave();
+            } else if (e.key === 'Backspace') {
+              setShowCropper(false);
+            }
+          }}
+          tabIndex={0}
+        >
+          <div className="cropper-container">
+            <Cropper
+              image={imageSrc}
+              crop={crop}
+              zoom={zoom}
+              aspect={1}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={handleCropComplete}
+            />
+            <button className="btn btn-success" onClick={handleCropSave}>Save</button>
+            <button className="btn btn-danger" onClick={() => setShowCropper(false)}>Cancel</button>
+          </div>{successMsg && <h3 className='text-success m-4'>{successMsg}</h3>}
+
+        </div>
+      )}
     </div>
   )
 }
-
 export default EditProduct
