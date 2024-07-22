@@ -1,82 +1,89 @@
 .add-product {
-    padding: 20px;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  .add-product h1 {
-    margin-bottom: 20px;
-  }
-  
-  .form-group {
-    margin-bottom: 15px;
-  }
-  
-  .form-group label {
-    font-weight: bold;
-  }
-  
-  .btn-primary {
-    background-color: #007bff;
-    border-color: #007bff;
-    color: white;
-  }
-  
-  .image-preview, .additional-images-preview {
-    margin-top: 10px;
-  }
-  
-  .image-preview img, .additional-images-preview .image-container img {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    margin-right: 10px;
-  }
-  
-  .additional-images-preview .image-container {
-    display: inline-block;
-    position: relative;
-  }
-  
-  .additional-images-preview .image-container button {
-    position: absolute;
-    top: 0;
-    right: 0;
-  }
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
 
-  .form .error{
-    color: red;
-    
-  }
+.add-product h1 {
+  margin-bottom: 20px;
+}
 
-  .cropper-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000; /* Ensure the modal is above other elements */
-  }
-  
-  .cropper-container {
-    position: relative;
-    width: 80%;
-    max-width: 600px;
-    height: 80%;
-    background-color: white;
-    padding: 20px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .cropper-container button {
-    margin-top: 10px;
-  }
-  
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-weight: bold;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: white;
+}
+
+.image-preview,
+.additional-images-preview {
+  margin-top: 10px;
+}
+
+.image-preview img,
+.additional-images-preview .image-container img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+.additional-images-preview .image-container {
+  display: inline-block;
+  position: relative;
+}
+
+.additional-images-preview .image-container button {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.form .error {
+  color: red;
+
+}
+
+.cropper-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  /* Ensure the modal is above other elements */
+}
+
+.cropper-container {
+  position: relative;
+  width: 80%;
+  max-width: 600px;
+  height: 80%;
+  background-color: white;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cropper-container button {
+  margin-top: 10px;
+}
+
+
+.btn-remove {
+  float: right;
+}

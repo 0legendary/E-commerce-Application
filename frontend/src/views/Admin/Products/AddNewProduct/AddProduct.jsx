@@ -5,28 +5,26 @@ import { addProductformValidation } from '../../../../config/productValidation';
 import axiosInstance from '../../../../config/axiosConfig';
 import { convertFileToBase64, uploadImage } from '../../../../config/uploadImage';
 import { Link, useNavigate } from 'react-router-dom';
-import {getCroppedImg} from '../../../../config/cropImage'; // Custom function to crop the image
+import { getCroppedImg } from '../../../../config/cropImage'; // Custom function to crop the image
 
 function AddProduct() {
+  const colors = ['Red', 'Grey', 'White', 'Black'];
   const [newErrors, setNewErrors] = useState({});
   const [successMsg, setSuccessMsg] = useState('');
   const [product, setProduct] = useState({
     name: 'Adidas ULTRA 4DFWD SHOES',
     description: 'RUNNING SHOES DESIGNED TO MOVE YOU FORWARD, MADE IN PART WITH PARLEY OCEAN PLASTIC.',
-    category: 'Sports',
+    categoryId: '669789676290d67ae6e8adf0',
     brand: 'Adidas',
-    price: 22999.00,
-    discountPrice: 13799.00,
-    stock: 40,
-    sizeOptions: ['3.5,4.5,7.7,8.5,9,10'],
-    colorOptions: ['Red,Grey,White,Black'],
+    variations: [{ size: 3, stock: 23, color: ['Red', 'Grey', 'White', 'Black'], price: 1000, discountPrice: 354, weight: 345 }],
     material: 'Rubber outsole',
     mainImage: null,
     additionalImages: [],
-    weight: '394',
-    gender: 'Unisex',
-    season: 'All Seasons',
+    gender: 'unisex',
+    season: 'all-seasons',
   });
+
+ 
 
   const [croppedArea, setCroppedArea] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -43,6 +41,50 @@ function AddProduct() {
     setNewErrors({ ...newErrors, [name]: '' });
     console.log(product);
   };
+
+  const handleVariationChange = (index, e) => {
+    const { name, value } = e.target;
+    const newVariations = [...product.variations];
+    newVariations[index][name] = value;
+    setProduct({ ...product, variations: newVariations });
+
+
+    const variationErrorKey = `variations[${index}].${name}`;
+    const updatedErrors = { ...newErrors };
+    delete updatedErrors[variationErrorKey];
+    setNewErrors(updatedErrors);
+  };
+
+  const handleColorChange = (index, e) => {
+    console.log(index);
+    const { value, checked } = e.target;
+    const newVariations = [...product.variations];
+    if (checked) {
+      newVariations[index].color.push(value);
+    } else {
+      newVariations[index].color = newVariations[index].color.filter(color => color !== value);
+    }
+    setProduct({ ...product, variations: newVariations });
+
+    const variationErrorKey = `variations[${index}].color`;
+    const updatedErrors = { ...newErrors };
+    delete updatedErrors[variationErrorKey];
+    setNewErrors(updatedErrors);
+  };
+
+
+  const addVariation = () => {
+    setProduct({
+      ...product,
+      variations: [...product.variations, { size: 0, stock: 0, color: [], price: 0, discountPrice: 0, weight: 0 }]
+    });
+  };
+
+  const removeVariation = (index) => {
+    const newVariations = product.variations.filter((_, i) => i !== index);
+    setProduct({ ...product, variations: newVariations });
+  };
+
 
   const handleImageChange = (e) => {
     const { name, files } = e.target;
@@ -80,6 +122,7 @@ function AddProduct() {
     let Errors = {};
     console.log(product);
     Errors = addProductformValidation(product);
+    console.log(Errors);
     setNewErrors(Errors);
     if (Object.keys(Errors).length === 0) {
       const mainImageBase64 = await convertFileToBase64(product.mainImage.file);
@@ -92,24 +135,19 @@ function AddProduct() {
         })
       );
 
+
       const additionalImageIds = await Promise.all(
         additionalImagesBase64.map(async (image) => {
           return await uploadImage(image);
         })
       );
-
-      const sizeOptionsArray = product.sizeOptions[0].split(',');
-      const colorOptionsArray = product.colorOptions[0].split(',');
-
       const updatedProduct = {
         ...product,
-        sizeOptions: sizeOptionsArray,
-        colorOptions: colorOptionsArray,
         mainImage: mainImageId,
         additionalImages: additionalImageIds,
       };
       console.log(updatedProduct);
-
+      
       axiosInstance.post('/admin/addProduct', updatedProduct)
         .then(response => {
           if (response.data.status) {
@@ -123,7 +161,6 @@ function AddProduct() {
           }
         })
         .catch(error => {
-          // Handle error
           console.error('Error sending data:', error);
         });
     }
@@ -149,30 +186,6 @@ function AddProduct() {
               {newErrors.name && <div className="error">{newErrors.name}</div>}
             </div>
             <div className="form-group">
-              <label htmlFor="price">Price</label>
-              <input
-                type="number"
-                className="form-control"
-                id="price"
-                name="price"
-                value={product.price}
-                onChange={handleInputChange}
-              />
-              {newErrors.price && <div className="error">{newErrors.price}</div>}
-            </div>
-            <div className="form-group">
-              <label htmlFor="discountPrice">Discount Price</label>
-              <input
-                type="number"
-                className="form-control"
-                id="discountPrice"
-                name="discountPrice"
-                value={product.discountPrice}
-                onChange={handleInputChange}
-              />
-              {newErrors.discountPrice && <div className="error">{newErrors.discountPrice}</div>}
-            </div>
-            <div className="form-group">
               <label htmlFor="brand">Brand</label>
               <input
                 type="text"
@@ -187,54 +200,116 @@ function AddProduct() {
           </div>
           <div className='w-50'>
             <div className="form-group">
-              <label htmlFor="stock">Stock Quantity</label>
-              <input
-                type="number"
-                className="form-control"
-                id="stock"
-                name="stock"
-                value={product.stock}
-                onChange={handleInputChange}
-              />
-              {newErrors.stock && <div className="error">{newErrors.stock}</div>}
-            </div>
-            <div className="form-group">
-              <label htmlFor="sizeOptions">Size Options (comma separated)</label>
-              <input
-                type="text"
-                className="form-control"
-                id="sizeOptions"
-                name="sizeOptions"
-                value={product.sizeOptions}
-                onChange={handleInputChange}
-              />
-              {newErrors.sizeOptions && <div className="error">{newErrors.sizeOptions}</div>}
-            </div>
-            <div className="form-group">
-              <label htmlFor="colorOptions">Color Options (comma separated)</label>
-              <input
-                type="text"
-                className="form-control"
-                id="colorOptions"
-                name="colorOptions"
-                value={product.colorOptions}
-                onChange={handleInputChange}
-              />
-              {newErrors.colorOptions && <div className="error">{newErrors.colorOptions}</div>}
+              <label htmlFor="variations">Variations</label>
+              {product.variations.map((variation, index) => (
+                <div key={index} className="variation w-100 d-flex border gap-3 border-secondary">
+                  <div className='w-50 m-2'>
+                    <div className='form-group '>
+                      <label htmlFor="size">Size</label>
+                      <input
+                        type="number"
+                        name="size"
+                        className="form-control"
+                        value={variation.size}
+                        onChange={(e) => handleVariationChange(index, e)}
+                        placeholder="Size"
+                      />
+                       {newErrors[`variations[${index}].size`] && <div className="error">{newErrors[`variations[${index}].size`]}</div>}
+                    </div>
+                    <div className='form-group'>
+                      <label htmlFor="size">Color</label>
+                      <div>
+                        {colors.map(color => (
+                          <div key={color}>
+                            <input
+                              type="checkbox"
+                              name="color"
+                              value={color}
+                              checked={variation.color.includes(color)}
+                              onChange={(e) => handleColorChange(index, e)}
+                            />
+                            <label>{color}</label>
+                          </div>
+                        ))}
+                      </div>
+                      {newErrors[`variations[${index}].color`] && <div className="error">{newErrors[`variations[${index}].color`]}</div>}
+                    </div>
+                    <div className='form-group'>
+                      <label htmlFor="price">Price</label>
+                      <input
+                        className="form-control"
+                        type="number"
+                        name="price"
+                        value={variation.price}
+                        onChange={(e) => handleVariationChange(index, e)}
+                        placeholder="Price"
+                      />
+                        {newErrors[`variations[${index}].price`] && <div className="error">{newErrors[`variations[${index}].price`]}</div>}
+                    </div>
+                  </div>
+
+                  <div className='w-50  m-2'>
+                    <div className='form-group'>
+                      <label htmlFor="stock">Stock</label>
+                      <input
+                        type="number"
+                        name="stock"
+                        className="form-control"
+                        value={variation.stock}
+                        onChange={(e) => handleVariationChange(index, e)}
+                        placeholder="Stock"
+                      />
+                      {newErrors[`variations[${index}].stock`] && <div className="error">{newErrors[`variations[${index}].stock`]}</div>}
+                    </div>
+                    <div className='form-group'>
+                      <label htmlFor="weight">Weight</label>
+                      <input
+                        className="form-control"
+                        type="number"
+                        name="weight"
+                        value={variation.weight}
+                        onChange={(e) => handleVariationChange(index, e)}
+                        placeholder="Weight"
+                      />
+                      {newErrors[`variations[${index}].weight`] && <div className="error">{newErrors[`variations[${index}].weight`]}</div>}
+                    </div>
+                    <div className='form-group'>
+                      <label htmlFor="discountePrice">Discount Price</label>
+                      <input
+                        className="form-control"
+                        type="number"
+                        name="discountPrice"
+                        value={variation.discountPrice}
+                        onChange={(e) => handleVariationChange(index, e)}
+                        placeholder="Discount Price"
+                      />
+                        {newErrors[`variations[${index}].discountPrice`] && <div className="error">{newErrors[`variations[${index}].discountPrice`]}</div>}
+                    </div>
+                    <button type="button" className='btn btn-danger btn-remove' onClick={() => removeVariation(index)}>Remove</button>
+                  </div>
+                </div>
+              ))}
+              <button type="button" className='btn btn-success mt-2' onClick={addVariation}>Add Variation</button>
             </div>
             <div className="form-group">
               <label htmlFor="category">Category</label>
               <select
                 className="form-control"
-                id="category"
-                name="category"
-                value={product.category}
+                id="categoryId"
+                name="categoryId"
+                value={product.categoryId}
                 onChange={handleInputChange}
               >
                 <option value="">Select Category</option>
-                <option value="casual">Casual</option>
-                <option value="formal">Formal</option>
-                <option value="sports">Sports</option>
+                <option value="669df419adbef3e0af203776">Formal</option>
+                <option value="669df419adbef3e0af203776">Running</option>
+                <option value="669df419adbef3e0af203776">Sports</option>
+                <option value="669df419adbef3e0af203776">Sneakers</option>
+                <option value="669df419adbef3e0af203776">Boots</option>
+                <option value="669df419adbef3e0af203776">Sandals</option>
+                <option value="669df419adbef3e0af203776">Flats</option>
+                <option value="669df419adbef3e0af203776">Heels</option>
+                <option value="669df419adbef3e0af203776">Loafers</option>
               </select>
               {newErrors.category && <div className="error">{newErrors.category}</div>}
             </div>
@@ -253,18 +328,6 @@ function AddProduct() {
         </div>
         <div className='d-flex w-100 gap-3'>
           <div className='w-50'>
-            <div className="form-group">
-              <label htmlFor="weight">Weight</label>
-              <input
-                type="number"
-                className="form-control"
-                id="weight"
-                name="weight"
-                value={product.weight}
-                onChange={handleInputChange}
-              />
-              {newErrors.weight && <div className="error">{newErrors.weight}</div>}
-            </div>
             <div className="form-group">
               <label htmlFor="gender">Gender</label>
               <select
@@ -355,24 +418,24 @@ function AddProduct() {
         </Link>
       </form>
 
-      {showCropper && ( 
-         <div
-         className="cropper-modal"
-         onKeyDown={(e) => {
-           if (e.key === 'Enter') {
-             handleCropSave();
-           } else if (e.key === 'Backspace') {
-             setShowCropper(false);
-           }
-         }}
-         tabIndex={0}
-       >
+      {showCropper && (
+        <div
+          className="cropper-modal"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleCropSave();
+            } else if (e.key === 'Backspace') {
+              setShowCropper(false);
+            }
+          }}
+          tabIndex={0}
+        >
           <div className="cropper-container">
             <Cropper
               image={imageSrc}
               crop={crop}
               zoom={zoom}
-              aspect={1} // Adjust aspect ratio as needed
+              aspect={1} 
               onCropChange={setCrop}
               onZoomChange={setZoom}
               onCropComplete={handleCropComplete}

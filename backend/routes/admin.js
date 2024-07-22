@@ -56,25 +56,34 @@ router.post('/addProduct', authenticateTokenAdmin, async (req, res) => {
         const newProduct = new Product({
             ...req.body,
         });
-
+        console.log(newProduct);
         await newProduct.save();
         res.status(201).json({ status: true, product: newProduct });
     } catch (error) {
+        console.error('Error uploading files:', error);
         res.status(500).json({ error: 'Error uploading files' });
     }
 })
 
 const getBase64Image = async (products) => {
     return await Promise.all(products.map(async product => {
+        // Find the main image
         const mainImage = await Image.findById(product.mainImage);
+
+        // Find additional images
         const additionalImages = await Promise.all(
-            product.additionalImages.map(async id => await Image.findById(id))
+            product.additionalImages.map(async id => {
+                const image = await Image.findById(id);
+                return image ? image.image : null;
+            })
         );
 
+        // Filter out any null values from additional images
+        const filteredAdditionalImages = additionalImages.filter(image => image !== null);
         return {
             ...product,
-            mainImage: mainImage.image,
-            additionalImages: additionalImages.map(image => image.image)
+            mainImage: mainImage ? mainImage.image : null,
+            additionalImages: filteredAdditionalImages
         };
     }));
 }
@@ -99,12 +108,18 @@ const getOneBase64Image = async (product) => {
 }
 
 
+
+
+
 router.get('/getProducts', authenticateTokenAdmin, async (req, res) => {
     try {
         const products = await Product.find({}).lean();
+        //console.log(products);
         const populatedProducts = await getBase64Image(products)
+        //console.log(populatedProducts);
         res.status(201).json({ status: true, products: populatedProducts });
     } catch (error) {
+        console.log(error);
         res.status(500).json({ error: 'Error fetching products' });
     }
 });
@@ -124,6 +139,7 @@ router.get('/edit/getProduct/:id', authenticateTokenAdmin, async (req, res) => {
         res.status(500).json({ status: false, message: 'Error fetching product' });
     }
 });
+
 router.put('/updateProduct', authenticateTokenAdmin, async (req, res) => {
     const updatedProductData = req.body;
 
@@ -179,22 +195,28 @@ router.post('/moveToTrash', authenticateTokenAdmin, async (req, res) => {
 
 router.post('/deletePermenent', authenticateTokenAdmin, async (req, res) => {
     const { product_id } = req.body;
-    console.log(product_id);
+
     try {
         // Find the product by ID
         const product = await Product.findById(product_id);
-
         if (!product) {
             return res.status(404).json({ status: false, message: 'Product not found' });
         }
-        // Delete the product from the Product collection
+
+        // Extract image IDs
+        const { mainImage, additionalImages } = product;
+        const imageIds = [mainImage, ...additionalImages];
+
         await Product.findByIdAndDelete(product_id);
 
-        res.status(200).json({ status: true, message: 'Product moved to trash successfully' });
+        await Image.deleteMany({ _id: { $in: imageIds } });
+
+        res.status(200).json({ status: true, message: 'Product and associated images deleted successfully' });
     } catch (error) {
-        res.status(500).json({ status: false, message: 'Failed to move product to trash', error: error.message });
+        res.status(500).json({ status: false, message: 'Failed to delete product and images', error: error.message });
     }
 });
+
 
 
 router.get('/getAllUsers', authenticateTokenAdmin, async (req, res) => {
@@ -207,7 +229,7 @@ router.get('/getAllUsers', authenticateTokenAdmin, async (req, res) => {
 });
 
 
-router.post('/toggleBlockUser',authenticateTokenAdmin, async (req, res) => {
+router.post('/toggleBlockUser', authenticateTokenAdmin, async (req, res) => {
     const { id, isBlocked } = req.body;
     try {
         const user = await User.findById(id);
