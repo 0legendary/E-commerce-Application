@@ -25,6 +25,7 @@ import AddProduct from './views/Admin/Products/AddNewProduct/AddProduct';
 import EditProduct from './views/Admin/Products/EditProduct/EditProduct';
 import ShowUser from './views/Admin/User/ShowUser';
 import SingleProduct from './views/User/Shopping-page/SingleProduct';
+import Category from './views/Admin/Category/Category';
 
 
 const UserLayout = () => {
@@ -74,6 +75,7 @@ function App() {
             <Route path="addProduct" element={<AddProduct />} />
             <Route path="editProduct/:id" element={<EditProduct />} />
             <Route path="users" element={<ShowUser />} />
+            <Route path="category" element={<Category />} />
           </Route>
         </Route>
       </Route>

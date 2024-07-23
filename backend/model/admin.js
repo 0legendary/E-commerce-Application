@@ -22,7 +22,7 @@ const adminSchema = new mongoose.Schema({
   isGoogleUser: {
     type: Boolean,
   },
-});
+}, { timestamps: true });
 
 
 

@@ -4,7 +4,7 @@ const imageSchema = new mongoose.Schema({
   image: {
     type: String,
   }
-});
+}, { timestamps: true });
 
 
 

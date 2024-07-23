@@ -6,6 +6,7 @@ import Image from '../model/image.js';
 import Product from '../model/product.js';
 import TrashedProduct from '../model/trashedProduct.js';
 import User from '../model/user.js'
+import Category from '../model/category.js';
 
 const router = Router();
 
@@ -33,7 +34,6 @@ router.post('/uploadImage', authenticateTokenAdmin, async (req, res) => {
 
 router.post('/deleteImage', authenticateTokenAdmin, async (req, res) => {
     const { _id, product_id, isMain } = req.body;
-    console.log(_id, product_id, isMain);
     try {
         const deletedImage = await Image.findByIdAndDelete(_id);
 
@@ -353,6 +353,83 @@ router.post('/delete-trashed-user', authenticateTokenAdmin, async (req, res) => 
         res.status(404).json({ status: false })
     }
 })
+
+//category
+
+router.get('/getAllCategories', authenticateTokenAdmin, async (req, res) => {
+    try {
+        const categories = await Category.find({})
+        res.status(201).json({ status: true, categories: categories });
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching products' });
+    }
+});
+
+
+router.post('/newCategory', authenticateTokenAdmin, async (req, res) => {
+    try {
+        const newCategory = new Category({
+            ...req.body,
+            isBlocked:false
+        });
+        await newCategory.save();
+        res.status(201).json({ status: true, category: newCategory });
+    } catch (error) {
+        console.error('Error uploading files:', error);
+        res.status(500).json({ error: 'Error uploading files' });
+    }
+})
+
+router.put('/editCategory', authenticateTokenAdmin, async (req, res) => {
+    const { name, description, _id } = req.body;
+    try {
+        const existingCategory = await Category.findById(_id);
+        if (existingCategory) {
+            existingCategory.name = name;
+            existingCategory.description = description;
+            existingCategory.isBlocked = false
+            await existingCategory.save();
+            res.status(201).json({ status: true, category: existingCategory });
+        } else {
+            res.status(404).json({ status: false, error: 'Category not found' });
+        }
+    } catch (error) {
+        console.error('Error uploading files:', error);
+        res.status(500).json({ error: 'Error uploading files' });
+    }
+});
+
+
+
+router.delete('/deleteCategory/:_id', authenticateTokenAdmin, async (req, res) => {
+    const { _id } = req.params;
+    console.log(_id);
+    try {
+        await Category.findByIdAndDelete(_id); 
+        res.status(201).json({ status: true });
+    } catch (error) {
+        console.error('Error uploading files:', error);
+        res.status(500).json({ error: 'Error uploading files' });
+    }
+});
+
+router.put('/toggleCategory', authenticateTokenAdmin, async (req, res) => {
+    const {_id} = req.body
+    try {
+        const category = await Category.findById(_id);
+        if (category) {
+            category.isBlocked = !category.isBlocked;
+            await category.save();
+            res.status(200).json({ status: true, category });
+        } else {
+            res.status(404).json({ status: false, error: 'Category not found' });
+        }
+    } catch (error) {
+        console.error('Error uploading files:', error);
+        res.status(500).json({ error: 'Error uploading files' });
+    }
+});
+
 
 export default router;
 

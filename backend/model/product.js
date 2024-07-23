@@ -41,7 +41,7 @@ const productSchema = new mongoose.Schema({
   },
   gender: String,
   season: String
-});
+}, { timestamps: true });
 
 const Product = mongoose.model('Product', productSchema);
 

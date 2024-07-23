@@ -22,6 +22,8 @@ function EditProduct() {
   const [imageSrc, setImageSrc] = useState(null);
   const [isMainImage, setIsMainImage] = useState(true);
   const [deleteImagesId, setDeleteImagesId] = useState('')
+  const [categories, setCategories] = useState([]);
+
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -39,6 +41,17 @@ function EditProduct() {
       });
   }, [])
 
+  useEffect(() => {
+    axiosInstance.get('/admin/getAllCategories')
+      .then(response => {
+        if (response.data.status) {
+          setCategories(response.data.categories);
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching categories:', error);
+      });
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -355,15 +368,9 @@ function EditProduct() {
                 onChange={handleInputChange}
               >
                 <option value="">Select Category</option>
-                <option value="669df419adbef3e0af203776">Formal</option>
-                <option value="669df419adbef3e0af203776">Running</option>
-                <option value="669df419adbef3e0af203776">Sports</option>
-                <option value="669df419adbef3e0af203776">Sneakers</option>
-                <option value="669df419adbef3e0af203776">Boots</option>
-                <option value="669df419adbef3e0af203776">Sandals</option>
-                <option value="669df419adbef3e0af203776">Flats</option>
-                <option value="669df419adbef3e0af203776">Heels</option>
-                <option value="669df419adbef3e0af203776">Loafers</option>
+                {categories.length > 0 && categories.map((category, index) => (
+                  !category.isBlocked && <option key={index} value={category._id}>{category.name}</option>
+                ))}
               </select>
               {newErrors.category && <div className="error">{newErrors.category}</div>}
             </div>

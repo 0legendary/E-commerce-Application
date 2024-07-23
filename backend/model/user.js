@@ -26,11 +26,7 @@ const userSchema = new mongoose.Schema({
   isBlocked: {
     type: Boolean,
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+}, { timestamps: true });
 
 
 

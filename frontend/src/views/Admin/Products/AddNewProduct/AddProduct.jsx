@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Cropper from 'react-easy-crop';
 import './addProduct.css';
 import { addProductformValidation } from '../../../../config/productValidation';
@@ -11,6 +11,7 @@ function AddProduct() {
   const colors = ['Red', 'Grey', 'White', 'Black'];
   const [newErrors, setNewErrors] = useState({});
   const [successMsg, setSuccessMsg] = useState('');
+
   const [product, setProduct] = useState({
     name: 'Adidas ULTRA 4DFWD SHOES',
     description: 'RUNNING SHOES DESIGNED TO MOVE YOU FORWARD, MADE IN PART WITH PARLEY OCEAN PLASTIC.',
@@ -24,7 +25,7 @@ function AddProduct() {
     season: 'all-seasons',
   });
 
- 
+
 
   const [croppedArea, setCroppedArea] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -32,14 +33,28 @@ function AddProduct() {
   const [showCropper, setShowCropper] = useState(false);
   const [imageSrc, setImageSrc] = useState(null);
   const [isMainImage, setIsMainImage] = useState(true);
+  const [categories, setCategories] = useState([]);
 
   const navigate = useNavigate();
+
+
+  useEffect(() => {
+    axiosInstance.get('/admin/getAllCategories')
+      .then(response => {
+        if (response.data.status) {
+          console.log(response.data.categories);
+          setCategories(response.data.categories);
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching categories:', error);
+      });
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setProduct({ ...product, [name]: value });
     setNewErrors({ ...newErrors, [name]: '' });
-    console.log(product);
   };
 
   const handleVariationChange = (index, e) => {
@@ -56,7 +71,6 @@ function AddProduct() {
   };
 
   const handleColorChange = (index, e) => {
-    console.log(index);
     const { value, checked } = e.target;
     const newVariations = [...product.variations];
     if (checked) {
@@ -147,7 +161,7 @@ function AddProduct() {
         additionalImages: additionalImageIds,
       };
       console.log(updatedProduct);
-      
+
       axiosInstance.post('/admin/addProduct', updatedProduct)
         .then(response => {
           if (response.data.status) {
@@ -214,7 +228,7 @@ function AddProduct() {
                         onChange={(e) => handleVariationChange(index, e)}
                         placeholder="Size"
                       />
-                       {newErrors[`variations[${index}].size`] && <div className="error">{newErrors[`variations[${index}].size`]}</div>}
+                      {newErrors[`variations[${index}].size`] && <div className="error">{newErrors[`variations[${index}].size`]}</div>}
                     </div>
                     <div className='form-group'>
                       <label htmlFor="size">Color</label>
@@ -244,7 +258,7 @@ function AddProduct() {
                         onChange={(e) => handleVariationChange(index, e)}
                         placeholder="Price"
                       />
-                        {newErrors[`variations[${index}].price`] && <div className="error">{newErrors[`variations[${index}].price`]}</div>}
+                      {newErrors[`variations[${index}].price`] && <div className="error">{newErrors[`variations[${index}].price`]}</div>}
                     </div>
                   </div>
 
@@ -283,7 +297,7 @@ function AddProduct() {
                         onChange={(e) => handleVariationChange(index, e)}
                         placeholder="Discount Price"
                       />
-                        {newErrors[`variations[${index}].discountPrice`] && <div className="error">{newErrors[`variations[${index}].discountPrice`]}</div>}
+                      {newErrors[`variations[${index}].discountPrice`] && <div className="error">{newErrors[`variations[${index}].discountPrice`]}</div>}
                     </div>
                     <button type="button" className='btn btn-danger btn-remove' onClick={() => removeVariation(index)}>Remove</button>
                   </div>
@@ -291,6 +305,7 @@ function AddProduct() {
               ))}
               <button type="button" className='btn btn-success mt-2' onClick={addVariation}>Add Variation</button>
             </div>
+
             <div className="form-group">
               <label htmlFor="category">Category</label>
               <select
@@ -301,15 +316,9 @@ function AddProduct() {
                 onChange={handleInputChange}
               >
                 <option value="">Select Category</option>
-                <option value="669df419adbef3e0af203776">Formal</option>
-                <option value="669df419adbef3e0af203776">Running</option>
-                <option value="669df419adbef3e0af203776">Sports</option>
-                <option value="669df419adbef3e0af203776">Sneakers</option>
-                <option value="669df419adbef3e0af203776">Boots</option>
-                <option value="669df419adbef3e0af203776">Sandals</option>
-                <option value="669df419adbef3e0af203776">Flats</option>
-                <option value="669df419adbef3e0af203776">Heels</option>
-                <option value="669df419adbef3e0af203776">Loafers</option>
+                {categories.length > 0 && categories.map((category, index) => (
+                  !category.isBlocked && <option key={index} value={category._id}>{category.name}</option>
+                ))}
               </select>
               {newErrors.category && <div className="error">{newErrors.category}</div>}
             </div>
@@ -412,7 +421,7 @@ function AddProduct() {
             ))}
           </div>
         </div>
-        <button type="submit" className="btn btn-primary">Add Product</button>
+        <button type="submit" className="btn btn-primary">Update Product</button>
         <Link to='/admin/products'>
           <button className="btn btn-danger m-3">Cancel</button>
         </Link>
@@ -435,7 +444,7 @@ function AddProduct() {
               image={imageSrc}
               crop={crop}
               zoom={zoom}
-              aspect={1} 
+              aspect={1}
               onCropChange={setCrop}
               onZoomChange={setZoom}
               onCropComplete={handleCropComplete}
