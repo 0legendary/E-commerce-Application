@@ -1,72 +1,128 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './SingleProduct.css';
-
-const product = {
-  _id: "6699701ce61d8713626c8c4b",
-  name: "Adidas ULTRA 4DFWD SHOES",
-  description: "RUNNING SHOES DESIGNED TO MOVE YOU FORWARD, MADE IN PART WITH PARLEY OCEAN PLASTIC.",
-  category: "Sports",
-  brand: "Adidas",
-  price: "22999",
-  discountPrice: 13799,
-  stock: "40",
-  sizeOptions: ["7", "8", "9", "10"],
-  colorOptions: ["Red", "Blue", "Green"],
-  material: "Rubber outsole",
-  mainImage: "https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/7e6dcfdc0a1b4fb08ba4bc057d465459_9366/Ultraboost_5x_Shoes_Black_JI1334_HM1.jpg",
-  additionalImages: [
-    "https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/53a3ca19c06b4c5abc39131398fae837_9366/Ultraboost_5x_Shoes_Black_JI1334_HM3_hover.jpg",
-    "https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/b5e29909433b4d9daaba38c2e7ab019d_9366/Ultraboost_5x_Shoes_Black_JI1334_HM5.jpg",
-    "https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/0af8bc2c5cc64ff59cfc41da136f5015_9366/Ultraboost_5x_Shoes_Black_JI1334_HM9.jpg"
-  ],
-  weight: "394",
-  gender: "Unisex",
-  season: "All Seasons",
-  __v: 2
-};
+import axiosInstance from '../../../config/axiosConfig';
+import { useParams } from 'react-router-dom';
+import ReactImageMagnify from 'react-image-magnify';
 
 function SingleProduct() {
+  const { id } = useParams();
+  const [product, setProduct] = useState({});
+  const [selectedVariation, setSelectedVariation] = useState(null);
+  const [mainImage, setMainImage] = useState(null);
+  const [additionalImages, setAdditionalImages] = useState([]);
+
+
+  useEffect(() => {
+    axiosInstance.get(`/user/shop/${id}`)
+      .then(response => {
+        if (response.data.status) {
+          console.log(response.data.product);
+          setProduct(response.data.product);
+          setSelectedVariation(response.data.product.variations[0]);
+          setMainImage(response.data.product.mainImage);
+          setAdditionalImages(response.data.product.additionalImages);
+        }
+      })
+      .catch(error => {
+        console.error('Error getting data:', error);
+      });
+  }, [id]);
+
+  const handleSizeClick = (variation) => {
+    setSelectedVariation(variation);
+  };
+
+  const handleImageClick = (clickedImage) => {
+    setMainImage(clickedImage);
+    const index = additionalImages.findIndex(img => img._id === clickedImage._id);
+    const updatedImages = [...additionalImages];
+    updatedImages[index] = mainImage;
+    setAdditionalImages(updatedImages);
+  };
+
   return (
-    <div className="container " style={{"margin-top":"15rem"}}>
-      <div className="row">
-        <div className="col-md-6">
-          <img src={product.mainImage} className="img-fluid main-image rounded" alt={product.name} />
-        </div>
-        <div w2className="col-md-6">
-          <h2 className="mb-3">{product.name}</h2>
-          <p className="text-muted mb-4">{product.description}</p>
-          <div className="product-details mb-4">
-            <h4>Category: <span className="text-info">{product.category}</span></h4>
-            <h4>Brand: <span className="text-info">{product.brand}</span></h4>
-            <h4>Price: <span className="text-danger">₹{product.price}</span></h4>
-            <h4>Discount Price: <span className="text-success">₹{product.discountPrice}</span></h4>
-            <h4>Stock: <span className="text-warning">{product.stock}</span></h4>
-            <h4>Material: <span className="text-secondary">{product.material}</span></h4>
-            <h4>Weight: <span className="text-secondary">{product.weight}g</span></h4>
-            <h4>Gender: <span className="text-secondary">{product.gender}</span></h4>
-            <h4>Season: <span className="text-secondary">{product.season}</span></h4>
+    <div className="container" style={{ marginTop: '15rem', color: 'white' }}>
+      <div className="container">
+        {product.name ? (
+          <div className="product-details">
+            <div className="product-image">
+              <div className='main-image'>
+              {mainImage && (
+                  <ReactImageMagnify
+                    {...{
+                      smallImage: {
+                        alt: product.name,
+                        isFluidWidth: true,
+                        src: mainImage.image
+                      },
+                      largeImage: {
+                        src: mainImage.image,
+                        width: 1200,
+                        height: 1800
+                      },
+                      shouldHideHintAfterFirstActivation: false
+                    }}
+                  />
+                )}
+              </div>
+              <div className="additional-images">
+                {additionalImages.map((image, index) => (
+                  <img
+                    key={index}
+                    src={image.image}
+                    alt={`Additional ${index + 1}`}
+                    onClick={() => handleImageClick(image)}
+                    className="thumbnail"
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="product-info">
+              <h1>{product.name}</h1>
+              <p>{product.description}</p>
+              <div className="category">Category: {product.categoryId.name}</div>
+              <div className="brand">Brand: {product.brand}</div>
+              {product.gender && <div className="gender">Gender: {product.gender}</div>}
+              {product.season && <div className="season">Season: {product.season}</div>}
+
+              {selectedVariation && (
+                <>
+                  <div className="price">Price: ₹{selectedVariation.discountPrice}</div>
+                  {selectedVariation.price !== selectedVariation.discountPrice && (
+                    <div className="discount-price">Original Price: ₹{selectedVariation.price}</div>
+                  )}
+                  <div className="variation-details">
+                    <div>Colors: {selectedVariation.color.join(', ')}</div>
+                    <div>Weight: {selectedVariation.weight}g</div>
+                    <div>Stock: {selectedVariation.stock}</div>
+                  </div>
+                </>
+              )}
+
+              <div className="sizes mt-3">
+                <h3>Available Sizes</h3>
+                <div className="btn-group" role="group" aria-label="Sizes">
+                  {product.variations.map((variation, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      className={`btn btn-outline-primary ${selectedVariation === variation ? 'active' : ''}`}
+                      onClick={() => handleSizeClick(variation)}
+                    >
+                      Size {variation.size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="add-to-cart-btn mt-3">
+                <button className="btn btn-primary">Add to Cart</button>
+              </div>
+            </div>
           </div>
-          <div className="product-options mb-4">
-            <h4>Sizes:</h4>
-            <ul className="list-inline">
-              {product.sizeOptions.map((size, index) => (
-                <li key={index} className="list-inline-item badge badge-primary p-2 mr-2">{size}</li>
-              ))}
-            </ul>
-            <h4>Colors:</h4>
-            <ul className="list-inline">
-              {product.colorOptions.map((color, index) => (
-                <li key={index} className="list-inline-item badge badge-secondary p-2 mr-2">{color}</li>
-              ))}
-            </ul>
-          </div>
-          <h4>Additional Images:</h4>
-          <div className="additional-images">
-            {product.additionalImages.map((image, index) => (
-              <img key={index} src={image} className="img-fluid additional-image rounded mr-2 mb-2" alt={`Additional ${index + 1}`} />
-            ))}
-          </div>
-        </div>
+        ) : (
+          <div>Loading...</div>
+        )}
       </div>
     </div>
   );

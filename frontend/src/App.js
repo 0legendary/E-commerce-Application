@@ -66,7 +66,7 @@ function App() {
           </Route>
           <Route path="/shop" element={<UserLayout />}>
             <Route index element={<ShoppingPage />} />
-            <Route path="singleProduct/:id" element={<SingleProduct />} />
+            <Route path=":id" element={<SingleProduct />} />
           </Route>
         </Route>
         <Route element={<PrivateRouteAdmin />}>

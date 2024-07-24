@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react'
-import Layout from '../Header/Layout'
-import './shoppingPage.css'
-import axiosInstance from '../../../config/axiosConfig'
-import { Link } from 'react-router-dom'
+import React, { useEffect, useState } from 'react';
+import Layout from '../Header/Layout';
+import './shoppingPage.css';
+import axiosInstance from '../../../config/axiosConfig';
+import { Link } from 'react-router-dom';
 
 function ShoppingPage() {
-    const [products, setProducts] = useState([])
+    const [products, setProducts] = useState([]);
     const mainHeading = "Shop Category";
     const breadcrumbs = [
         { name: "Home", path: "/" },
@@ -17,13 +17,18 @@ function ShoppingPage() {
             .then(response => {
                 if (response.data.status) {
                     console.log(response.data.products);
-                    setProducts(response.data.products)
+                    setProducts(response.data.products);
                 }
             })
             .catch(error => {
                 console.error('Error sending data:', error);
             });
-    }, [])
+    }, []);
+
+    const uniqueCategories = Array.from(new Set(products.map(product => product.categoryId._id)))
+        .map(categoryId => {
+            return products.find(product => product.categoryId._id === categoryId).categoryId;
+        });
 
     return (
         <div>
@@ -35,11 +40,11 @@ function ShoppingPage() {
                             <div className="head">Browse Categories</div>
                             <ul className="main-categories">
                                 <li className="main-nav-list">
-                                    {products && products.map((category, index) => (
+                                    {uniqueCategories && uniqueCategories.map((category, index) => (
                                         <a key={index} data-toggle="collapse" href="#fruitsVegetable" aria-expanded="false" aria-controls="fruitsVegetable">
-                                            <span className="lnr lnr-arrow-right"></span>{category.category}<span className="number">({category.stock})</span>
+                                            <span className="lnr lnr-arrow-right"></span>{category.name}<span className="number">({products.filter(product => product.categoryId._id === category._id).length})</span>
                                         </a>
-                                    ))}
+                                    ))} 
                                 </li>
                             </ul>
                         </div>
@@ -49,9 +54,9 @@ function ShoppingPage() {
                                 <li className="main-nav-list">
                                     {products && (() => {
                                         const displayedColors = new Set();
-                                        return products.map((prod, prodIndex) => (
+                                        return products.map((product, prodIndex) => (
                                             <React.Fragment key={prodIndex}>
-                                                {prod.colorOptions.map((color, colorIndex) => {
+                                                {product.variations.map((variation) => variation.color).flat().map((color, colorIndex) => {
                                                     if (!displayedColors.has(color)) {
                                                         displayedColors.add(color);
                                                         return (
@@ -68,8 +73,6 @@ function ShoppingPage() {
                                 </li>
                             </ul>
                         </div>
-
-
                     </div>
                 </div>
                 <div className="container products-container mt-4 shopping-products w-70">
@@ -89,48 +92,43 @@ function ShoppingPage() {
                     </div>
                     <div className="products-grid mt-4" style={{ 'grid-template-columns': 'repeat(3, 1fr)' }}>
                         {products.map((product, index) => (
-
-
                             <div key={index} className="product-card">
-                                <img src={product.mainImage} alt={product.name} className="product-image" />
+                                <img src={product.mainImage.image} alt={product.name} className="product-image" />
                                 <div className="product-details">
                                     <span className="product-name"><span>{product.name}</span></span>
                                 </div>
                                 <div className='d-flex gap-3'>
-                                    <span className="product-current-price"><span>{product.price}</span></span>
-                                    <span className="product-original-price"><span>{product.discountPrice}</span></span>
+                                    <span className="product-current-price"><span>{product.variations[0].price}</span></span>
+                                    <span className="product-original-price"><span>{product.variations[0].discountPrice}</span></span>
                                 </div>
-
                                 <div className="product-actions w-100 justify-content-between">
                                     <div className='d-flex gap-1'>
                                         <div className="product-background">
-                                            <i class="bi bi-cart3"></i>
+                                            <i className="bi bi-cart3"></i>
                                         </div>
                                         <div className="product-background">
-                                            <i class="bi bi-heart"></i>
+                                            <i className="bi bi-heart"></i>
                                         </div>
                                         <div className="product-background">
-                                            <i class="bi bi-heart"></i>
+                                            <i className="bi bi-heart"></i>
                                         </div>
-                                        <Link to={`/shop/singleProduct/${product._id}`}>
+                                        <Link to={`/shop/${product._id}`}>
                                             <div className="product-background">
-                                                <i class="bi bi-search"></i>
+                                                <i className="bi bi-search"></i>
                                             </div>
                                         </Link>
-
                                     </div>
                                     <div>
                                         <button className='btn border border-success text-black'>Buy</button>
                                     </div>
                                 </div>
                             </div>
-
                         ))}
                     </div>
                 </div>
             </div>
-        </div >
+        </div>
     )
 }
 
-export default ShoppingPage
+export default ShoppingPage;

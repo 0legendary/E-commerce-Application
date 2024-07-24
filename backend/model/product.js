@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const variationSchema = new mongoose.Schema({
   size: { type: Number, required: true },
   stock: { type: Number, required: true },
-  color: { type: Array, required: true },
+  color: { type: [String], required: true },
   price: { type: Number, required: true },
   discountPrice: { type: Number, required: true },
   weight: { type: Number, required: true }
@@ -20,7 +20,8 @@ const productSchema = new mongoose.Schema({
   },
   categoryId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Category', required: true
+    ref: 'Category', 
+    required: true
   },
   brand: {
     type: String,
@@ -32,13 +33,15 @@ const productSchema = new mongoose.Schema({
     required: true
   },
   mainImage: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Image',
     required: true
   },
-  additionalImages: {
-    type: [String],
+  additionalImages: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Image',
     required: true
-  },
+  }],
   gender: String,
   season: String
 }, { timestamps: true });

@@ -1,25 +1,96 @@
-.main-image {
-    max-height: 400px;
-    object-fit: cover;
-    margin-bottom: 20px;
-  }
-  
-  .product-details h4 {
-    margin-bottom: 10px;
-  }
-  
-  .product-options h4 {
-    margin-top: 20px;
-    margin-bottom: 10px;
-  }
-  
-  .additional-images {
-    display: flex;
-    flex-wrap: wrap;
-  }
-  
-  .additional-image {
-    max-height: 100px;
-    object-fit: cover;
-  }
-  
+.container {
+  margin-top: 2rem;
+}
+
+.product-details {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.product-image {
+  flex: 1 1 40%;
+  padding: 1rem;
+  text-align: center;
+}
+
+.product-info {
+  flex: 1 1 60%;
+  padding: 1rem;
+}
+
+.product-info h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.product-info p {
+  margin-bottom: 1rem;
+}
+
+.product-info .price {
+  font-size: 2rem;
+  color: #28a745;
+}
+
+.product-info .discount-price {
+  text-decoration: line-through;
+  color: #dc3545;
+}
+
+.product-info .category,
+.product-info .brand,
+.product-info .gender,
+.product-info .season {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.additional-images {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.additional-images img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.additional-images img:hover {
+  border: 2px solid #007bff;
+}
+
+.variations {
+  margin-top: 1rem;
+}
+
+.variations table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.variations th,
+.variations td {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+.variations th {
+  background-color: #f8f9fa;
+}
+
+.add-to-cart-btn {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.add-to-cart-btn button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1.2rem;
+}
+
