@@ -26,6 +26,8 @@ import EditProduct from './views/Admin/Products/EditProduct/EditProduct';
 import ShowUser from './views/Admin/User/ShowUser';
 import SingleProduct from './views/User/Shopping-page/SingleProduct';
 import Category from './views/Admin/Category/Category';
+import ProfileHome from './views/User/Profile/Home/ProfileHome';
+import AccountSettings from './views/User/Profile/Account/AccountSettings';
 
 
 const UserLayout = () => {
@@ -58,8 +60,8 @@ function App() {
           <Route path="/authentication" element={<Authentication />}></Route>
         </Route>
         <Route path='/admin/auth'>
-            <Route index element={<Login/>} />
-          </Route>
+          <Route index element={<Login />} />
+        </Route>
         <Route element={<PrivateRoute />}>
           <Route path="/" element={<UserLayout />}>
             <Route index element={<UserHomePage />} />
@@ -67,6 +69,11 @@ function App() {
           <Route path="/shop" element={<UserLayout />}>
             <Route index element={<ShoppingPage />} />
             <Route path=":id" element={<SingleProduct />} />
+          </Route>
+          <Route path="/account" element={<UserLayout />}>
+            <Route path="" element={<ProfileHome />}>
+              <Route path="settings" element={<AccountSettings />} />
+            </Route>
           </Route>
         </Route>
         <Route element={<PrivateRouteAdmin />}>

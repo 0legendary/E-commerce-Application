@@ -1,0 +1,32 @@
+.acc-setting {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.acc-setting .account-details {
+    text-align: left;
+}
+
+.acc-setting .edit-form,
+.acc-setting .password-form {
+    text-align: left;
+}
+
+
+.password-form .forgot-pass {
+    margin-top: 2px;
+    width: 40%;
+    height: 20px;
+    display: flex;
+    float:right;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff7f700;
+    border: none;
+    color: #ff4040;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 400;
+    border-radius: 5px;
+    cursor: pointer;
+}

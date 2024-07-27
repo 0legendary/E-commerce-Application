@@ -1,13 +1,8 @@
 import React from 'react'
 import './header.css'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 function Header() {
-    const navigate = useNavigate()
-    const deleteAcessToken = () => {
-        sessionStorage.removeItem('accessToken')
-        navigate('/authentication')
-    }
     return (
         <div>
             <div class="home-header-nav">
@@ -16,11 +11,17 @@ function Header() {
                         <span class="home-text012"><span>O'legendary</span></span>
                     </div>
                     <div class="home-list">
-                        <a href="/"><span class="home-text014"><span>HOME</span></span></a>
-                        <a href="/login"><span class="home-text016"><span>LOGIN</span></span></a>
-                        <a href="/shop"><span class="home-text018"><span>SHOP</span></span></a>
-                        <a href="/orders"><span class="home-text020"><span>ORDERS</span></span></a>
-                        <a href="/wallet"><span class="home-text022"><span>WALLTE</span></span></a>
+                        <Link to="/"> <a><span class="home-text014"><span>HOME</span></span></a></Link>
+                        <Link to="/login">
+                            <a><span class="home-text016"><span>LOGIN</span></span></a>
+                        </Link>
+                        <Link to="/shop">
+                            <a><span class="home-text018"><span>SHOP</span></span></a>
+                        </Link>
+                        <Link to="/orders"><a><span class="home-text020"><span>ORDERS</span></span></a></Link>
+                        <Link to="/wallet">
+                            <a><span class="home-text022"><span>WALLTE</span></span></a>
+                        </Link>
                     </div>
                     <div class="home-list1">
                         <div class="home-item05">
@@ -30,7 +31,9 @@ function Header() {
                             <i class="bi bi-heart home-icon02"></i>
                         </div>
                         <div class="home-item07">
-                            <i class="bi bi-person home-icon03"   onClick={deleteAcessToken}></i>
+                            <Link to='/account'>
+                                <i class="bi bi-person home-icon03"></i>
+                            </Link>
                         </div>
                     </div>
                     <div class="home-searchbar">

@@ -85,10 +85,10 @@ function SignIn({ handleLoginClick, handleSignUpClick }) {
           if (response.data.status) {
             sessionStorage.setItem('accessToken', response.data.accessToken);
             setErrors({})
-            setSuccessMsg({login:'Login successful'})
+            setSuccessMsg({ login: 'Login successful' })
             setTimeout(() => {
               navigate("/")
-              setSuccessMsg({login:''})
+              setSuccessMsg({ login: '' })
             }, 2000)
             setCountdown(2)
           } else {
@@ -113,10 +113,10 @@ function SignIn({ handleLoginClick, handleSignUpClick }) {
       if (response.data.status) {
         setErrors({})
         sessionStorage.setItem('accessToken', response.data.accessToken);
-        setSuccessMsg({login:'Login successful'});
+        setSuccessMsg({ login: 'Login successful' });
         setTimeout(() => {
           navigate("/");
-          setSuccessMsg({login:''})
+          setSuccessMsg({ login: '' })
         }, 2000);
         countdown(2)
       } else {
@@ -152,10 +152,10 @@ function SignIn({ handleLoginClick, handleSignUpClick }) {
         if (response.data.status) {
           setCountdown(10)
           setButtonEnabled(false)
-          setSuccessMsg({newOTPSend:'New OTP sended to your email'})
+          setSuccessMsg({ newOTPSend: 'New OTP sended to your email' })
           setErrors({})
           setTimeout(() => {
-            setSuccessMsg({newOTPSend:''})
+            setSuccessMsg({ newOTPSend: '' })
           }, 2000)
         } else {
           setErrors({ unAuthorised: 'Verification failed' })
@@ -178,11 +178,11 @@ function SignIn({ handleLoginClick, handleSignUpClick }) {
       axiosInstance.post('/forgot-pass/verify-otp', { otp: formOtp, email: formData.email })
         .then(response => {
           if (response.data.status) {
-            setSuccessMsg({otpVerified:'OTP verified'})
+            setSuccessMsg({ otpVerified: 'OTP verified' })
             setTimeout(() => {
               setShowOtpPage(false)
               setShowNewPassInput(true)
-              setSuccessMsg({otpVerified:''})
+              setSuccessMsg({ otpVerified: '' })
             }, 2000);
           }
         })
@@ -199,7 +199,7 @@ function SignIn({ handleLoginClick, handleSignUpClick }) {
       axiosInstance.post('/forgot-pass/reset-password', { email: formData.email, password: newPassForm.password })
         .then(response => {
           if (response.data.status) {
-            setSuccessMsg({passChanged:'Password changed'})
+            setSuccessMsg({ passChanged: 'Password changed' })
             setFormData({
               email: '',
               password: '',
@@ -208,7 +208,7 @@ function SignIn({ handleLoginClick, handleSignUpClick }) {
               setShowOtpPage(false)
               setShowNewPassInput(false)
               setShowManualLogin(true)
-              setSuccessMsg({passChanged:''})
+              setSuccessMsg({ passChanged: '' })
             }, 1000);
           } else {
             setErrors({ unAuthorised: 'something went wrong, try again later' })
@@ -340,7 +340,7 @@ function SignIn({ handleLoginClick, handleSignUpClick }) {
 
             </>
           )}
-          {successMsg.login && <p className='successMsg text-success'>{successMsg.login}... <span className='redirect-text'>{countdown && countdown}</span></p>}          
+          {successMsg.login && <p className='successMsg text-success'>{successMsg.login}... <span className='redirect-text'>{countdown && countdown}</span></p>}
         </form>
       </div>
     </div>

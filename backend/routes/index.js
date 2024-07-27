@@ -50,7 +50,7 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ status: false, message: 'Invalid email or password' });
     }
     //creating JWT for user for authorization
-    const accessToken = generateAccessToken({ username: user.username, isAdmin: false })
+    const accessToken = generateAccessToken({ email: user.email, isAdmin: false })
     res.status(200).json({ status: true, message: 'Login successful', accessToken })
   } catch (error) {
     res.status(500).json({ status: false, message: 'Server error' });
