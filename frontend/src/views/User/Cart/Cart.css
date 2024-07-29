@@ -1,0 +1,39 @@
+/* Cart.css */
+
+.cart-item-image img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+}
+
+.cart-item-details {
+    flex: 1;
+}
+
+.cart-item-details .btn {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+}
+
+.cart-quantity{
+    width: 5px;
+}
+
+
+.address-card h5 {
+    margin-bottom: 1rem;
+}
+
+.cart-item {
+    color: white;
+    border: 1px solid #ddd;
+}
+
+.cart-item img {
+    max-width: 100%;
+}
+
+.modal-body .form-check {
+    margin-bottom: 10px;
+}

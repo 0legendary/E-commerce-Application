@@ -29,6 +29,7 @@ import Category from './views/Admin/Category/Category';
 import ProfileHome from './views/User/Profile/Home/ProfileHome';
 import AccountSettings from './views/User/Profile/Account/AccountSettings';
 import Address from './views/User/Profile/Address/Address';
+import Cart from './views/User/Cart/Cart';
 
 
 const UserLayout = () => {
@@ -70,6 +71,9 @@ function App() {
           <Route path="/shop" element={<UserLayout />}>
             <Route index element={<ShoppingPage />} />
             <Route path=":id" element={<SingleProduct />} />
+          </Route>
+          <Route path="/cart" element={<UserLayout />}>
+            <Route index element={<Cart />} />
           </Route>
           <Route path="/account" element={<UserLayout />}>
             <Route path="" element={<ProfileHome />}>

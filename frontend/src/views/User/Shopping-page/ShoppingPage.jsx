@@ -16,7 +16,6 @@ function ShoppingPage() {
         axiosInstance.get('/user/getProducts')
             .then(response => {
                 if (response.data.status) {
-                    console.log(response.data.products);
                     setProducts(response.data.products);
                 }
             })
@@ -29,6 +28,19 @@ function ShoppingPage() {
         .map(categoryId => {
             return products.find(product => product.categoryId._id === categoryId).categoryId;
         });
+
+    const addToCart = async (productId) => {
+        console.log(productId);
+        axiosInstance.post('/user/add-to-cart', {productId})
+            .then(response => {
+                if (response.data.status) {
+                    //setProducts(response.data.products);
+                }
+            })
+            .catch(error => {
+                console.error('Error sending data:', error);
+            });
+    }
 
     return (
         <div>
@@ -44,7 +56,7 @@ function ShoppingPage() {
                                         <a key={index} data-toggle="collapse" href="#fruitsVegetable" aria-expanded="false" aria-controls="fruitsVegetable">
                                             <span className="lnr lnr-arrow-right"></span>{category.name}<span className="number">({products.filter(product => product.categoryId._id === category._id).length})</span>
                                         </a>
-                                    ))} 
+                                    ))}
                                 </li>
                             </ul>
                         </div>
@@ -104,7 +116,7 @@ function ShoppingPage() {
                                 <div className="product-actions w-100 justify-content-between">
                                     <div className='d-flex gap-1'>
                                         <div className="product-background">
-                                            <i className="bi bi-cart3"></i>
+                                            <i className="bi bi-cart3" onClick={() => addToCart(product._id)}></i>
                                         </div>
                                         <div className="product-background">
                                             <i className="bi bi-heart"></i>

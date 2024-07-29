@@ -25,10 +25,14 @@ function Header() {
                     </div>
                     <div class="home-list1">
                         <div class="home-item05">
-                            <i class="bi bi-cart2 home-icon01"></i>
+                            <Link to='/cart'>
+                                <i class="bi bi-cart2 home-icon01"></i>
+                            </Link>
                         </div>
                         <div class="home-item06">
-                            <i class="bi bi-heart home-icon02"></i>
+                            <Link to='/wishlist'>
+                                <i class="bi bi-heart home-icon02"></i>
+                            </Link>
                         </div>
                         <div class="home-item07">
                             <Link to='/account'>

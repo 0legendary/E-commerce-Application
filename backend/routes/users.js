@@ -2,11 +2,11 @@ import { Router } from 'express';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import Product from '../model/product.js';
 import User from '../model/user.js'
-import Image from '../model/image.js';
 import bcrypt from 'bcrypt'
 import { generateOTP, sendOTPEmail } from '../utils/sendEmail.js';
 import OTP from '../model/otp.js';
 import Address from '../model/address.js';
+import Cart from '../model/cart.js';
 
 
 const router = Router();
@@ -248,7 +248,6 @@ router.post('/edit-address', authenticateToken, async (req, res) => {
 
 router.delete('/delete-address/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
-  console.log(id);
   try {
     const user = await User.findOne({ email: req.user.email });
     if (!user) {
@@ -264,6 +263,9 @@ router.delete('/delete-address/:id', authenticateToken, async (req, res) => {
     console.error('Error deleting address:', error);
   }
 });
+
+
+
 
 export default router;
 
