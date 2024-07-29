@@ -51,7 +51,7 @@ function NewAddress({ handleCancel }) {
             axiosInstance.post('/user/add-address', { address: formData })
                 .then(response => {
                     if (response.data.status) {
-                        handleCancel('Address Created')
+                        handleCancel(response.data.address)
                     }
                 })
         }

@@ -170,6 +170,24 @@ router.post('/reset-password', authenticateToken, async (req, res) => {
   }
 });
 
+
+router.get('/addresses', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.user.email });
+    if (!user) {
+      return res.status(404).json({ status: false, message: 'User not found' });
+    }
+
+    const addresses = await Address.find({ userId: user._id });
+
+    res.status(200).json({ status: true, addresses });
+  } catch (error) {
+    console.error('Error fetching addresses:', error);
+    res.status(500).json({ status: false, message: 'Server error' });
+  }
+});
+
+
 router.post('/add-address', authenticateToken, async (req, res) => {
   const { address } = req.body;
   try {
@@ -178,20 +196,74 @@ router.post('/add-address', authenticateToken, async (req, res) => {
       return res.status(404).json({ status: false, message: 'User not found' });
     }
 
+    if (address.isPrimary) {
+      await Address.updateMany(
+        { userId: user._id },
+        { isPrimary: false }
+      );
+    }
+
     const newAddress = new Address({
       userId: user._id,
       ...address
     });
-    
-    await newAddress.save();
-    res.status(200).json({ status: true });
+
+    const savedAddress = await newAddress.save();
+
+    res.status(200).json({ status: true, address: savedAddress });
   } catch (error) {
     res.status(500).json({ status: false, message: 'Server error' });
     console.error('Signup error:', error);
   }
 });
 
+router.post('/edit-address', authenticateToken, async (req, res) => {
+  const { address } = req.body;
+  const userId = address.userId;
 
+  try {
+    const updatedAddress = await Address.findByIdAndUpdate(
+      address._id,
+      address,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedAddress) {
+      return res.status(404).json({ status: false, message: 'Address not found' });
+    }
+
+    if (address.isPrimary) {
+      await Address.updateMany(
+        { userId: userId, _id: { $ne: address._id } },
+        { isPrimary: false }
+      );
+    }
+
+    res.status(200).json({ status: true, address: updatedAddress });
+  } catch (error) {
+    console.error('Error updating address:', error);
+    res.status(500).json({ status: false, message: 'Server error' });
+  }
+});
+
+router.delete('/delete-address/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  console.log(id);
+  try {
+    const user = await User.findOne({ email: req.user.email });
+    if (!user) {
+      return res.status(404).json({ status: false, message: 'User not found' });
+    }
+    const result = await Address.deleteOne({ _id: id, userId: user._id });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ status: false, message: 'Address not found or not authorized' });
+    }
+    res.status(200).json({ status: true });
+  } catch (error) {
+    res.status(500).json({ status: false, message: 'Server error' });
+    console.error('Error deleting address:', error);
+  }
+});
 
 export default router;
 
