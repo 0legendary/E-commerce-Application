@@ -6,16 +6,20 @@ import { Link } from 'react-router-dom';
 
 function ShoppingPage() {
     const [products, setProducts] = useState([]);
+    const [cartProducts, setCartProducts] = useState([])
     const mainHeading = "Shop Category";
     const breadcrumbs = [
         { name: "Home", path: "/" },
         { name: "Shop", path: "/shop" },
     ];
 
+
     useEffect(() => {
         axiosInstance.get('/user/getProducts')
             .then(response => {
                 if (response.data.status) {
+                    console.log(response.data.cartProducts);
+                    setCartProducts(response.data.cartProducts ? response.data.cartProducts : [])
                     setProducts(response.data.products);
                 }
             })
@@ -30,11 +34,10 @@ function ShoppingPage() {
         });
 
     const addToCart = async (productId) => {
-        console.log(productId);
-        axiosInstance.post('/user/add-to-cart', {productId})
+        axiosInstance.post('/user/add-to-cart', { productId })
             .then(response => {
                 if (response.data.status) {
-                    //setProducts(response.data.products);
+                    setCartProducts([...cartProducts, productId])
                 }
             })
             .catch(error => {
@@ -103,39 +106,50 @@ function ShoppingPage() {
                         </div>
                     </div>
                     <div className="products-grid mt-4" style={{ 'grid-template-columns': 'repeat(3, 1fr)' }}>
-                        {products.map((product, index) => (
-                            <div key={index} className="product-card">
-                                <img src={product.mainImage.image} alt={product.name} className="product-image" />
-                                <div className="product-details">
-                                    <span className="product-name"><span>{product.name}</span></span>
-                                </div>
-                                <div className='d-flex gap-3'>
-                                    <span className="product-current-price"><span>{product.variations[0].price}</span></span>
-                                    <span className="product-original-price"><span>{product.variations[0].discountPrice}</span></span>
-                                </div>
-                                <div className="product-actions w-100 justify-content-between">
-                                    <div className='d-flex gap-1'>
-                                        <div className="product-background">
-                                            <i className="bi bi-cart3" onClick={() => addToCart(product._id)}></i>
-                                        </div>
-                                        <div className="product-background">
-                                            <i className="bi bi-heart"></i>
-                                        </div>
-                                        <div className="product-background">
-                                            <i className="bi bi-heart"></i>
-                                        </div>
-                                        <Link to={`/shop/${product._id}`}>
+                        {products.map((product, index) => {
+                            const isInCart = Array.isArray(cartProducts) && cartProducts.includes(product._id);
+                            return (
+                                <div key={index} className="product-card">
+                                    <img src={product.mainImage.image} alt={product.name} className="product-image" />
+                                    <div className="product-details">
+                                        <span className="product-name"><span>{product.name}</span></span>
+                                    </div>
+                                    <div className='d-flex gap-3'>
+                                        <span className="product-current-price"><span>{product.variations[0].price}</span></span>
+                                        <span className="product-original-price"><span>{product.variations[0].discountPrice}</span></span>
+                                    </div>
+                                    <div className="product-actions w-100 justify-content-between">
+                                        <div className='d-flex gap-1'>
+                                            {!isInCart ? (
+                                                <div className="product-background">
+                                                    <i className="bi bi-cart3" onClick={() => addToCart(product._id)}></i>
+                                                </div>
+                                            ) : (
+                                                <Link to={`/cart`}>
+                                                    <div className="product-background">
+                                                        <i class="bi bi-cart-check"></i>
+                                                    </div>
+                                                </Link>
+                                            )}
                                             <div className="product-background">
-                                                <i className="bi bi-search"></i>
+                                                <i className="bi bi-heart"></i>
                                             </div>
-                                        </Link>
-                                    </div>
-                                    <div>
-                                        <button className='btn border border-success text-black'>Buy</button>
+                                            <div className="product-background">
+                                                <i className="bi bi-heart"></i>
+                                            </div>
+                                            <Link to={`/shop/${product._id}`}>
+                                                <div className="product-background">
+                                                    <i className="bi bi-search"></i>
+                                                </div>
+                                            </Link>
+                                        </div>
+                                        <div>
+                                            <button className='btn border border-success text-black'>Buy</button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            )
+                        })}
                     </div>
                 </div>
             </div>

@@ -18,6 +18,24 @@ router.get('/getProducts', authenticateToken, async (req, res) => {
       .populate('mainImage', 'image')
       .populate('additionalImages', 'image')
       .lean();
+
+    if (req.user && req.user.email) {
+      const user = await User.findOne({ email: req.user.email });
+      if (user) {
+        // Find the user's cart
+        const cart = await Cart.findOne({ userId: user._id }).lean();
+        if (cart) {
+          // Extract product IDs from the cart
+          const cartProductIds = cart.products.map(p => p.productId.toString());
+          res.status(200).json({
+            status: true, 
+            products,
+            cartProducts: cartProductIds
+          });
+          return;
+        }
+      }
+    }
     res.status(201).json({ status: true, products });
   } catch (error) {
     res.status(500).json({ error: 'Error fetching products' });
@@ -265,6 +283,42 @@ router.delete('/delete-address/:id', authenticateToken, async (req, res) => {
 });
 
 
+router.post('/add-to-cart', authenticateToken, async (req, res) => {
+  const { productId } = req.body;
+
+  try {
+    const user = await User.findOne({ email: req.user.email });
+    if (!user) {
+      return res.status(404).json({ status: false, message: 'User not found' });
+    }
+    let cart = await Cart.findOne({ userId: user._id });
+
+    const product = await Product.findById(productId);
+
+    const productDetails = product.variations[0];
+    const productPrice = productDetails.price;
+    const discountedPrice = productDetails.discountPrice || productPrice;
+    if (!cart) {
+      cart = new Cart({
+        userId: user._id,
+        products: [{
+          productId: productId,
+          quantity: 1,
+          price: productPrice,
+          discountedPrice: discountedPrice
+        }],
+        totalPrice: discountedPrice,
+        totalDiscount: discountedPrice - productPrice
+      });
+    }
+
+    await cart.save();
+    res.status(200).json({ status: true });
+  } catch (error) {
+    res.status(500).json({ status: false, message: 'Server error' });
+    console.error('Error deleting address:', error);
+  }
+});
 
 
 export default router;

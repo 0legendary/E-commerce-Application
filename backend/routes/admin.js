@@ -117,9 +117,7 @@ const getOneBase64Image = async (product) => {
 router.get('/getProducts', authenticateTokenAdmin, async (req, res) => {
     try {
         const products = await Product.find({}).lean();
-        //console.log(products);
         const populatedProducts = await getBase64Image(products)
-        //console.log(populatedProducts);
         res.status(201).json({ status: true, products: populatedProducts });
     } catch (error) {
         console.log(error);
