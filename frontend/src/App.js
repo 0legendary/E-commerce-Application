@@ -28,6 +28,7 @@ import SingleProduct from './views/User/Shopping-page/SingleProduct';
 import Category from './views/Admin/Category/Category';
 import ProfileHome from './views/User/Profile/Home/ProfileHome';
 import AccountSettings from './views/User/Profile/Account/AccountSettings';
+import Address from './views/User/Profile/Address/Address';
 
 
 const UserLayout = () => {
@@ -73,6 +74,7 @@ function App() {
           <Route path="/account" element={<UserLayout />}>
             <Route path="" element={<ProfileHome />}>
               <Route path="settings" element={<AccountSettings />} />
+              <Route path="address" element={<Address />} />
             </Route>
           </Route>
         </Route>
