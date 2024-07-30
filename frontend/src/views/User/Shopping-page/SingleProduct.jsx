@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './SingleProduct.css';
 import axiosInstance from '../../../config/axiosConfig';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import ReactImageMagnify from 'react-image-magnify';
 
 function SingleProduct() {
@@ -10,17 +10,19 @@ function SingleProduct() {
   const [selectedVariation, setSelectedVariation] = useState(null);
   const [mainImage, setMainImage] = useState(null);
   const [additionalImages, setAdditionalImages] = useState([]);
-
-
+  const [selectedColor, setSelectedColor] = useState(null);
+  const [cartProducts, setCartProducts] = useState([])
   useEffect(() => {
     axiosInstance.get(`/user/shop/${id}`)
       .then(response => {
         if (response.data.status) {
-          console.log(response.data.product);
+          console.log(response.data.cartProducts);
           setProduct(response.data.product);
           setSelectedVariation(response.data.product.variations[0]);
           setMainImage(response.data.product.mainImage);
           setAdditionalImages(response.data.product.additionalImages);
+          setSelectedColor(response.data.product.variations[0].color[0]);
+          setCartProducts(response.data.cartProducts ? response.data.cartProducts : [])
         }
       })
       .catch(error => {
@@ -30,6 +32,10 @@ function SingleProduct() {
 
   const handleSizeClick = (variation) => {
     setSelectedVariation(variation);
+    setSelectedColor(variation.color[0]);
+  };
+  const handleColorClick = (color) => {
+    setSelectedColor(color);
   };
 
   const handleImageClick = (clickedImage) => {
@@ -40,6 +46,34 @@ function SingleProduct() {
     setAdditionalImages(updatedImages);
   };
 
+
+
+
+  const handleAddToCart = () => {
+
+    axiosInstance.post('/user/shop/add-to-cart', {
+      productId: product._id,
+      price: selectedVariation.price,
+      discountedPrice: selectedVariation.discountPrice,
+      selectedColor,
+      selectedSize: selectedVariation.size
+    })
+      .then(response => {
+        if (response.data.status) {
+          response.data.product && setCartProducts([...cartProducts, response.data.product])
+        }
+      })
+      .catch(error => {
+        console.error('Error adding product to cart:', error);
+      });
+  };
+
+
+  const isProductInCart = cartProducts.some(cartProduct =>
+    cartProduct.selectedColor === selectedColor &&
+    cartProduct.selectedSize == selectedVariation?.size
+  );
+
   return (
     <div className="container" style={{ marginTop: '15rem', color: 'white' }}>
       <div className="container">
@@ -47,7 +81,7 @@ function SingleProduct() {
           <div className="product-details">
             <div className="product-image">
               <div className='main-image'>
-              {mainImage && (
+                {mainImage && (
                   <ReactImageMagnify
                     {...{
                       smallImage: {
@@ -92,7 +126,20 @@ function SingleProduct() {
                     <div className="discount-price">Original Price: ₹{selectedVariation.price}</div>
                   )}
                   <div className="variation-details">
-                    <div>Colors: {selectedVariation.color.join(', ')}</div>
+                    <div className="color-options border m-3 rounded">
+                      {selectedVariation.color.map((color, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          className={`btn color-btn m-3 ${selectedColor === color ? 'active' : ''}`}
+                          style={{ border: `1px ${color} solid` }}
+                          onClick={() => handleColorClick(color)}
+                        >
+                          {color}
+                          {selectedColor === color && <i className="bi bi-check"></i>}
+                        </button>
+                      ))}
+                    </div>
                     <div>Weight: {selectedVariation.weight}g</div>
                     <div>Stock: {selectedVariation.stock}</div>
                   </div>
@@ -114,9 +161,18 @@ function SingleProduct() {
                   ))}
                 </div>
               </div>
-
               <div className="add-to-cart-btn mt-3">
-                <button className="btn btn-primary">Add to Cart</button>
+                {selectedColor && selectedVariation ? (
+                  isProductInCart ? (
+                    <Link to='/cart'>
+                      <button className="btn btn-secondary">Go to Cart</button>
+                    </Link>
+                  ) : (
+                    <button className="btn btn-primary" onClick={handleAddToCart}>Add to Cart</button>
+                  )
+                ) : (
+                  <button className="btn btn-primary" disabled>Add to Cart</button>
+                )}
               </div>
             </div>
           </div>

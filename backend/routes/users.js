@@ -28,7 +28,7 @@ router.get('/getProducts', authenticateToken, async (req, res) => {
           // Extract product IDs from the cart
           const cartProductIds = cart.products.map(p => p.productId.toString());
           res.status(200).json({
-            status: true, 
+            status: true,
             products,
             cartProducts: cartProductIds
           });
@@ -50,10 +50,27 @@ router.get('/shop/:id', authenticateToken, async (req, res) => {
 
   try {
     const product = await Product.findById(productId)
-      .populate('categoryId', 'name') // Populate category name
-      .populate('mainImage', 'image') // Populate main image
-      .populate('additionalImages', 'image'); // Populate additional images
+      .populate('categoryId', 'name')
+      .populate('mainImage', 'image')
+      .populate('additionalImages', 'image');
     if (product) {
+      if (req.user && req.user.email) {
+        const user = await User.findOne({ email: req.user.email });
+        if (user) {
+          const cart = await Cart.findOne({ userId: user._id }).lean();
+          if (cart) {
+            const cartProducts = cart.products.filter(p =>
+              p.productId.equals(productId)
+            );
+            res.status(200).json({
+              status: true,
+              product,
+              cartProducts: cartProducts
+            });
+            return;
+          }
+        }
+      }
       res.status(200).json({ status: true, product: product });
     } else {
       res.status(404).json({ status: false, message: 'Product not found' });
@@ -305,7 +322,9 @@ router.post('/add-to-cart', authenticateToken, async (req, res) => {
           productId: productId,
           quantity: 1,
           price: productPrice,
-          discountedPrice: discountedPrice
+          discountedPrice: discountedPrice,
+          selectedColor: product.variations[0].color[0],
+          selectedSize: product.variations[0].size
         }],
         totalPrice: discountedPrice,
         totalDiscount: discountedPrice - productPrice
@@ -317,6 +336,62 @@ router.post('/add-to-cart', authenticateToken, async (req, res) => {
   } catch (error) {
     res.status(500).json({ status: false, message: 'Server error' });
     console.error('Error deleting address:', error);
+  }
+});
+
+
+router.post('/shop/add-to-cart', authenticateToken, async (req, res) => {
+  const { productId, price, discountedPrice, selectedColor, selectedSize } = req.body;
+
+
+  try {
+    const user = await User.findOne({ email: req.user.email });
+    if (!user) {
+      return res.status(404).json({ status: false, message: 'User not found' });
+    }
+
+    let cart = await Cart.findOne({ userId: user._id });
+
+    if (!cart) {
+      cart = new Cart({
+        userId: user._id,
+        products: [{
+          productId,
+          quantity:1,
+          price,
+          discountedPrice,
+          selectedColor,
+          selectedSize
+        }],
+        totalPrice: price,
+        totalDiscount: discountedPrice ? discountedPrice - price  : 0
+      });
+    } else {
+        cart.products.push({
+          productId,
+          price,
+          discountedPrice,
+          selectedColor,
+          selectedSize
+        });
+      
+      cart.totalPrice = cart.products.reduce((total, p) => total + (p.quantity * p.price), 0);
+      cart.totalDiscount = cart.products.reduce((total, p) => total + (p.quantity * (p.discountedPrice - p.price || 0)), 0);
+    }
+
+    await cart.save();
+
+    const addedProduct = cart.products.find(p =>
+      p.productId.equals(productId) &&
+      p.selectedColor === selectedColor &&
+      p.selectedSize == selectedSize
+    );
+
+    res.status(200).json({ status: true, product: addedProduct });
+
+  } catch (error) {
+    res.status(500).json({ status: false, message: 'Server error' });
+    console.error('Error adding to cart:', error);
   }
 });
 

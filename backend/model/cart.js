@@ -25,6 +25,14 @@ const CartSchema = new mongoose.Schema({
       discountedPrice: {
         type: Number,
         required: false
+      },
+      selectedColor: {
+        type: String,
+        required: true
+      },
+      selectedSize: {
+        type: String,
+        required: true
       }
     }
   ],
