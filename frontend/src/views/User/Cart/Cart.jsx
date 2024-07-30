@@ -3,6 +3,7 @@ import Layout from '../Header/Layout'
 import axiosInstance from '../../../config/axiosConfig';
 import { Modal, Button } from 'react-bootstrap';
 import './Cart.css'
+import {Link} from 'react-router-dom'
 function Cart() {
     const [addresses, setAddresses] = useState([])
     const [showAddressModal, setShowAddressModal] = useState(false);
@@ -13,31 +14,8 @@ function Cart() {
     const breadcrumbs = [
         { name: "Home", path: "/" },
     ];
-    const [cartItems, setCartItems] = useState([
-        {
-            _id: 'product1',
-            name: 'Product 1',
-            brand: 'Brand A',
-            size: 'M',
-            color: 'Red',
-            price: 100,
-            discountedPrice: 80,
-            quantity: 1,
-            image: 'https://rukminim2.flixcart.com/image/224/224/xif0q/shoe/c/1/3/5-rlo122-5-red-tape-navy-original-imahfguzg2jmbbyp.jpeg?q=90' // Replace with actual image path
-        },
-        {
-            _id: 'product2',
-            name: 'Product 2',
-            brand: 'Brand B',
-            size: 'L',
-            color: 'Blue',
-            price: 150,
-            discountedPrice: 120,
-            quantity: 1,
-            image: 'https://rukminim2.flixcart.com/image/224/224/xif0q/shoe/c/1/3/5-rlo122-5-red-tape-navy-original-imahfguzg2jmbbyp.jpeg?q=90' // Replace with actual image path
-        }
-    ]);
-
+    const [cartItems, setCartItems] = useState([]);
+    
     useEffect(() => {
         axiosInstance.get('/user/addresses')
             .then(response => {
@@ -47,6 +25,17 @@ function Cart() {
                     const initial = primaryAddress || response.data.addresses[0] || {};
                     setSelectedAddress(initial);
                     setInitialAddress(initial);
+                }
+            })
+            .catch(error => {
+                console.error('Error getting data:', error);
+            });
+
+        axiosInstance.get('/user/get-cart-products')
+            .then(response => {
+                if (response.data.status) {
+                    console.log(response.data.products);
+                    setCartItems(response.data.products ? response.data.products : [])
                 }
             })
             .catch(error => {
@@ -72,8 +61,41 @@ function Cart() {
     };
 
     const handleRemoveFromCart = async (item_id) => {
-        
+        axiosInstance.delete(`/user/delete-cart-items/${item_id}`)
+            .then(response => {
+                if (response.data.status) {
+                    //setCartItems(response.data.cart)
+                    setCartItems(cartItems.filter(items => items._id !== item_id));
+                }
+            })
+            .catch(error => {
+                console.error('Error getting data:', error);
+            });
     }
+
+    const calculatePriceDetails = (cartItems) => {
+        let totalPrice = 0;
+        let totalDiscount = 0;
+
+        cartItems.forEach(item => {
+            const itemTotalPrice = item.quantity * item.price;
+            const itemDiscount = item.quantity * (item.price - item.discountedPrice);
+
+            totalPrice += itemTotalPrice;
+            totalDiscount += itemDiscount;
+        });
+
+        const totalAmount = totalPrice - totalDiscount;
+
+        return {
+            itemCount: cartItems.reduce((total, item) => total + item.quantity, 0),
+            totalPrice,
+            totalDiscount,
+            totalAmount,
+        };
+    };
+
+    const { itemCount, totalPrice, totalDiscount, totalAmount } = calculatePriceDetails(cartItems);
 
     return (
         <div >
@@ -106,40 +128,56 @@ function Cart() {
                 )}
                 <div className="row">
                     <div className='col-md-8'>
-                        {cartItems.map(item => (
-                            <div key={item._id} className="cart-item d-flex align-items-center mb-3 border rounded p-3">
-                                <div className="cart-item-image me-3">
-                                    <img src={item.image} alt={item.name} className="img-thumbnail" />
-                                </div>
-                                <div className="cart-item-details d-flex flex-column">
-                                    <div className="d-flex align-items-center mb-2">
-                                        <h5 className="me-3">{item.name}</h5>
-                                        <span className="text-white">{item.brand}</span>
+                        {cartItems.length > 0 ? (
+                            <div>
+                                {cartItems.map(item => (
+                                    <div key={item._id} className="cart-item d-flex align-items-center mb-3 border rounded p-3">
+                                        <div className="cart-item-image me-3">
+                                            <img src={item.mainImage} alt={item.name} className="img-thumbnail" />
+                                        </div>
+                                        <div className="cart-item-details d-flex flex-column">
+                                            <div className="d-flex align-items-center mb-2">
+                                                <h5 className="me-3">{item.name}</h5>
+                                                <span className="text-white">{item.brand}</span>
+                                            </div>
+                                            <div className="mb-2">
+                                                <span className="me-3">Size: {item.selectedSize}</span>
+                                                <span className="me-3">Color: {item.selectedColor}</span>
+                                            </div>
+                                            <div className="d-flex align-items-center mb-2">
+                                                <i class="bi bi-dash-circle me-2"></i>
+                                                <span className="me-2">{item.quantity}</span>
+                                                <i class="bi bi-plus-circle"></i>
+                                            </div>
+                                            <div className="mb-2">
+                                                <span className="me-2">${item.discountedPrice}</span>
+                                                {item.discountedPrice !== item.price && (
+                                                    <span className="text-danger"><del>${item.price}</del></span>
+                                                )}
+                                            </div>
+                                            <Button variant="danger" onClick={() => handleRemoveFromCart(item._id)}>
+                                                Remove
+                                            </Button>
+                                        </div>
                                     </div>
-                                    <div className="mb-2">
-                                        <span className="me-3">Size: {item.size}</span>
-                                        <span className="me-3">Color: {item.color}</span>
-                                    </div>
-                                    <div className="d-flex align-items-center mb-2">
-                                        <i class="bi bi-dash-circle me-2"></i>
-                                        <span className="me-2">{item.quantity}</span>
-                                        <i class="bi bi-plus-circle"></i>
-                                    </div>
-                                    <div className="mb-2">
-                                        <span className="text-danger me-2">${item.discountedPrice}</span>
-                                        <span className="">${item.price}</span>
-                                    </div>
-                                    <Button variant="danger" onClick={() => handleRemoveFromCart(item._id)}>
-                                        Remove
-                                    </Button>
-                                </div>
+                                ))}
                             </div>
-                        ))}
+                        ) : (
+                            <div>
+                                No Products in cart
+                                <Link to="/shop">
+                                     <button className='btn btn-success m-3'>Shop</button>
+                                </Link>
+                            </div>
+                        )}
+
                     </div>
                     <div className='col-md-4'>
                         <div className="total-price p-3 border rounded">
-                            <h5>Total Price</h5>
-                            <p>$200</p>
+                            <h5>Price Details</h5>
+                            <p>Price ({itemCount} items) ₹{totalPrice}</p>
+                            <p>Discount -₹{totalDiscount}</p>
+                            <p>Total Amount ₹{totalAmount}</p>
                         </div>
                     </div>
                 </div>
