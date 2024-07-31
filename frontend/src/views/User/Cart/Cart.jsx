@@ -3,7 +3,7 @@ import Layout from '../Header/Layout'
 import axiosInstance from '../../../config/axiosConfig';
 import { Modal, Button } from 'react-bootstrap';
 import './Cart.css'
-import {Link} from 'react-router-dom'
+import { Link } from 'react-router-dom'
 function Cart() {
     const [addresses, setAddresses] = useState([])
     const [showAddressModal, setShowAddressModal] = useState(false);
@@ -15,7 +15,7 @@ function Cart() {
         { name: "Home", path: "/" },
     ];
     const [cartItems, setCartItems] = useState([]);
-    
+
     useEffect(() => {
         axiosInstance.get('/user/addresses')
             .then(response => {
@@ -55,9 +55,25 @@ function Cart() {
     };
 
 
-    const handleAddressSelection = () => {
+    const handleAddressSelection = async () => {
+        selectedAddress.isPrimary = true
         setInitialAddress(selectedAddress)
         setShowAddressModal(false)
+        await axiosInstance.put(`/user/update-address/${selectedAddress._id}`)
+            .then(response => {
+                if (response.data.status) {
+                    setAddresses(prevAddresses =>
+                        prevAddresses.map(preAddress =>
+                            preAddress._id === selectedAddress._id
+                                ? { ...preAddress, isPrimary: true }
+                                : { ...preAddress, isPrimary: false }
+                        )
+                    );
+                }
+            })
+            .catch(error => {
+                console.error('Error getting data:', error);
+            });
     };
 
     const handleRemoveFromCart = async (item_id) => {
@@ -78,11 +94,11 @@ function Cart() {
         setCartItems(cartItems.map(item => {
             if (item._id === item_id) {
                 newQuantity = item.quantity + change;
-                
+
                 const maxLimit = 5;
                 const stockAvailable = item.selectedStock;
 
-                if (newQuantity > maxLimit){ 
+                if (newQuantity > maxLimit) {
                     newQuantity = maxLimit;
                     setMessage(`Maximum ${newQuantity} can added for ${item.name}`)
                 }
@@ -103,7 +119,7 @@ function Cart() {
             return item;
         }));
 
-        
+
         try {
             await axiosInstance.put(`/user/update-cart-item/${item_id}`, { quantity: newQuantity });
         } catch (error) {
@@ -201,14 +217,15 @@ function Cart() {
                                         </div>
                                     </div>
                                 ))}
-                                
+
                                 {message && <p className='text-success'>{message}</p>}
+
                             </div>
                         ) : (
                             <div>
                                 No Products in cart
                                 <Link to="/shop">
-                                     <button className='btn btn-success m-3'>Shop</button>
+                                    <button className='btn btn-success m-3'>Shop</button>
                                 </Link>
                             </div>
                         )}
@@ -221,6 +238,11 @@ function Cart() {
                             <p>Discount -₹{totalDiscount}</p>
                             <p>Delivery Charge -₹{deliveryCharge}</p>
                             <p>Total Amount ₹{totalAmount}</p>
+                            <div className='d-flex justify-content-end'>
+                                <Link to='/checkout/null'>
+                                    <button className='btn btn-success '>Proceed to Checkout</button>
+                                </Link>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -254,7 +276,6 @@ function Cart() {
                         </Button>
                     </Modal.Footer>
                 </Modal>
-
             </div>
         </div>
     )

@@ -1,0 +1,10 @@
+.checkout .address-card {
+    background-color: #000000;
+    color: #fff;
+    border: 1px solid #495057;
+    position: relative;
+}
+
+.checkout .radio-btn{
+    margin-right: 1rem;
+}

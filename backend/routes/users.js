@@ -408,6 +408,8 @@ router.post('/shop/add-to-cart', authenticateToken, async (req, res) => {
   }
 });
 
+
+//cart
 router.get('/get-cart-products', authenticateToken, async (req, res) => {
   try {
     const user = await User.findOne({ email: req.user.email });
@@ -483,7 +485,6 @@ router.delete('/delete-cart-items/:id', authenticateToken, async (req, res) => {
 router.put('/update-cart-item/:itemId', authenticateToken, async (req, res) => {
   const { itemId } = req.params;
   const { quantity } = req.body;
-
   try {
     const user = await User.findOne({ email: req.user.email });
     if (!user) {
@@ -521,6 +522,81 @@ router.put('/update-cart-item/:itemId', authenticateToken, async (req, res) => {
   }
 });
 
+
+router.put('/update-address/:address_id', authenticateToken, async (req, res) => {
+  const { address_id } = req.params;
+  try {
+    const address = await Address.findById(address_id);
+
+    if (!address) {
+      return res.status(404).json({ status: false, message: 'Address not found' });
+    }
+
+    if (address.isPrimary) {
+      return res.status(200).json({ status: true});
+    }
+    address.isPrimary = true;
+    await address.save();
+
+    await Address.updateMany(
+      { userId: address.userId, _id: { $ne: address_id } },
+      { isPrimary: false }
+    );
+
+
+    res.status(200).json({ status: true});
+  } catch (error) {
+    console.error('Error updating address:', error);
+    res.status(500).json({ status: false, message: 'Server error' });
+  }
+});
+
+
+
+//checkout
+
+router.get('/checkout/:product_id', authenticateToken, async (req, res) => {
+  const { product_id } = req.params;
+  try {
+    const user = await User.findOne({ email: req.user.email });
+    if (!user) {
+      return res.status(404).json({ status: false, message: 'User not found' });
+    }
+    const addresses = await Address.find({ userId: user._id });
+    let  populatedProducts
+
+    if(product_id === 'null'){
+      const cart = await Cart.findOne({ userId: user._id }).populate({
+        path: 'products.productId',
+        select: 'name mainImage',
+        populate: {
+          path: 'mainImage',
+          select: 'image'
+        }
+      });
+
+      populatedProducts = cart.products.map(product => ({
+        productId: product.productId._id,
+        name: product.productId.name,
+        mainImage: product.productId.mainImage.image,
+        quantity: product.quantity,
+        price: product.price,
+        discountedPrice: product.discountedPrice,
+        selectedColor: product.selectedColor,
+        selectedSize: product.selectedSize,
+        selectedStock: product.selectedStock,
+        _id: product._id,
+      }));
+    }else{
+
+    }
+
+    res.status(200).json({ status: true, addresses, products: populatedProducts});
+  } catch (error) {
+    console.error('Error updating address:', error);
+    res.status(500).json({ status: false, message: 'Server error' });
+  }
+});
 
 export default router;
 

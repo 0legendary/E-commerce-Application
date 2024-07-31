@@ -53,7 +53,7 @@ function Address() {
                     ? { ...preAddress, isPrimary: true }
                     : { ...preAddress, isPrimary: false }
             )
-        );
+        );  
     };
 
     const handelCancleEditAddress = (address) => {

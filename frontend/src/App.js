@@ -30,6 +30,7 @@ import ProfileHome from './views/User/Profile/Home/ProfileHome';
 import AccountSettings from './views/User/Profile/Account/AccountSettings';
 import Address from './views/User/Profile/Address/Address';
 import Cart from './views/User/Cart/Cart';
+import Checkout from './views/User/CheckoutPage/Checkout';
 
 
 const UserLayout = () => {
@@ -74,6 +75,9 @@ function App() {
           </Route>
           <Route path="/cart" element={<UserLayout />}>
             <Route index element={<Cart />} />
+          </Route>
+          <Route path="/checkout/:product_Id" element={<UserLayout />}>
+            <Route index element={<Checkout />} />
           </Route>
           <Route path="/account" element={<UserLayout />}>
             <Route path="" element={<ProfileHome />}>
