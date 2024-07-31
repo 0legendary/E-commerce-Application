@@ -33,7 +33,11 @@ const CartSchema = new mongoose.Schema({
       selectedSize: {
         type: String,
         required: true
-      }
+      },
+      selectedStock: {
+        type: Number,
+        required: true,
+      },
     }
   ],
   totalPrice: {

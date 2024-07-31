@@ -321,14 +321,27 @@ router.post('/add-to-cart', authenticateToken, async (req, res) => {
         products: [{
           productId: productId,
           quantity: 1,
+          selectedStock: productDetails.stock,
           price: productPrice,
           discountedPrice: discountedPrice,
           selectedColor: product.variations[0].color[0],
           selectedSize: product.variations[0].size
         }],
         totalPrice: productPrice,
-        totalDiscount:  productPrice - discountedPrice
+        totalDiscount: productPrice - discountedPrice
       });
+    } else {
+      cart.products.push({
+        productId,
+        price: productPrice,
+        selectedStock: productDetails.stock,
+        discountedPrice: discountedPrice,
+        selectedColor: product.variations[0].color[0],
+        selectedSize: product.variations[0].size
+      });
+
+      cart.totalPrice = cart.products.reduce((total, p) => total + (p.quantity * p.price), 0);
+      cart.totalDiscount = cart.products.reduce((total, p) => total + (p.quantity * (p.price - p.discountedPrice || 0)), 0);
     }
 
     await cart.save();
@@ -341,7 +354,7 @@ router.post('/add-to-cart', authenticateToken, async (req, res) => {
 
 
 router.post('/shop/add-to-cart', authenticateToken, async (req, res) => {
-  const { productId, price, discountedPrice, selectedColor, selectedSize } = req.body;
+  const { productId, price, discountedPrice, selectedStock, selectedColor, selectedSize } = req.body;
   try {
     const user = await User.findOne({ email: req.user.email });
     if (!user) {
@@ -355,8 +368,9 @@ router.post('/shop/add-to-cart', authenticateToken, async (req, res) => {
         userId: user._id,
         products: [{
           productId,
-          quantity:1,
+          quantity: 1,
           price,
+          selectedStock,
           discountedPrice,
           selectedColor,
           selectedSize
@@ -365,14 +379,15 @@ router.post('/shop/add-to-cart', authenticateToken, async (req, res) => {
         totalDiscount: discountedPrice ? price - discountedPrice : 0
       });
     } else {
-        cart.products.push({
-          productId,
-          price,
-          discountedPrice,
-          selectedColor,
-          selectedSize
-        });
-      
+      cart.products.push({
+        productId,
+        price,
+        selectedStock,
+        discountedPrice,
+        selectedColor,
+        selectedSize
+      });
+
       cart.totalPrice = cart.products.reduce((total, p) => total + (p.quantity * p.price), 0);
       cart.totalDiscount = cart.products.reduce((total, p) => total + (p.quantity * (p.price - p.discountedPrice || 0)), 0);
     }
@@ -410,10 +425,10 @@ router.get('/get-cart-products', authenticateToken, async (req, res) => {
     });
 
     if (!cart) {
-      return res.status(404).json({ status: false});
+      return res.status(404).json({ status: false });
     }
 
-    
+
     const populatedProducts = cart.products.map(product => ({
       productId: product.productId._id,
       name: product.productId.name,
@@ -423,6 +438,7 @@ router.get('/get-cart-products', authenticateToken, async (req, res) => {
       discountedPrice: product.discountedPrice,
       selectedColor: product.selectedColor,
       selectedSize: product.selectedSize,
+      selectedStock: product.selectedStock,
       _id: product._id,
     }));
     res.status(200).json({ status: true, products: populatedProducts });
@@ -464,6 +480,46 @@ router.delete('/delete-cart-items/:id', authenticateToken, async (req, res) => {
   }
 });
 
+router.put('/update-cart-item/:itemId', authenticateToken, async (req, res) => {
+  const { itemId } = req.params;
+  const { quantity } = req.body;
+
+  try {
+    const user = await User.findOne({ email: req.user.email });
+    if (!user) {
+      return res.status(404).json({ status: false, message: 'User not found' });
+    }
+
+    const cart = await Cart.findOne({ userId: user._id });
+    if (!cart) {
+      return res.status(404).json({ status: false, message: 'Cart not found' });
+    }
+
+    const itemIndex = cart.products.findIndex(item => item._id.toString() === itemId);
+    if (itemIndex === -1) {
+      return res.status(404).json({ status: false });
+    }
+
+    const maxLimit = 5;
+    const itemStock = cart.products[itemIndex].stock;
+
+    let newQuantity = quantity;
+
+    if (newQuantity > maxLimit) newQuantity = maxLimit;
+    if (newQuantity > itemStock) newQuantity = itemStock;
+    if (newQuantity < 1) newQuantity = 1;
+
+    cart.products[itemIndex].quantity = newQuantity;
+    cart.totalPrice = cart.products.reduce((total, product) => total + (product.quantity * product.price), 0);
+    cart.totalDiscount = cart.products.reduce((total, product) => total + (product.quantity * (product.price - product.discountedPrice || 0)), 0);
+    await cart.save();
+
+    res.status(200).json({ status: true });
+  } catch (error) {
+    console.error('Error updating cart item:', error);
+    res.status(500).json({ status: false, message: 'Server error' });
+  }
+});
 
 
 export default router;

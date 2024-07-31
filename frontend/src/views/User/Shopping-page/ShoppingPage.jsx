@@ -134,9 +134,6 @@ function ShoppingPage() {
                                             <div className="product-background">
                                                 <i className="bi bi-heart"></i>
                                             </div>
-                                            <div className="product-background">
-                                                <i className="bi bi-heart"></i>
-                                            </div>
                                             <Link to={`/shop/${product._id}`}>
                                                 <div className="product-background">
                                                     <i className="bi bi-search"></i>

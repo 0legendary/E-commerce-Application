@@ -50,11 +50,12 @@ function SingleProduct() {
 
 
   const handleAddToCart = () => {
-
+    
     axiosInstance.post('/user/shop/add-to-cart', {
       productId: product._id,
       price: selectedVariation.price,
       discountedPrice: selectedVariation.discountPrice,
+      selectedStock:selectedVariation.stock,
       selectedColor,
       selectedSize: selectedVariation.size
     })

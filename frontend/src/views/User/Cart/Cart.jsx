@@ -9,7 +9,7 @@ function Cart() {
     const [showAddressModal, setShowAddressModal] = useState(false);
     const [selectedAddress, setSelectedAddress] = useState({});
     const [initialAddress, setInitialAddress] = useState({});
-
+    const [message, setMessage] = useState('')
     const mainHeading = "Cart";
     const breadcrumbs = [
         { name: "Home", path: "/" },
@@ -29,7 +29,7 @@ function Cart() {
             })
             .catch(error => {
                 console.error('Error getting data:', error);
-            });
+            })
 
         axiosInstance.get('/user/get-cart-products')
             .then(response => {
@@ -73,6 +73,44 @@ function Cart() {
             });
     }
 
+    const handleQuantityChange = async (item_id, change) => {
+        let newQuantity
+        setCartItems(cartItems.map(item => {
+            if (item._id === item_id) {
+                newQuantity = item.quantity + change;
+                
+                const maxLimit = 5;
+                const stockAvailable = item.selectedStock;
+
+                if (newQuantity > maxLimit){ 
+                    newQuantity = maxLimit;
+                    setMessage(`Maximum ${newQuantity} can added for ${item.name}`)
+                }
+                if (newQuantity > stockAvailable) {
+                    newQuantity = stockAvailable;
+                    setMessage(`${item.selectedStock} stock are available for ${item.name}`)
+                }
+                if (newQuantity < 1) {
+                    newQuantity = 1;
+                    setMessage(`Minimum ${newQuantity} are required`)
+                }
+                setMessage(`You've changed ${item.name} QUANTITY to ${newQuantity}`)
+                setTimeout(() => {
+                    setMessage('')
+                }, 2000);
+                return { ...item, quantity: newQuantity };
+            }
+            return item;
+        }));
+
+        
+        try {
+            await axiosInstance.put(`/user/update-cart-item/${item_id}`, { quantity: newQuantity });
+        } catch (error) {
+            console.error('Error updating cart item quantity:', error);
+        }
+    };
+
     const calculatePriceDetails = (cartItems) => {
         let totalPrice = 0;
         let totalDiscount = 0;
@@ -86,16 +124,18 @@ function Cart() {
         });
 
         const totalAmount = totalPrice - totalDiscount;
+        let deliveryCharge = totalAmount > 500 ? 0 : 50
 
         return {
             itemCount: cartItems.reduce((total, item) => total + item.quantity, 0),
             totalPrice,
             totalDiscount,
             totalAmount,
+            deliveryCharge
         };
     };
 
-    const { itemCount, totalPrice, totalDiscount, totalAmount } = calculatePriceDetails(cartItems);
+    const { itemCount, totalPrice, totalDiscount, totalAmount, deliveryCharge } = calculatePriceDetails(cartItems);
 
     return (
         <div >
@@ -145,9 +185,9 @@ function Cart() {
                                                 <span className="me-3">Color: {item.selectedColor}</span>
                                             </div>
                                             <div className="d-flex align-items-center mb-2">
-                                                <i class="bi bi-dash-circle me-2"></i>
+                                                <i class="bi bi-dash-circle me-2" onClick={() => handleQuantityChange(item._id, -1)}></i>
                                                 <span className="me-2">{item.quantity}</span>
-                                                <i class="bi bi-plus-circle"></i>
+                                                <i class="bi bi-plus-circle" onClick={() => handleQuantityChange(item._id, +1)}></i>
                                             </div>
                                             <div className="mb-2">
                                                 <span className="me-2">${item.discountedPrice}</span>
@@ -161,6 +201,8 @@ function Cart() {
                                         </div>
                                     </div>
                                 ))}
+                                
+                                {message && <p className='text-success'>{message}</p>}
                             </div>
                         ) : (
                             <div>
@@ -177,6 +219,7 @@ function Cart() {
                             <h5>Price Details</h5>
                             <p>Price ({itemCount} items) ₹{totalPrice}</p>
                             <p>Discount -₹{totalDiscount}</p>
+                            <p>Delivery Charge -₹{deliveryCharge}</p>
                             <p>Total Amount ₹{totalAmount}</p>
                         </div>
                     </div>
