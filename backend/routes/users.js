@@ -10,7 +10,7 @@ import Cart from '../model/cart.js';
 import Order from '../model/order.js';
 import Razorpay from 'razorpay'
 import crypto from 'crypto'
-
+import { v4 } from 'uuid'
 const router = Router();
 
 router.get('/getProducts', authenticateToken, async (req, res) => {
@@ -594,8 +594,23 @@ router.get('/checkout/:product_id', authenticateToken, async (req, res) => {
         populatedProducts = []
       }
     } else {
-      const SingleProduct = await Product.findOne({ _id: product_id })
-      console.log(SingleProduct);
+      const product = await Product.findOne({ _id: product_id }).populate({
+        path: 'mainImage',
+        select: 'image'
+      });
+      let Variations = product.variations[0]
+      populatedProducts = [{
+        productId: product._id,
+        name: product.name,
+        mainImage: product.mainImage.image,
+        quantity: 1,
+        price: Variations.price,
+        discountedPrice: Variations.discountPrice,
+        selectedColor: Variations.color[0],
+        selectedSize: Variations.size,
+        selectedStock: Variations.stock,
+        _id: product._id,
+      }]
     }
 
     res.status(200).json({ status: true, addresses, products: populatedProducts });
@@ -682,29 +697,60 @@ router.post('/payment/verify', async (req, res) => {
 
     if (checkoutId == 'null') {
       await Cart.deleteOne({ userId: orderDetails.customerId });
+    }
 
-      for (const product of orderDetails.products) {
-        const foundProduct = await Product.findOne({ _id: product.productId });
-        if (foundProduct) {
-          // Find the variation for the selected size
-          const productVariation = foundProduct.variations.find(
-            (variation) => variation.size == parseInt(product.selectedSize)
-          );
-
-          if (productVariation) {
-            productVariation.stock -= product.quantity;
-            await foundProduct.save();
-          }
-        }
-      }
-    } else {
-      const foundProduct = await Product.findOne({ _id: checkoutId });
-
+    for (const product of orderDetails.products) {
+      const foundProduct = await Product.findOne({ _id: product.productId });
       if (foundProduct) {
-        const productVariation = foundProduct.variations[0];
+        const productVariation = foundProduct.variations.find(
+          (variation) => variation.size == parseInt(product.selectedSize)
+        );
 
         if (productVariation) {
-          productVariation.stock -= orderDetails.products[0].quantity;
+          productVariation.stock -= product.quantity;
+          await foundProduct.save();
+        }
+      }
+    }
+
+    res.status(200).json({ status: true })
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+router.post('/payment/cod', async (req, res) => {
+  try {
+    const { orderDetails, checkoutId } = req.body;
+
+    const newOrder = new Order({
+      orderId: v4(),
+      customerId: orderDetails.customerId,
+      shippingAddress: orderDetails.shippingAddress,
+      paymentMethod: orderDetails.paymentMethod,
+      orderTotal: orderDetails.orderTotal,
+      shippingCost: orderDetails.shippingCost,
+      discountAmount: orderDetails.discountAmount,
+      products: orderDetails.products,
+    });
+
+    await newOrder.save();
+
+    if (checkoutId == 'null') {
+      await Cart.deleteOne({ userId: orderDetails.customerId });
+    }
+
+    for (const product of orderDetails.products) {
+      const foundProduct = await Product.findOne({ _id: product.productId });
+      if (foundProduct) {
+        const productVariation = foundProduct.variations.find(
+          (variation) => variation.size == parseInt(product.selectedSize)
+        );
+
+        if (productVariation) {
+          productVariation.stock -= product.quantity;
           await foundProduct.save();
         }
       }

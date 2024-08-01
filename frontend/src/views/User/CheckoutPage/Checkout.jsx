@@ -286,9 +286,11 @@ function Checkout() {
                                                             <span className="text-danger"><del>${item.price}</del></span>
                                                         )}
                                                     </div>
-                                                    <Button variant="danger" onClick={() => handleRemoveFromCart(item._id)}>
-                                                        Remove
-                                                    </Button>
+                                                    {product_Id == 'null' && (
+                                                        <Button variant="danger" onClick={() => handleRemoveFromCart(item._id)}>
+                                                            Remove
+                                                        </Button>
+                                                    )}
                                                 </div>
                                             </div>
                                         ))}
@@ -346,7 +348,7 @@ function Checkout() {
                                                 address={selectedAddress}
                                                 products={products}
                                                 paymentMethod={'online'}
-                                                checkoutId = {product_Id}
+                                                checkoutId={product_Id}
                                             />
                                         )}
                                     </div>
@@ -362,7 +364,17 @@ function Checkout() {
                                         />
                                         <label htmlFor="cod">Cash on Delivery</label>
                                         {paymentMethod === 'COD' && (
-                                            <CODPayment />
+                                            <CODPayment
+                                                itemCount={itemCount}
+                                                totalPrice={totalPrice}
+                                                totalDiscount={totalDiscount}
+                                                amount={totalAmount}
+                                                deliveryCharge={deliveryCharge}
+                                                address={selectedAddress}
+                                                products={products}
+                                                paymentMethod={'COD'}
+                                                checkoutId={product_Id}
+                                            />
                                         )}
                                     </div>
                                 </div>

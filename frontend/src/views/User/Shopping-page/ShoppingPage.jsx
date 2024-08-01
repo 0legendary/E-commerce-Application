@@ -141,7 +141,9 @@ function ShoppingPage() {
                                             </Link>
                                         </div>
                                         <div>
-                                            <button className='btn border border-success text-black'>Buy</button>
+                                            <Link to={`/checkout/${product._id}`}>
+                                                <button className='btn border border-success text-black'>Buy</button>
+                                            </Link>
                                         </div>
                                     </div>
                                 </div>

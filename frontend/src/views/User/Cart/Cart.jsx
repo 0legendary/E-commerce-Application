@@ -182,9 +182,10 @@ function Cart() {
                 ) : (
                     <p>No primary address available</p>
                 )}
-                <div className="row">
-                    <div className='col-md-8'>
-                        {cartItems.length > 0 ? (
+                {cartItems.length > 0 ? (
+                    <div className="row">
+                        <div className='col-md-8'>
+
                             <div>
                                 {cartItems.map(item => (
                                     <div key={item._id} className="cart-item d-flex align-items-center mb-3 border rounded p-3">
@@ -217,35 +218,32 @@ function Cart() {
                                         </div>
                                     </div>
                                 ))}
-
                                 {message && <p className='text-success'>{message}</p>}
-
                             </div>
-                        ) : (
-                            <div>
-                                No Products in cart
-                                <Link to="/shop">
-                                    <button className='btn btn-success m-3'>Shop</button>
-                                </Link>
-                            </div>
-                        )}
-
-                    </div>
-                    <div className='col-md-4'>
-                        <div className="total-price p-3 border rounded">
-                            <h5>Price Details</h5>
-                            <p>Price ({itemCount} items) ₹{totalPrice}</p>
-                            <p>Discount -₹{totalDiscount}</p>
-                            <p>Delivery Charge -₹{deliveryCharge}</p>
-                            <p>Total Amount ₹{totalAmount}</p>
-                            <div className='d-flex justify-content-end'>
-                                <Link to='/checkout/null'>
-                                    <button className='btn btn-success '>Proceed to Checkout</button>
-                                </Link>
+                        </div>
+                        <div className='col-md-4'>
+                            <div className="total-price p-3 border rounded">
+                                <h5>Price Details</h5>
+                                <p>Price ({itemCount} items) ₹{totalPrice}</p>
+                                <p>Discount -₹{totalDiscount}</p>
+                                <p>Delivery Charge -₹{deliveryCharge}</p>
+                                <p>Total Amount ₹{totalAmount}</p>
+                                <div className='d-flex justify-content-end'>
+                                    <Link to='/checkout/null'>
+                                        <button className='btn btn-success '>Proceed to Checkout</button>
+                                    </Link>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                ) : (
+                    <div>
+                        No Products in cart
+                        <Link to="/shop">
+                            <button className='btn btn-success m-3'>Shop</button>
+                        </Link>
+                    </div>
+                )}
                 <Modal show={showAddressModal} onHide={handleCloseAddressModal}>
                     <Modal.Header closeButton>
                         <Modal.Title>Select Address</Modal.Title>

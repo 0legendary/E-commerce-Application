@@ -59,46 +59,46 @@ function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, product
         order_id: paymentData.id,
         handler: (response) => {
           axiosInstance.post('/user/payment/verify', { response, orderDetails, checkoutId })
-          .then(response => {
-            if (response.data.status) {
-              navigate('/orders')
-            }
-          })
-          .catch(error => {
-            console.error('Error getting data:', error);
-          })
-      },
+            .then(response => {
+              if (response.data.status) {
+                navigate('/orders')
+              }
+            })
+            .catch(error => {
+              console.error('Error getting data:', error);
+            })
+        },
         prefill: {
           name: currentUser.name,
           email: currentUser.email,
-          contact: currentUser.mobile ? currentUser.mobile: null,
-        userId: currentUser._id
-    },
-      notes: {
-        address: "Your Address",
-      },
-      theme: {
-        color: "#3399cc",
-      },
+          contact: currentUser.mobile ? currentUser.mobile : null,
+          userId: currentUser._id
+        },
+        notes: {
+          address: "Your Address",
+        },
+        theme: {
+          color: "#3399cc",
+        },
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+    }
+
+    try {
+      const { data } = await axiosInstance.post('/user/payments', { amount: amount })
+      initPayment(data.data)
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  const paymentObject = new window.Razorpay(options);
-  paymentObject.open();
-}
-
-try {
-  const { data } = await axiosInstance.post('/user/payments', { amount: amount })
-  initPayment(data.data)
-} catch (error) {
-  console.log(error);
-}
-  };
-
-return (
-  <div>
-    <button className='btn btn-success m-3' onClick={handlePayment}>Pay with Razorpay</button>
-  </div>
-)
+  return (
+    <div>
+      <button className='btn btn-success m-3' onClick={handlePayment}>Pay with Razorpay</button>
+    </div>
+  )
 }
 
 export default OnlinePayment
