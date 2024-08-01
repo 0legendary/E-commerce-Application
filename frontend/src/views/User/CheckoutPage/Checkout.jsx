@@ -337,7 +337,17 @@ function Checkout() {
                                         />
                                         <label htmlFor="razorpay">Online</label>
                                         {paymentMethod === 'Razorpay' && (
-                                            <OnlinePayment/>
+                                            <OnlinePayment
+                                                itemCount={itemCount}
+                                                totalPrice={totalPrice}
+                                                totalDiscount={totalDiscount}
+                                                amount={totalAmount}
+                                                deliveryCharge={deliveryCharge}
+                                                address={selectedAddress}
+                                                products={products}
+                                                paymentMethod={'online'}
+                                                checkoutId = {product_Id}
+                                            />
                                         )}
                                     </div>
                                     <div className='mt-3'>
@@ -352,11 +362,11 @@ function Checkout() {
                                         />
                                         <label htmlFor="cod">Cash on Delivery</label>
                                         {paymentMethod === 'COD' && (
-                                            <CODPayment/>
+                                            <CODPayment />
                                         )}
                                     </div>
                                 </div>
-                                
+
                             </div>
                         ) : (
                             <div className="address-card p-3 mb-3 border rounded position-relative">
