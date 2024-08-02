@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import Product from '../model/product.js';
 import User from '../model/user.js'
+import Image from '../model/image.js'
 import bcrypt from 'bcrypt'
 import { generateOTP, sendOTPEmail } from '../utils/sendEmail.js';
 import OTP from '../model/otp.js';
@@ -763,6 +764,75 @@ router.post('/payment/cod', async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+
+
+
+//orders
+
+router.get('/all-orders', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.user.email })
+    if (!user) {
+      return res.status(404).json({ status: false, message: 'User not found' });
+    }
+    const orders = await Order.find({ customerId: user._id })
+      .populate({
+        path: 'products.productId',
+        select: 'mainImage',
+        populate: {
+          path: 'mainImage',
+          select: 'image'
+        }
+      });
+    res.json({ status: true, orders });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: false, message: 'Error fetching user' });
+  }
+});
+
+const updateStockOnCancel = async (orderId, productId) => {
+  const order = await Order.findOne({ orderId });
+  if (!order) return;
+
+  const productInOrder = order.products.find(product => product._id.toString() === productId);
+  if (!productInOrder) return;
+
+  const product = await Product.findById(productInOrder.productId);
+  if (!product) return;
+
+  const variation = product.variations.find(v => v.size === parseInt(productInOrder.selectedSize));
+  if (!variation) return;
+
+  variation.stock += productInOrder.quantity;
+  await product.save();
+}
+
+router.post('/update-order-status', async (req, res) => {
+  const { orderId, productId, status } = req.body;
+
+  try {
+    //Update the order status
+    const result = await Order.updateOne(
+      { orderId: orderId, 'products._id': productId },
+      { $set: { 'products.$.orderStatus': status } }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ status: false, message: 'Order or product not found' });
+    }
+
+    if (status !== 'returned') {
+      await updateStockOnCancel(orderId, productId);
+    }
+
+    return res.json({ status: true });
+  } catch (error) {
+    res.status(500).json({ status: false, message: 'Server error' });
+  }
+});
+
+
 
 
 

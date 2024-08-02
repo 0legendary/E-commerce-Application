@@ -1,0 +1,47 @@
+.order-card {
+    border: 1px solid #ffffff;
+    border-radius: 5px;
+    color: white;
+    background-color: #1c1c1c;
+}
+
+.order-item {
+    display: flex;
+    align-items: flex-start;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.order-image {
+    margin-right: 15px;
+}
+
+.order-item-name {
+    font-size: 1.2rem;
+    margin: 0;
+}
+
+.order-item-color, .order-item-size, .order-item-quantity {
+    margin: 0;
+}
+
+.order-summary {
+    text-align: right;
+}
+
+.order-item-total-price {
+    font-weight: bold;
+}
+
+.order-status {
+    font-weight: bold;
+}
+
+.text-warning {
+    color: #ffc107;
+}
+
+.text-success {
+    color: #28a745;
+}
+

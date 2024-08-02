@@ -10,11 +10,6 @@ const orderSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
-    orderStatus: {
-        type: String,
-        enum: ['pending', 'processing', 'shipped', 'delivered', 'canceled'],
-        default: 'pending'
-    },
     customerId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -69,6 +64,11 @@ const orderSchema = new mongoose.Schema({
         selectedSize: {
             type: String,
             required: true
+        },
+        orderStatus: {
+            type: String,
+            enum: ['pending', 'processing', 'shipped', 'delivered', 'canceled','returned'],
+            default: 'pending'
         },
         price: {
             type: Number,

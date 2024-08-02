@@ -1,0 +1,81 @@
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+}
+
+.card-title {
+    margin-bottom: 0;
+}
+
+.img-fluid {
+    max-width: 100%;
+    height: auto;
+}
+
+.order-products p {
+    margin: 0;
+}
+
+
+/* DetailedOrder.css */
+
+.order-status {
+    position: relative;
+    padding: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.status {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 5px;
+    color: #ffffff;
+    background-color: gray;
+    font-weight: bold;
+    z-index: 2;
+}
+
+.status-active {
+    background-color: #4caf50; 
+}
+
+.status-processing {
+    background-color: #ff9800; 
+}
+
+.status-shipped {
+    background-color: #2196f3; 
+}
+
+.status-delivered {
+    background-color: #f44336;
+}
+
+
+.line-container {
+    position: absolute;
+    top: 62%;
+    left: 6rem;
+    width: 78%;
+    display: flex;
+    justify-content: center;
+    height: 4px;
+    background-color: #000000;
+    z-index: 1;
+}
+
+.line {
+    position: absolute;
+    left: 0;
+    height: 4px;
+    background-color: #4caf50; /* Default to green, will be overwritten */
+    width: 5%;
+    transition: width 0.3s ease-in-out;
+}
