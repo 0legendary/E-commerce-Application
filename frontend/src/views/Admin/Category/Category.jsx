@@ -126,23 +126,25 @@ function Category() {
       <h2 className="mb-4">Categories</h2>
       <div className="d-flex flex-wrap">
         {categories.map(category => (
-          <div key={category._id} className="card m-2" style={{ width: '18rem' }}>
+          <div key={category._id} className="card m-2" >
             <div className="card-body">
               <h5 className="card-title">{category.name}</h5>
               <p className="card-text">{category.description}</p>
-              <button
-                className="btn btn-primary mr-2"
-                onClick={() => openEditModal(category)}
-              >
-                Edit
-              </button>
-              <button
-                className="btn btn-danger m-3"
-                onClick={() => openDeleteModal(category)}
-              >
-                Delete
-              </button>
-              <button className={`btn ${!category.isBlocked ? 'btn-danger': 'btn-success'} m-2`} onClick={() => handleToggleCategory(category._id)}>{category.isBlocked ? 'Unblock' : 'Block'}</button>
+              <div className='d-flex gap-2'>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => openEditModal(category)}
+                >
+                  Edit
+                </button>
+                <button
+                  className="btn btn-danger "
+                  onClick={() => openDeleteModal(category)}
+                >
+                  Delete
+                </button>
+                <button className={`btn ${!category.isBlocked ? 'btn-danger' : 'btn-success'}`} onClick={() => handleToggleCategory(category._id)}>{category.isBlocked ? 'Unblock' : 'Block'}</button>
+              </div>
             </div>
           </div>
         ))}

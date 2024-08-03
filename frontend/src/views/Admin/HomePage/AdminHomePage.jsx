@@ -10,7 +10,7 @@ function AdminHomePage() {
   }
   return (
     <div className="admin-container">
-      <aside className="sidebar">
+      <aside className="sidebar" style={{"height":"34rem"}}>
         <nav className="sidebar-nav">
           <ul>
             <li><Link to="/admin">Dashboard</Link></li>
@@ -19,7 +19,7 @@ function AdminHomePage() {
             <li><Link to="orders">Orders</Link></li>
             <li><Link to="coupons">Coupons</Link></li>
             <li><Link to="category">Category</Link></li>
-            <li onClick={deleteAcessToken}>Logout</li>
+            <li className='m-2' onClick={deleteAcessToken}>Logout</li>
           </ul>
         </nav>
       </aside>

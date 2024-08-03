@@ -97,7 +97,7 @@ function AdminProducts() {
                 <th scope="row">{index + 1}</th>
                 <td>
                   <div className="product-image-wrapper">
-                    <img src={product.mainImage} alt={product.name} className="product-image" style={{"width": "50px","height": "50px"}}/>
+                    <img src={product.mainImage} alt={product.name} className="product-image" style={{"width": "100px","height": "100px"}}/>
                     <img src={product.mainImage} alt={product.name} className="product-image-hover" />
                   </div>
                 </td>

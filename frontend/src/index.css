@@ -257,56 +257,12 @@
     background-size: cover;
   }
   
-  .home-header-nav {
-    top: 40px;
-    left: 352px;
-    width: 1225px;
-    height: 80px;
-    display: flex;
-    position: absolute;
-    box-shadow: 0px 10px 30px 0px rgba(0, 0, 0, 0.10000000149011612);
-    align-items: flex-start;
-    flex-shrink: 0;
-    background-color: rgba(255, 255, 255, 1);
-    z-index: 10;
-  }
+
   
-  .home-container04 {
-    top: 0px;
-    left: 43px;
-    width: 1140px;
-    height: 80px;
-    display: flex;
-    position: absolute;
-    align-items: flex-start;
-    flex-shrink: 0;
-  }
+ 
   
-  .home-link01 {
-    top: 10px;
-    left: 15px;
-    width: 137px;
-    height: 60px;
-    display: flex;
-    position: absolute;
-    align-items: flex-start;
-    flex-shrink: 0;
-  }
-  
-  .home-text012 {
-    top: 18px;
-    color: rgba(0, 0, 0, 1);
-    height: auto;
-    position: absolute;
-    font-size: 20px;
-    font-style: Regular;
-    text-align: left;
-    font-family: Rubik Glitch;
-    font-weight: 400;
-    line-height: 24px;
-    font-stretch: normal;
-    text-decoration: none;
-  }
+
+ 
   
   .home-list {
     top: 18px;
@@ -341,23 +297,7 @@
     flex-shrink: 0;
   }
   
-  .home-text014 {
-    top: 10px;
-    left: 65px;
-    color: rgba(0, 0, 0, 1);
-    width: 44px;
-    height: auto;
-    position: absolute;
-    font-size: 12px;
-    font-style: Regular;
-    text-align: left;
-    font-family: Saira Stencil One;
-    font-weight: 400;
-    line-height: 24px;
-    font-stretch: normal;
-    text-decoration: none;
-  }
-  
+
   .home-item01 {
     top: 0px;
     left: 312px;
@@ -380,22 +320,7 @@
     flex-shrink: 0;
   }
   
-  .home-text016 {
-    top: 10px;
-    left: 318px;
-    color: rgba(34, 34, 34, 1);
-    width: 37px;
-    height: auto;
-    position: absolute;
-    font-size: 12px;
-    font-style: Medium;
-    text-align: left;
-    font-family: Roboto;
-    font-weight: 500;
-    line-height: 24px;
-    font-stretch: normal;
-    text-decoration: none;
-  }
+ 
   
   .home-item02 {
     top: 0px;
@@ -419,22 +344,7 @@
     flex-shrink: 0;
   }
   
-  .home-text018 {
-    top: 10px;
-    left: 125.919922px;
-    color: rgba(34, 34, 34, 1);
-    width: 39px;
-    height: auto;
-    position: absolute;
-    font-size: 12px;
-    font-style: Medium;
-    text-align: left;
-    font-family: Roboto;
-    font-weight: 500;
-    line-height: 24px;
-    font-stretch: normal;
-    text-decoration: none;
-  }
+
   
   .home-item03 {
     top: 0px;
@@ -457,23 +367,7 @@
     align-items: flex-start;
     flex-shrink: 0;
   }
-  
-  .home-text020 {
-    top: 10px;
-    left: 185.189453px;
-    color: rgba(34, 34, 34, 1);
-    width: 39px;
-    height: auto;
-    position: absolute;
-    font-size: 12px;
-    font-style: Medium;
-    text-align: left;
-    font-family: Roboto;
-    font-weight: 500;
-    line-height: 24px;
-    font-stretch: normal;
-    text-decoration: none;
-  }
+
   
   .home-item04 {
     top: 0px;
@@ -497,45 +391,8 @@
     flex-shrink: 0;
   }
   
-  .home-text022 {
-    top: 10px;
-    left: 254px;
-    color: rgba(34, 34, 34, 1);
-    width: 54px;
-    height: auto;
-    position: absolute;
-    font-size: 12px;
-    font-style: Medium;
-    text-align: left;
-    font-family: Roboto;
-    font-weight: 500;
-    line-height: 24px;
-    font-stretch: normal;
-    text-decoration: none;
-  }
-  
-  .home-list1 {
-    top: 0px;
-    left: 1037px;
-    width: 42px;
-    height: 80px;
-    display: flex;
-    position: absolute;
-    align-items: flex-start;
-    flex-shrink: 0;
-  }
-  
-  .home-item05 {
-    top: 12px;
-    left: 22px;
-    width: 32px;
-    height: 80px;
-    display: flex;
-    position: absolute;
-    align-items: flex-start;
-    flex-shrink: 0;
-  }
-  
+
+
   .home-link04 {
     top: 32px;
     left: -22px;
@@ -546,34 +403,8 @@
     align-items: flex-start;
     flex-shrink: 0;
   }
-  
-  .home-icon01 {
-    top: 14px;
-    left: 0px;
-    width: 14px;
-    height: 14px;
-    position: absolute;
-  }
-  
-  .home-item06 {
-    top: 0px;
-    left: 74px;
-    width: 32px;
-    height: 80px;
-    display: flex;
-    position: absolute;
-    align-items: flex-start;
-    flex-shrink: 0;
-  }
-  
-  .home-icon02 {
-    top: 29px;
-    left: -13px;
-    width: 14px;
-    height: 14px;
-    position: absolute;
-  }
-  
+
+
   .home-group {
     top: 31px;
     left: 1138px;
@@ -668,11 +499,7 @@
     justify-content: center;
   }
   
-  .home-icon03 {
-    width: 24px;
-    height: 24px;
-  }
-  
+
   .home-section1 {
     top: 996px;
     left: 382.5px;
@@ -1451,15 +1278,7 @@
     flex-shrink: 0;
   }
   
-  .home-item07 {
-    top: 27px;
-    left: 96px;
-    display: flex;
-    overflow: hidden;
-    position: absolute;
-    align-items: flex-start;
-    flex-shrink: 0;
-  }
+
   
   .home-i1jpg {
     top: 5px;

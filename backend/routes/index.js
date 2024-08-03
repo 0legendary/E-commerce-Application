@@ -42,8 +42,11 @@ router.post('/login', async (req, res) => {
   const { email, password } = req.body
   try {
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ status: false, message: 'Invalid email or password' });
+    if (!user || user.isBlocked) {
+      return res.status(200).json({ status: false, message: 'Invalid email or password' });
+    }
+    if (user.isBlocked) {
+      return res.status(400).json({ status: false, message: 'UnAuthorised' });
     }
     const isPasswordValid = await bcrypt.compare(password, user.password)
     if (!isPasswordValid) {
@@ -72,9 +75,13 @@ router.post('/google/login', async (req, res) => {
     const { email, sub, picture } = response.data;
 
     let user = await User.findOne({ email });
-    if (!user) {
+    if (!user || user.isBlocked) {
       return res.status(200).json({ status: false, message: 'No account found' })
     }
+    if (user.isBlocked) {
+      return res.status(400).json({ status: false, message: 'UnAthorised' })
+    }
+
     if (!user.isGoogleUser) {
       user.googleId = sub
       user.profileImg = picture

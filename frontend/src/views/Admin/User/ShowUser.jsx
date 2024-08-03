@@ -33,7 +33,7 @@ function ShowUser() {
   };
 
   return (
-    <div className="container">
+    <div className="container text-white">
       <h2 className="mt-5">User List</h2>
       <table className="table table-striped mt-3">
         <thead>

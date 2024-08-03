@@ -7,7 +7,10 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(config => {
     const token = sessionStorage.getItem('accessToken')
-    if (!token 
+    const urlPattern = /\/user\/shop-product\/([a-fA-F0-9]{24})/;
+    const match = config.url.match(urlPattern);
+    const id = match ? match[1] : null;
+    if (!token
         && config.url !== '/login'
         && config.url !== '/signup'
         && config.url !== '/google/signup'
@@ -21,11 +24,10 @@ axiosInstance.interceptors.request.use(config => {
         && config.url !== '/admin/forgot-pass/send-otp'
         && config.url !== '/admin/forgot-pass/verify-otp'
         && config.url !== '/admin/reset-password'
-        
-
+        && config.url !== '/user/home/getProducts'
+        && config.url !== `/user/shop-product/${id}`
     ) {
         window.location.href = '/authentication'
-
     }
     if (!token && config.url === '/authentication') {
         axiosInstance.post('/verify-login')

@@ -45,7 +45,72 @@ router.get('/getProducts', authenticateToken, async (req, res) => {
   }
 });
 
+//without middle ware
+router.get('/home/getProducts', async (req, res) => {
+  try {
+    const products = await Product.find({})
+      .populate('categoryId', 'name')
+      .populate('mainImage', 'image')
+      .populate('additionalImages', 'image')
+      .lean();
 
+    if (req.user && req.user.email) {
+      const user = await User.findOne({ email: req.user.email });
+      if (user) {
+        const cart = await Cart.findOne({ userId: user._id }).lean();
+        if (cart) {
+          const cartProductIds = cart.products.map(p => p.productId.toString());
+          res.status(200).json({
+            status: true,
+            products,
+            cartProducts: cartProductIds
+          });
+          return;
+        }
+      }
+    }
+    res.status(201).json({ status: true, products });
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching products' });
+  }
+});
+
+
+//without middle ware
+router.get('/shop-product/:id', async (req, res) => {
+  const productId = req.params.id;
+
+  try {
+    const product = await Product.findById(productId)
+      .populate('categoryId', 'name')
+      .populate('mainImage', 'image')
+      .populate('additionalImages', 'image');
+    if (product) {
+      if (req.user && req.user.email) {
+        const user = await User.findOne({ email: req.user.email });
+        if (user) {
+          const cart = await Cart.findOne({ userId: user._id }).lean();
+          if (cart) {
+            const cartProducts = cart.products.filter(p =>
+              p.productId.equals(productId)
+            );
+            res.status(200).json({
+              status: true,
+              product,
+              cartProducts: cartProducts
+            });
+            return;
+          }
+        }
+      }
+      res.status(200).json({ status: true, product: product });
+    } else {
+      res.status(404).json({ status: false, message: 'Product not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ status: false, message: 'Error fetching product' });
+  }
+});
 
 
 router.get('/shop/:id', authenticateToken, async (req, res) => {
@@ -810,9 +875,7 @@ const updateStockOnCancel = async (orderId, productId) => {
 
 router.post('/update-order-status', async (req, res) => {
   const { orderId, productId, status } = req.body;
-
   try {
-    //Update the order status
     const result = await Order.updateOne(
       { orderId: orderId, 'products._id': productId },
       { $set: { 'products.$.orderStatus': status } }

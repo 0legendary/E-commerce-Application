@@ -32,6 +32,7 @@ import Address from './views/User/Profile/Address/Address';
 import Cart from './views/User/Cart/Cart';
 import Checkout from './views/User/CheckoutPage/Checkout';
 import Order from './views/User/Orders-Page/Order';
+import AdminOrders from './views/Admin/OrderPage/AdminOrders';
 
 
 const UserLayout = () => {
@@ -66,14 +67,14 @@ function App() {
         <Route path='/admin/auth'>
           <Route index element={<Login />} />
         </Route>
-        <Route element={<PrivateRoute />}>
-          <Route path="/" element={<UserLayout />}>
+        <Route path="/" element={<UserLayout />}>
             <Route index element={<UserHomePage />} />
           </Route>
           <Route path="/shop" element={<UserLayout />}>
             <Route index element={<ShoppingPage />} />
             <Route path=":id" element={<SingleProduct />} />
           </Route>
+        <Route element={<PrivateRoute />}>
           <Route path="/cart" element={<UserLayout />}>
             <Route index element={<Cart />} />
           </Route>
@@ -97,11 +98,13 @@ function App() {
             <Route path="editProduct/:id" element={<EditProduct />} />
             <Route path="users" element={<ShowUser />} />
             <Route path="category" element={<Category />} />
+            <Route path="orders" element={<AdminOrders />} />
           </Route>
         </Route>
       </Route>
     )
   );
+  
 
   return (
     <div>
@@ -111,3 +114,4 @@ function App() {
 }
 
 export default App;
+

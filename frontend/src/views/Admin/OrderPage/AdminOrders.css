@@ -1,0 +1,20 @@
+/* Add this in your CSS file */
+.table td, .table th {
+    vertical-align: middle;
+}
+
+.badge-success {
+    background-color: #28a745;
+}
+
+.badge-info {
+    background-color: #17a2b8;
+}
+
+.badge-warning {
+    background-color: #ffc107;
+}
+
+.badge-danger {
+    background-color: #dc3545;
+}

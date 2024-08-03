@@ -7,6 +7,7 @@ import Product from '../model/product.js';
 import TrashedProduct from '../model/trashedProduct.js';
 import User from '../model/user.js'
 import Category from '../model/category.js';
+import Order from '../model/order.js';
 
 const router = Router();
 
@@ -429,5 +430,32 @@ router.put('/toggleCategory', authenticateTokenAdmin, async (req, res) => {
 });
 
 
+
+
+//orders
+
+router.get('/all-orders', authenticateTokenAdmin, async (req, res) => {
+    try {
+      
+      const orders = await Order.find({})
+        .populate({
+          path: 'products.productId',
+          select: 'mainImage',
+          populate: {
+            path: 'mainImage',
+            select: 'image'
+          }
+        })
+        .populate({
+            path: 'customerId',
+            select: 'name email mobile'
+          });
+      res.json({ status: true, orders });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ status: false, message: 'Error fetching user' });
+    }
+  });
+  
 export default router;
 

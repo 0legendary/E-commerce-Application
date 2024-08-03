@@ -1,57 +1,71 @@
-import React from 'react'
-import './header.css'
-import { Link } from 'react-router-dom'
+import React from 'react';
+import './header.css';
+import { Link, useLocation } from 'react-router-dom';
 
 function Header() {
+    const location = useLocation();
+    
+    // Determine the active route
+    const getRouteClass = (route) => {
+        return location.pathname === route ? 'active-route' : '';
+    };
+
+    const getIconRouteClass = (route) => {
+        return location.pathname === route ? '-fill' : '';
+    };
     return (
         <div>
-            <div class="home-header-nav">
-                <div class="home-container04">
-                    <div class="home-link01">
-                        <span class="home-text012"><span>O'legendary</span></span>
+            <div className="home-header-nav">
+                <div className="nav-container">
+                    <div className="logo">
+                        <span className="logo-text"><span>O'legendary</span></span>
                     </div>
-                    <div class="home-list">
-                        <Link to="/"> <a><span class="home-text014"><span>HOME</span></span></a></Link>
+                    <div className="head-routes">
+                        <Link to="/">
+                            <span className={`home-route ${getRouteClass('/')}`}><span>HOME</span></span>
+                        </Link>
                         <Link to="/login">
-                            <a><span class="home-text016"><span>LOGIN</span></span></a>
+                            <span className={`login-route ${getRouteClass('/login')}`}><span>LOGIN</span></span>
                         </Link>
                         <Link to="/shop">
-                            <a><span class="home-text018"><span>SHOP</span></span></a>
+                            <span className={`shop-route ${getRouteClass('/shop')}`}><span>SHOP</span></span>
                         </Link>
-                        <Link to="/orders"><a><span class="home-text020"><span>ORDERS</span></span></a></Link>
+                        <Link to="/orders" >
+                            <span className={`order-route ${getRouteClass('/orders')}`}><span>ORDERS</span></span>
+                        </Link>
                         <Link to="/wallet">
-                            <a><span class="home-text022"><span>WALLTE</span></span></a>
+                            <span className={`wallet-route ${getRouteClass('/wallet')}`}><span>WALLET</span></span>
                         </Link>
                     </div>
-                    <div class="home-list1">
-                        <div class="home-item05">
+                    <div className="header-icons">
+                        <div className="cart-div">
                             <Link to='/cart'>
-                                <i class="bi bi-cart2 home-icon01"></i>
+                                <i className={`bi bi-cart${getIconRouteClass('/cart')} cart-icon`}></i>
                             </Link>
                         </div>
-                        <div class="home-item06">
+                        <div className="wishlist-div">
                             <Link to='/wishlist'>
-                                <i class="bi bi-heart home-icon02"></i>
+                                <i className={`bi bi-heart${getIconRouteClass('/wishlist')} wishlist-icon`}></i>
                             </Link>
                         </div>
-                        <div class="home-item07">
+                        <div className="acc-div">
                             <Link to='/account'>
-                                <i class="bi bi-person home-icon03"></i>
+                                <i className={`bi bi-person${getIconRouteClass('/account')} acc-icon`}></i>
                             </Link>
                         </div>
                     </div>
-                    <div class="home-searchbar">
-                        <div class="home-statelayer">
-                            <div class="home-content">
-                                <span class="home-text024 M3bodylarge">
+                    <div className="home-searchbar">
+                        <div className="home-statelayer">
+                            <div className="home-content">
+                                <span className="home-text024 M3bodylarge">
                                     <span>search products</span>
                                 </span>
                             </div>
-                            <div class="home-trailing-elements">
-                                <div class="home-frame1sttrailingicon">
-                                    <div class="home-container05">
-                                        <div class="home-statelayer1">
-                                            <i class="bi bi-search home-icon03" ></i>
+                            <div className="home-trailing-elements">
+                                <div className="home-frame1sttrailingicon">
+                                    <div className="home-container05">
+                                        <div className="home-statelayer1">
+                                            <i className="bi bi-search home-icon03"></i>
                                         </div>
                                     </div>
                                 </div>
@@ -61,8 +75,7 @@ function Header() {
                 </div>
             </div>
         </div>
-    )
+    );
 }
 
-
-export default Header
+export default Header;

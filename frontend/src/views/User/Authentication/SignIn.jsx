@@ -94,10 +94,9 @@ function SignIn({ handleLoginClick, handleSignUpClick }) {
           } else {
             setErrors({ unAuthorised: 'Wrong Email or Password' })
           }
-
         })
         .catch(error => {
-          setErrors({ unAuthorised: 'Wrong Email or Password' })
+          setErrors({ unAuthorised: 'UnAuthorised' })
           console.error('Error sending login data:', error);
         });
 
@@ -120,7 +119,7 @@ function SignIn({ handleLoginClick, handleSignUpClick }) {
         }, 2000);
         countdown(2)
       } else {
-        setErrors({ unAuthorised: 'This Account is not registered' });
+        setErrors({ unAuthorised: 'UnAuthorised' });
       }
     } catch (error) {
       console.error('Error verifying Google credential:', error);

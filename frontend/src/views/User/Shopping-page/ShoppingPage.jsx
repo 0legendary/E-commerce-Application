@@ -6,21 +6,27 @@ import { Link } from 'react-router-dom';
 
 function ShoppingPage() {
     const [products, setProducts] = useState([]);
-    const [cartProducts, setCartProducts] = useState([])
+    const [cartProducts, setCartProducts] = useState([]);
+    const [filteredProducts, setFilteredProducts] = useState([]);
+    const [sortOption, setSortOption] = useState('default');
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [selectedColor, setSelectedColor] = useState(null);
+    const [priceRange, setPriceRange] = useState([0, 1000000]);
+    const [searchTerm, setSearchTerm] = useState('');
+
     const mainHeading = "Shop Category";
     const breadcrumbs = [
         { name: "Home", path: "/" },
         { name: "Shop", path: "/shop" },
     ];
 
-
     useEffect(() => {
-        axiosInstance.get('/user/getProducts')
+        axiosInstance.get('/user/home/getProducts')
             .then(response => {
                 if (response.data.status) {
-                    console.log(response.data.cartProducts);
-                    setCartProducts(response.data.cartProducts ? response.data.cartProducts : [])
+                    setCartProducts(response.data.cartProducts ? response.data.cartProducts : []);
                     setProducts(response.data.products);
+                    setFilteredProducts(response.data.products);
                 }
             })
             .catch(error => {
@@ -28,132 +34,263 @@ function ShoppingPage() {
             });
     }, []);
 
-    const uniqueCategories = Array.from(new Set(products.map(product => product.categoryId._id)))
-        .map(categoryId => {
-            return products.find(product => product.categoryId._id === categoryId).categoryId;
-        });
+    useEffect(() => {
+        filterAndSortProducts();
+    }, [products, selectedCategory, selectedColor, priceRange, sortOption, searchTerm]);
+
+    const filterAndSortProducts = () => {
+        let filtered = products;
+
+
+        // Filter by category
+        if (selectedCategory) {
+            filtered = filtered.filter(product => product.categoryId._id === selectedCategory);
+        }
+
+        // Filter by color
+        if (selectedColor) {
+            filtered = filtered.filter(product =>
+                product.variations.some(variation => variation.color.includes(selectedColor))
+            );
+        }
+
+        // Filter by price range
+        filtered = filtered.filter(product =>
+            product.variations.some(variation =>
+                variation.price >= priceRange[0] && variation.price <= priceRange[1]
+            )
+        );
+        if (priceRange[0] > priceRange[1]) {
+            setPriceRange([0, 1000000])
+        }
+
+        if (searchTerm) {
+            filtered = filtered.filter(product =>
+                product.name.toLowerCase().startsWith(searchTerm.toLowerCase())
+            );
+        }
+
+        // Sort products
+        switch (sortOption) {
+            case 'price-low-high':
+                filtered.sort((a, b) =>
+                    Math.min(...a.variations.map(v => v.price)) - Math.min(...b.variations.map(v => v.price))
+                );
+                break;
+            case 'price-high-low':
+                filtered.sort((a, b) =>
+                    Math.min(...b.variations.map(v => v.price)) - Math.min(...a.variations.map(v => v.price))
+                );
+                break;
+            case 'rating':
+                filtered.sort((a, b) =>
+                    (b.rating || 0) - (a.rating || 0)
+                );
+                break;
+            case 'new-arrivals':
+                filtered.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+                break;
+            case 'a-z':
+                filtered.sort((a, b) => a.name.localeCompare(b.name));
+                break;
+            case 'z-a':
+                filtered.sort((a, b) => b.name.localeCompare(a.name));
+                break;
+            default:
+                break;
+        }
+
+        setFilteredProducts(filtered);
+    };
+
+    const handleCategoryClick = (categoryId) => {
+        setSelectedCategory(categoryId);
+    };
+
+    const handleColorClick = (color) => {
+        setSelectedColor(color);
+    };
+
+    const handlePriceRangeChange = (event) => {
+        const { name, value } = event.target;
+        const newValue = Math.max(0, Number(value));  // Ensure the value is a number
+
+        if (name === 'min') {
+            setPriceRange(prev => [newValue, prev[1]]);
+        } else if (name === 'max') {
+            setPriceRange(prev => [prev[0], newValue]);
+        }
+    };
+
+
+    const handleSearchChange = (event) => {
+        setSearchTerm(event.target.value);
+    };
 
     const addToCart = async (productId) => {
         axiosInstance.post('/user/add-to-cart', { productId })
             .then(response => {
                 if (response.data.status) {
-                    setCartProducts([...cartProducts, productId])
+                    setCartProducts([...cartProducts, productId]);
                 }
             })
             .catch(error => {
                 console.error('Error sending data:', error);
             });
-    }
+    };
+
+    const uniqueCategories = Array.from(new Set(products.map(product => product.categoryId._id)))
+        .map(categoryId => products.find(product => product.categoryId._id === categoryId).categoryId);
+
+    const uniqueColors = Array.from(new Set(products.flatMap(product =>
+        product.variations.flatMap(variation => variation.color)
+    )));
+
+
 
     return (
         <div>
             <Layout mainHeading={mainHeading} breadcrumbs={breadcrumbs} />
-            <div className='d-flex container w-100'>
-                <div className="container mt-5 w-30">
-                    <div className="row mt-5">
+            <div className='row col-md-12 p-5'>
+                <div className="mt-3 col-md-3 ">
+                    <div className="row pe-5">
                         <div className="sidebar-categories">
                             <div className="head">Browse Categories</div>
                             <ul className="main-categories">
-                                <li className="main-nav-list">
-                                    {uniqueCategories && uniqueCategories.map((category, index) => (
-                                        <a key={index} data-toggle="collapse" href="#fruitsVegetable" aria-expanded="false" aria-controls="fruitsVegetable">
-                                            <span className="lnr lnr-arrow-right"></span>{category.name}<span className="number">({products.filter(product => product.categoryId._id === category._id).length})</span>
+                                {uniqueCategories.map((category, index) => (
+                                    <li key={index} className="main-nav-list">
+                                        <a onClick={() => handleCategoryClick(category._id)}>
+                                            <span className="lnr lnr-arrow-right"></span>{category.name}
+                                            <span className="number">({products.filter(product => product.categoryId._id === category._id).length})</span>
                                         </a>
-                                    ))}
-                                </li>
+                                    </li>
+                                ))}
                             </ul>
                         </div>
                         <div className="sidebar-categories">
-                            <div className="head">Browse Categories</div>
+                            <div className="head">Browse Colors</div>
                             <ul className="main-categories">
-                                <li className="main-nav-list">
-                                    {products && (() => {
-                                        const displayedColors = new Set();
-                                        return products.map((product, prodIndex) => (
-                                            <React.Fragment key={prodIndex}>
-                                                {product.variations.map((variation) => variation.color).flat().map((color, colorIndex) => {
-                                                    if (!displayedColors.has(color)) {
-                                                        displayedColors.add(color);
-                                                        return (
-                                                            <a key={colorIndex} style={{ justifyContent: 'start' }}>
-                                                                <span className="lnr lnr-arrow-right"></span>{color}
-                                                            </a>
-                                                        );
-                                                    }
-                                                    return null;
-                                                })}
-                                            </React.Fragment>
-                                        ));
-                                    })()}
-                                </li>
+                                {uniqueColors.map((color, index) => (
+                                    <li key={index} className="main-nav-list">
+                                        <a onClick={() => handleColorClick(color)} style={{ justifyContent: 'start' }}>
+                                            <span className="lnr lnr-arrow-right"></span>{color}
+                                        </a>
+                                    </li>
+                                ))}
                             </ul>
+                        </div>
+                        <div className="sidebar-categories">
+                            <div className="head">Filter by Price</div>
+                            <div className="price-filter">
+                                <div className="price-input">
+                                    <label htmlFor="minPrice">Minimum Price</label>
+                                    <input
+                                        id="minPrice"
+                                        type="number"
+                                        name="min"
+                                        value={priceRange[0]}
+                                        onChange={handlePriceRangeChange}
+                                        placeholder="Min Price"
+                                        min="0"
+                                    />
+                                </div>
+                                <div className="price-input">
+                                    <label htmlFor="maxPrice">Maximum Price</label>
+                                    <input
+                                        id="maxPrice"
+                                        type="number"
+                                        name="max"
+                                        value={priceRange[1]}
+                                        onChange={handlePriceRangeChange}
+                                        placeholder="Max Price"
+                                        min="0"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div className="container products-container mt-4 shopping-products w-70">
-                    <div className="d-flex justify-content-end align-items-center gap-3">
-                        <div className="sorting">
-                            <select className="form-select" aria-label="Default sorting">
-                                <option value="1">Default sorting</option>
-                                <option value="2">Sort by popularity</option>
-                                <option value="3">Sort by rating</option>
-                                <option value="4">Sort by latest</option>
-                            </select>
+                <div className='card col-md-9 mt-4'>
+                    <div className="products-container shopping-products">
+                        <div className="d-flex justify-content-end align-items-center gap-3">
+                            <div className="sorting">
+                                <select
+                                    className="form-select"
+                                    aria-label="Default sorting"
+                                    value={sortOption}
+                                    onChange={(e) => setSortOption(e.target.value)}
+                                >
+                                    <option value="default">Default sorting</option>
+                                    <option value="price-low-high">Price: low to high</option>
+                                    <option value="price-high-low">Price: high to low</option>
+                                    <option value="rating">Average ratings</option>
+                                    <option value="new-arrivals">New arrivals</option>
+                                    <option value="a-z">A - Z</option>
+                                    <option value="z-a">Z - A</option>
+                                </select>
+                            </div>
+                            <div className="search d-flex align-items-center">
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Search..."
+                                    value={searchTerm}
+                                    onChange={handleSearchChange}
+                                />
+                                <i className="bi bi-search search-icon"></i>
+                            </div>
                         </div>
-                        <div className="search d-flex align-items-center">
-                            <input type="text" className="form-control" placeholder="Search..." />
-                            <i className="bi bi-search search-icon"></i>
-                        </div>
-                    </div>
-                    <div className="products-grid mt-4" style={{ 'grid-template-columns': 'repeat(3, 1fr)' }}>
-                        {products.map((product, index) => {
-                            const isInCart = Array.isArray(cartProducts) && cartProducts.includes(product._id);
-                            return (
-                                <div key={index} className="product-card">
-                                    <img src={product.mainImage.image} alt={product.name} className="product-image" />
-                                    <div className="product-details">
-                                        <span className="product-name"><span>{product.name}</span></span>
-                                    </div>
-                                    <div className='d-flex gap-3'>
-                                        <span className="product-current-price"><span>{product.variations[0].price}</span></span>
-                                        <span className="product-original-price"><span>{product.variations[0].discountPrice}</span></span>
-                                    </div>
-                                    <div className="product-actions w-100 justify-content-between">
-                                        <div className='d-flex gap-1'>
-                                            {!isInCart ? (
-                                                <div className="product-background">
-                                                    <i className="bi bi-cart3" onClick={() => addToCart(product._id)}></i>
-                                                </div>
-                                            ) : (
-                                                <Link to={`/cart`}>
+                        <div className="products-grid mt-4" style={{ 'grid-template-columns': 'repeat(4, 1fr)' }}>
+                            {filteredProducts.map((product, index) => {
+                                const isInCart = Array.isArray(cartProducts) && cartProducts.includes(product._id);
+                                return (
+                                    <div key={index} className="product-card">
+                                        <img src={product.mainImage.image} alt={product.name} className="product-image" />
+                                        <div className="product-details">
+                                            <span className="product-name"><span>{product.name}</span></span>
+                                        </div>
+                                        <div className='d-flex gap-3'>
+                                            <span className="product-current-price"><span>{product.variations[0].price}</span></span>
+                                            <span className="product-original-price"><span>{product.variations[0].discountPrice}</span></span>
+                                        </div>
+                                        <div className="product-actions w-100 justify-content-between">
+                                            <div className='d-flex gap-1'>
+                                                {!isInCart ? (
                                                     <div className="product-background">
-                                                        <i class="bi bi-cart-check"></i>
+                                                        <i className="bi bi-cart3" onClick={() => addToCart(product._id)}></i>
+                                                    </div>
+                                                ) : (
+                                                    <Link to={`/cart`}>
+                                                        <div className="product-background">
+                                                            <i class="bi bi-cart-check"></i>
+                                                        </div>
+                                                    </Link>
+                                                )}
+                                                <div className="product-background">
+                                                    <i className="bi bi-heart"></i>
+                                                </div>
+                                                <Link to={`/shop/${product._id}`}>
+                                                    <div className="product-background">
+                                                        <i className="bi bi-search"></i>
                                                     </div>
                                                 </Link>
-                                            )}
-                                            <div className="product-background">
-                                                <i className="bi bi-heart"></i>
                                             </div>
-                                            <Link to={`/shop/${product._id}`}>
-                                                <div className="product-background">
-                                                    <i className="bi bi-search"></i>
-                                                </div>
-                                            </Link>
-                                        </div>
-                                        <div>
-                                            <Link to={`/checkout/${product._id}`}>
-                                                <button className='btn border border-success text-black'>Buy</button>
-                                            </Link>
+                                            <div>
+                                                <Link to={`/checkout/${product._id}`}>
+                                                    <button className='btn border border-success text-black'>Buy</button>
+                                                </Link>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            )
-                        })}
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
+
             </div>
         </div>
-    )
+    );
 }
 
 export default ShoppingPage;

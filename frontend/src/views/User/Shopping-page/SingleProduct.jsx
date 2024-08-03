@@ -13,7 +13,7 @@ function SingleProduct() {
   const [selectedColor, setSelectedColor] = useState(null);
   const [cartProducts, setCartProducts] = useState([])
   useEffect(() => {
-    axiosInstance.get(`/user/shop/${id}`)
+    axiosInstance.get(`/user/shop-product/${id}`)
       .then(response => {
         if (response.data.status) {
           console.log(response.data.cartProducts);
