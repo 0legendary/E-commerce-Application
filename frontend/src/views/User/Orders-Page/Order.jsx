@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import Layout from '../Header/Layout';
 import axiosInstance from '../../../config/axiosConfig';
 import './Order.css';
-import { Link } from 'react-router-dom';
 import DetailedOrder from './DetailedOrder';
 
 function Order() {

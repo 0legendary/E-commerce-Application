@@ -9,9 +9,17 @@ function SelectedOrder({ order, handleCloseModal, updateOrderStatus }) {
         }, {})
     );
     const [totalAmount, setTotalAmount] = useState(0);
+    const calculateTotalAmount = () => {
+        const amount = order.products
+            .filter(product => productStatuses[product._id] !== 'canceled' && productStatuses[product._id] !== 'returned')
+            .reduce((total, product) => total + (product.price * product.quantity), 0);
+
+        setTotalAmount(amount);
+    };
 
     useEffect(() => {
         calculateTotalAmount();
+        // eslint-disable-next-line 
     }, [productStatuses, order.products]);
 
     const handleStatusChange = (productId, newStatus) => {
@@ -40,13 +48,7 @@ function SelectedOrder({ order, handleCloseModal, updateOrderStatus }) {
             });
     };
 
-    const calculateTotalAmount = () => {
-        const amount = order.products
-            .filter(product => productStatuses[product._id] !== 'canceled' && productStatuses[product._id] !== 'returned')
-            .reduce((total, product) => total + (product.price * product.quantity), 0);
-
-        setTotalAmount(amount);
-    };
+    
 
     return (
         <div className="mt-5 text-white">

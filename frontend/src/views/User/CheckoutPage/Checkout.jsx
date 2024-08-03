@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import axiosInstance from '../../../config/axiosConfig';
 import Layout from '../Header/Layout'
-import Address from '../Profile/Address/Address';
 import NewAddress from '../Profile/Address/NewAddress';
 import EditAddress from '../Profile/Address/EditAddress';
 import { Button } from 'react-bootstrap';

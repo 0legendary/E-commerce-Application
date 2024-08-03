@@ -36,6 +36,7 @@ function ShoppingPage() {
 
     useEffect(() => {
         filterAndSortProducts();
+        // eslint-disable-next-line
     }, [products, selectedCategory, selectedColor, priceRange, sortOption, searchTerm]);
 
     const filterAndSortProducts = () => {
@@ -158,8 +159,10 @@ function ShoppingPage() {
                             <div className="head">Browse Categories</div>
                             <ul className="main-categories">
                                 {uniqueCategories.map((category, index) => (
+                                    
                                     <li key={index} className="main-nav-list">
-                                        <a onClick={() => handleCategoryClick(category._id)}>
+                                        {/* eslint-disable-next-line */}
+                                        <a onClick={() => handleCategoryClick(category._id)} className="link-button">
                                             <span className="lnr lnr-arrow-right"></span>{category.name}
                                             <span className="number">({products.filter(product => product.categoryId._id === category._id).length})</span>
                                         </a>
@@ -172,6 +175,7 @@ function ShoppingPage() {
                             <ul className="main-categories">
                                 {uniqueColors.map((color, index) => (
                                     <li key={index} className="main-nav-list">
+                                        {/* eslint-disable-next-line */}
                                         <a onClick={() => handleColorClick(color)} style={{ justifyContent: 'start' }}>
                                             <span className="lnr lnr-arrow-right"></span>{color}
                                         </a>
@@ -248,7 +252,7 @@ function ShoppingPage() {
                                         <img src={product.mainImage.image} alt={product.name} className="product-image" />
                                         <div className="product-details">
                                             <span className="product-name text-white"><span>{product.name}</span></span>
-                                        </div> 
+                                        </div>
                                         <div className='d-flex gap-3 text-white'>
                                             <span className="product-current-price text-white"><span>{product.variations[0].price}</span></span>
                                             <span className="product-original-price text-white"><span>{product.variations[0].discountPrice}</span></span>
