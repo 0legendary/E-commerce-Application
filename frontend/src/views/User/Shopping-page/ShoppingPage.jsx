@@ -244,16 +244,16 @@ function ShoppingPage() {
                             {filteredProducts.map((product, index) => {
                                 const isInCart = Array.isArray(cartProducts) && cartProducts.includes(product._id);
                                 return (
-                                    <div key={index} className="product-card">
+                                    <div key={index} className="product-card ">
                                         <img src={product.mainImage.image} alt={product.name} className="product-image" />
                                         <div className="product-details">
-                                            <span className="product-name"><span>{product.name}</span></span>
+                                            <span className="product-name text-white"><span>{product.name}</span></span>
+                                        </div> 
+                                        <div className='d-flex gap-3 text-white'>
+                                            <span className="product-current-price text-white"><span>{product.variations[0].price}</span></span>
+                                            <span className="product-original-price text-white"><span>{product.variations[0].discountPrice}</span></span>
                                         </div>
-                                        <div className='d-flex gap-3'>
-                                            <span className="product-current-price"><span>{product.variations[0].price}</span></span>
-                                            <span className="product-original-price"><span>{product.variations[0].discountPrice}</span></span>
-                                        </div>
-                                        <div className="product-actions w-100 justify-content-between">
+                                        <div className="product-actions w-100 text-white justify-content-between">
                                             <div className='d-flex gap-1'>
                                                 {!isInCart ? (
                                                     <div className="product-background">
@@ -277,7 +277,7 @@ function ShoppingPage() {
                                             </div>
                                             <div>
                                                 <Link to={`/checkout/${product._id}`}>
-                                                    <button className='btn border border-success text-black'>Buy</button>
+                                                    <button className='btn border border-success text-white'>Buy</button>
                                                 </Link>
                                             </div>
                                         </div>

@@ -30,7 +30,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: #fff; /* Optional background color */
+    background-color: #000000; /* Optional background color */
     padding: 10px;
     border-radius: 10px; /* Optional border radius */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional box shadow */

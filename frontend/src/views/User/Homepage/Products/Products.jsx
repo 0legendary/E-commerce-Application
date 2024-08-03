@@ -43,7 +43,7 @@ function Products() {
                 {products.map((product, index) => {
                     const isInCart = Array.isArray(cartProducts) && cartProducts.includes(product._id);
                     return (
-                        <div key={index} className="product-card">
+                        <div key={index} className="product-card bg-white">
                             <img src={product.mainImage.image} alt={product.name} className="product-image" />
                             <div className="product-details">
                                 <span className="product-name"><span>{product.name}</span></span>
