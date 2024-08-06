@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import Product from '../model/product.js';
 import User from '../model/user.js'
-import Image from '../model/image.js'
+import Wallet from '../model/wallet.js'
 import bcrypt from 'bcrypt'
 import { generateOTP, sendOTPEmail } from '../utils/sendEmail.js';
 import OTP from '../model/otp.js';
@@ -890,14 +890,57 @@ const updateStockOnCancel = async (orderId, productId) => {
 
 router.post('/update-order-status', async (req, res) => {
   const { orderId, productId, status } = req.body;
+
   try {
     const result = await Order.updateOne(
-      { orderId: orderId, 'products._id': productId },
+      { orderId, 'products._id': productId },
       { $set: { 'products.$.orderStatus': status } }
     );
 
     if (result.modifiedCount === 0) {
       return res.status(404).json({ status: false, message: 'Order or product not found' });
+    }
+
+    if (status === 'canceled') {
+      const order = await Order.findOne({ orderId });
+      if (!order) {
+        return res.status(404).json({ status: false, message: 'Order not found' });
+      }
+
+      const newTotal = order.products
+        .filter(product => product.orderStatus !== 'canceled')
+        .reduce((total, product) => total + product.discountPrice * product.quantity, 0);
+
+      await Order.updateOne({ orderId }, { $set: { orderTotal: newTotal } });
+
+      if (order.paymentMethod !== 'COD') {
+        const canceledProduct = order.products.find(product => 
+          product._id.toString() === productId && product.orderStatus === 'canceled'
+        );
+        if (!canceledProduct) {
+          return res.status(404).json({ status: false, message: 'Canceled product not found' });
+        }
+        const refundAmount = canceledProduct.discountPrice * canceledProduct.quantity;
+        let wallet = await Wallet.findOne({ userId: order.customerId });
+        if (!wallet) {
+          wallet = new Wallet({
+            userId: order.customerId,
+            balance: 0
+          });
+        }
+        wallet.balance += refundAmount;
+
+        await wallet.save();
+
+        wallet.transactions.push({
+          amount: refundAmount,
+          type: 'credit',
+          description: `Refund for canceled order ${orderId}`,
+          createdAt: new Date()
+        });
+
+        await wallet.save();
+      }
     }
 
     if (status !== 'returned') {
@@ -906,9 +949,11 @@ router.post('/update-order-status', async (req, res) => {
 
     return res.json({ status: true });
   } catch (error) {
+    console.error('Error updating order status:', error);
     res.status(500).json({ status: false, message: 'Server error' });
   }
 });
+
 
 
 

@@ -69,9 +69,9 @@ function Order() {
         setShowModal(false);
     };
 
-    const handleDetailedOrder = (product,order) => {
+    const handleDetailedOrder = (product, order) => {
         setShowDetailedOrder(true)
-        setCurrentDetailedProduct({order,product})
+        setCurrentDetailedProduct({ order, product })
     }
 
     const handleCancelDetailedOrder = (product) => {
@@ -86,57 +86,71 @@ function Order() {
             <div className="container mt-4">
                 {!showDetailedOrder ? (
                     <div>
-                        {orders.map(order => (
-                            <div key={order._id} className="order-card mb-4 p-3 border rounded">
-                                {order.products.map((product, index) => (
-                                    <div key={product._id} className={`order-item d-flex align-items-start ${order.products.length > 1 && order.products.length - 1 !== index ? 'border-bottom' : ''} pb-3 mb-3`}>
-                                        <img
-                                            src={product.productId.mainImage.image}
-                                            alt={product.productName}
-                                            className="order-image img-thumbnail me-3"
-                                            style={{ maxWidth: '100px', maxHeight: '100px' }}
-                                        />
-                                        <div className="order-details flex-grow-1">
-                                            <h5 className="order-item-name" onClick={() => handleDetailedOrder(product,order)}>{product.productName}</h5>
-                                            <p className="order-item-color">Color: {product.selectedColor}</p>
-                                            <p className="order-item-size">Size: {product.selectedSize}</p>
-                                            <p className="order-item-quantity">Quantity: {product.quantity}</p>
-                                        </div>
-                                        <div className="order-summary ms-3">
-                                            <p className="order-item-total-price">Total Price: ₹{product.totalPrice}</p>
-                                            <p className={`order-status 
-                                    ${product.orderStatus === 'pending' && 'text-warning'}
-                                    ${product.orderStatus === 'canceled' && 'text-danger'}
-                                    ${product.orderStatus === 'delivered' && 'text-success'} 
-                                        `}>
-                                                Status: {product.orderStatus}
-                                            </p>
-                                            {product.orderStatus !== 'delivered' && product.orderStatus !== 'canceled' && product.orderStatus !== 'returned' && (
-                                                <button
-                                                    className="btn btn-danger btn-sm mt-2"
-                                                    onClick={() => openModal(order.orderId, product._id, 'canceled')}
+                        {orders
+                            .slice()  // Create a shallow copy of the orders array
+                            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))  // Sort by createdAt in descending order
+                            .map(order => (
+                                <div key={order._id} className="order-card mb-4 p-3 border rounded">
+                                    {order.products.map((product, index) => (
+                                        <div
+                                            key={product._id}
+                                            className={`order-item d-flex align-items-start ${order.products.length > 1 && order.products.length - 1 !== index ? 'border-bottom' : ''
+                                                } pb-3 mb-3`}
+                                        >
+                                            <img
+                                                src={product.productId.mainImage.image}
+                                                alt={product.productName}
+                                                className="order-image img-thumbnail me-3"
+                                                style={{ maxWidth: '100px', maxHeight: '100px' }}
+                                            />
+                                            <div className="order-details flex-grow-1">
+                                                <h5 className="order-item-name" onClick={() => handleDetailedOrder(product, order)}>
+                                                    {product.productName}
+                                                </h5>
+                                                <p className="order-item-color">Color: {product.selectedColor}</p>
+                                                <p className="order-item-size">Size: {product.selectedSize}</p>
+                                                <p className="order-item-quantity">Quantity: {product.quantity}</p>
+                                            </div>
+                                            <div className="order-summary ms-3">
+                                                <p className="order-item-total-price">Total Price: ₹{product.discountPrice * product.quantity}</p>
+                                                <p
+                                                    className={`order-status ${product.orderStatus === 'pending' && 'text-warning'
+                                                        } ${product.orderStatus === 'canceled' && 'text-danger'
+                                                        } ${product.orderStatus === 'delivered' && 'text-success'
+                                                        }`}
                                                 >
-                                                    Cancel Order
-                                                </button>
-                                            )}
-                                            {product.orderStatus === 'delivered' && (
-                                                <button
-                                                    className="btn btn-primary btn-sm mt-2"
-                                                    onClick={() => openModal(order.orderId, product._id, 'returned')}
-                                                >
-                                                    Return
-                                                </button>
-                                            )}
+                                                    Status: {product.orderStatus}
+                                                </p>
+                                                {product.orderStatus !== 'delivered' &&
+                                                    product.orderStatus !== 'canceled' &&
+                                                    product.orderStatus !== 'returned' && (
+                                                        <button
+                                                            className="btn btn-danger btn-sm mt-2"
+                                                            onClick={() => openModal(order.orderId, product._id, 'canceled')}
+                                                        >
+                                                            Cancel Order
+                                                        </button>
+                                                    )}
+                                                {product.orderStatus === 'delivered' && (
+                                                    <button
+                                                        className="btn btn-primary btn-sm mt-2"
+                                                        onClick={() => openModal(order.orderId, product._id, 'returned')}
+                                                    >
+                                                        Return
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
-                                <p className="order-purchase-date d-flex justify-content-end">Purchased on: {new Date(order.orderDate).toLocaleDateString()} at {new Date(order.orderDate).toLocaleTimeString()}</p>
-                            </div>
-                        ))}
+                                    ))}
+                                    <p className="order-purchase-date d-flex justify-content-end">
+                                        Purchased on: {new Date(order.orderDate).toLocaleDateString()} at {new Date(order.orderDate).toLocaleTimeString()}
+                                    </p>
+                                </div>
+                            ))}
                     </div>
                 ) : (
                     <div>
-                        <DetailedOrder product= {currentDetailedProduct} backToOrders={handleCancelDetailedOrder} openModal= {openModal}/>
+                        <DetailedOrder product={currentDetailedProduct} backToOrders={handleCancelDetailedOrder} openModal={openModal} />
                     </div>
                 )}
             </div>

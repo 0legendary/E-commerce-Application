@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, products, paymentMethod, checkoutId }) {
   const [currentUser, setCurrentUser] = useState({})
   const navigate = useNavigate()
-  console.log(checkoutId);
+  console.log(products);
   useEffect(() => {
     axiosInstance.get('/user/user-payment')
       .then(response => {
@@ -46,6 +46,7 @@ function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, product
         selectedColor: product.selectedColor,
         selectedSize: product.selectedSize,
         price: product.price,
+        discountPrice:product.discountedPrice,
         totalPrice: product.quantity * product.price
       }))
     }

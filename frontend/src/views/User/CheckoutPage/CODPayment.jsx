@@ -32,6 +32,7 @@ function CODPayment({ amount, totalDiscount, deliveryCharge, address, products, 
         selectedColor: product.selectedColor,
         selectedSize: product.selectedSize,
         price: product.price,
+        discountPrice:product.discountedPrice,
         totalPrice: product.quantity * product.price
       }))
     };
