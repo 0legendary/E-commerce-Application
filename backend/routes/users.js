@@ -349,6 +349,9 @@ router.post('/edit-address', authenticateToken, async (req, res) => {
   }
 });
 
+
+
+
 router.delete('/delete-address/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   try {
@@ -356,10 +359,22 @@ router.delete('/delete-address/:id', authenticateToken, async (req, res) => {
     if (!user) {
       return res.status(404).json({ status: false, message: 'User not found' });
     }
+
+    const addressToDelete = await Address.findOne({ _id: id, userId: user._id });
+    if (!addressToDelete) {
+      return res.status(404).json({ status: false, message: 'Address not found or not authorized' });
+    }
+    if (addressToDelete.isPrimary) {
+      const nextPrimaryAddress = await Address.findOne({ userId: user._id }).sort({ createdAt: 1 });
+      if (nextPrimaryAddress) {
+        await Address.updateOne({ _id: nextPrimaryAddress._id }, { $set: { isPrimary: true } });
+      }
+    }
     const result = await Address.deleteOne({ _id: id, userId: user._id });
     if (result.deletedCount === 0) {
       return res.status(404).json({ status: false, message: 'Address not found or not authorized' });
     }
+
     res.status(200).json({ status: true });
   } catch (error) {
     res.status(500).json({ status: false, message: 'Server error' });

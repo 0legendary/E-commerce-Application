@@ -73,7 +73,14 @@ function Address() {
         try {
             const response = await axiosInstance.delete(`/user/delete-address/${add_id}`);
             if (response.data.status) {
-                setAddresses(prevAddresses => prevAddresses.filter(address => address._id !== add_id));
+                console.log('deleted');
+                const updatedAddresses = addresses.filter(address => address._id !== add_id);
+                if (addresses.find(address => address._id === add_id).isPrimary) {
+                    if (updatedAddresses.length > 0) {
+                        updatedAddresses[0].isPrimary = true;
+                    }
+                }
+                setAddresses(updatedAddresses);
             }
         } catch (error) {
             console.error('Error deleting address:', error);

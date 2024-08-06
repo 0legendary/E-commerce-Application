@@ -7,6 +7,7 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(config => {
     const token = sessionStorage.getItem('accessToken')
+    console.log(token);
     const urlPattern = /\/user\/shop-product\/([a-fA-F0-9]{24})/;
     const match = config.url.match(urlPattern);
     const id = match ? match[1] : null;

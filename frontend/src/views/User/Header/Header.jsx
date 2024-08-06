@@ -49,7 +49,7 @@ function Header() {
                             </Link>
                         </div>
                         <div className="acc-div">
-                            <Link to='/account'>
+                            <Link to='/account/settings'>
                                 <i className={`bi bi-person${getIconRouteClass('/account')} acc-icon`}></i>
                             </Link>
                         </div>
