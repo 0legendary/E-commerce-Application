@@ -914,7 +914,7 @@ router.post('/update-order-status', async (req, res) => {
       await Order.updateOne({ orderId }, { $set: { orderTotal: newTotal } });
 
       if (order.paymentMethod !== 'COD') {
-        const canceledProduct = order.products.find(product => 
+        const canceledProduct = order.products.find(product =>
           product._id.toString() === productId && product.orderStatus === 'canceled'
         );
         if (!canceledProduct) {
@@ -935,7 +935,7 @@ router.post('/update-order-status', async (req, res) => {
         wallet.transactions.push({
           amount: refundAmount,
           type: 'credit',
-          description: `Refund for canceled order ${orderId}`,
+          description: `Refund for canceled order`,
           createdAt: new Date()
         });
 
@@ -955,8 +955,72 @@ router.post('/update-order-status', async (req, res) => {
 });
 
 
+router.get('/wallet', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.user.email }).select('-password');
+    if (!user) {
+      return res.status(404).json({ status: false, message: 'User not found' });
+    }
+    const wallet = await Wallet.find({ userId: user._id })
+    if (!wallet) res.json({ status: false });
+    res.json({ status: true, wallet, userData: user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: false, message: 'Error fetching user' });
+  }
+});
 
 
+
+router.post('/add-wallet', async (req, res) => {
+  try {
+    const { response, amount, description, userID } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = response;
+
+
+    const sign = razorpay_order_id + "|" + razorpay_payment_id;
+    const expectedSign = crypto
+      .createHmac("sha256", process.env.RAZORPAY_SECRET_KEY)
+      .update(sign.toString())
+      .digest("hex");
+
+    if (razorpay_signature !== expectedSign) {
+      console.log("Invalid signature");
+      return res.status(400).json({ status: false, message: "Invalid signature sent!" });
+    }
+
+    let wallet = await Wallet.findOne({ userId: userID });
+    if (!wallet) {
+      wallet = new Wallet({
+        userId: userID,
+        balance: 0,
+        transactions: []
+      });
+    }
+
+    wallet.balance += amount;
+
+    wallet.transactions.push({
+      amount: amount,
+      type: 'credit',
+      description: description,
+      createdAt: new Date()
+    });
+
+    await wallet.save();
+
+    res.status(200).json({
+      status: true,
+      wallet: {
+        balance: wallet.balance,
+        transactions: wallet.transactions
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: false, message: "An error occurred" });
+  }
+});
 
 
 export default router;

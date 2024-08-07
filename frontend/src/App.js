@@ -33,6 +33,7 @@ import Cart from './views/User/Cart/Cart';
 import Checkout from './views/User/CheckoutPage/Checkout';
 import Order from './views/User/Orders-Page/Order';
 import AdminOrders from './views/Admin/OrderPage/AdminOrders';
+import Wallet from './views/User/Wallet/Wallet';
 
 
 const UserLayout = () => {
@@ -83,6 +84,9 @@ function App() {
           </Route>
           <Route path="/orders" element={<UserLayout />}>
             <Route index element={<Order />} />
+          </Route>
+          <Route path="/wallet" element={<UserLayout />}>
+            <Route index element={<Wallet />} />
           </Route>
           <Route path="/account" element={<UserLayout />}>
             <Route path="" element={<ProfileHome />}>
