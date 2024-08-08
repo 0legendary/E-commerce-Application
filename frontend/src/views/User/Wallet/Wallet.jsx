@@ -10,7 +10,6 @@ function Wallet() {
     const [showAddMoney, setShowAddMoney] = useState(false);
     const [showTransfer, setShowTransfer] = useState(false);
     const [amount, setAmount] = useState('');
-    const [description, setDescription] = useState('');
     const [errors, setErrors] = useState({})
     const [user, setUser] = useState({})
     const mainHeading = "Wallet";
@@ -20,10 +19,8 @@ function Wallet() {
         axiosInstance.get('/user/wallet')
             .then(response => {
                 if (response.data.status) {
-                    console.log(response.data);
                     setWallet(response.data.wallet ? response.data.wallet[0] : {});
                     setUser(response.data.userData ? response.data.userData : {});
-
                 }
             })
             .catch(error => {
@@ -33,16 +30,14 @@ function Wallet() {
 
 
     const initPayment = async (paymentData) => {
-        console.log(paymentData);
         const options = {
             amount: paymentData.amount,
             currency: paymentData.currency,
             name: "Olegendary",
-            description: "shopping",
+            description: "wallet payment",
             order_id: paymentData.id,
             handler: (response) => {
-                description.length === 0 && setDescription('Adding money to wallet') 
-                axiosInstance.post('/user/add-wallet', { response, amount: parseInt(amount), description, userID: user._id })
+                axiosInstance.post('/user/add-wallet', { response, amount: parseInt(amount), description:'Adding money to wallet', userID: user._id })
                     .then(response => {
                         if (response.data.status) {
                             let res = response.data
@@ -52,7 +47,6 @@ function Wallet() {
                                 transactions: res.wallet.transactions
                             }));
                             setAmount('')
-                            setDescription('')
                             setShowAddMoney(false)
                         }
                     })
@@ -77,7 +71,7 @@ function Wallet() {
 
     const handleAddMoney = async (e) => {
         e.preventDefault();
-        let Errors = walletValidate(amount, description)
+        let Errors = walletValidate(amount)
         setErrors(Errors)
         if (Object.keys(Errors).length === 0) {
             
@@ -93,14 +87,11 @@ function Wallet() {
 
     const handleTransfer = (e) => {
         e.preventDefault();
-        description.length === 0 && setDescription('Transfering money to Account')
-        let Errors = walletValidate(amount, description)
+        let Errors = walletValidate(amount)
         setErrors(Errors)
         if (Object.keys(Errors).length === 0) {
 
         }
-        // Transfer money to bank account
-        // Implement the API call for the transfer
     };
 
 
@@ -132,15 +123,6 @@ function Wallet() {
 
                                             />
                                             {errors.amount && <p className='text-danger'>{errors.amount}</p>}
-                                        </Form.Group>
-                                        <Form.Group controlId="formDescription" className="mt-2">
-                                            <Form.Label>Description</Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                placeholder="Enter description"
-                                                value={description}
-                                                onChange={(e) => setDescription(e.target.value)}
-                                            />
                                         </Form.Group>
                                         <Button variant="primary" type="submit" className="mt-3">
                                             Add Money

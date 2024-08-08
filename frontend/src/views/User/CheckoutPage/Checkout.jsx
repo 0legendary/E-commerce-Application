@@ -9,6 +9,7 @@ import { Button } from 'react-bootstrap';
 import './Checkout.css'
 import OnlinePayment from './OnlinePayment';
 import CODPayment from './CODPayment';
+import PaymentPolicy from '../Policies/PaymentPolicy';
 
 function Checkout() {
     const { product_Id } = useParams();
@@ -24,7 +25,7 @@ function Checkout() {
     const [selectedAddress, setSelectedAddress] = useState(null);
     const [message, setMessage] = useState('')
     const [paymentMethod, setPaymentMethod] = useState('Razorpay');
-
+    const [paymetPolicy, setPaymetPolicy] = useState(false)
 
     const mainHeading = "Checkout";
     const breadcrumbs = [
@@ -325,59 +326,71 @@ function Checkout() {
                         {showPayment ? (
                             <div className="address-card p-3 mb-3 border rounded position-relative">
                                 <div className="my-3">
-                                    <h4>Select Payment Method</h4>
-                                    <div className='mt-3'>
-                                        <input
-                                            type="radio"
-                                            id="razorpay"
-                                            name="payment-method"
-                                            value="Razorpay"
-                                            className='form-check-input radio-btn'
-                                            checked={paymentMethod === 'Razorpay'}
-                                            onChange={() => setPaymentMethod('Razorpay')}
-                                        />
-                                        <label htmlFor="razorpay">Online</label>
-                                        {paymentMethod === 'Razorpay' && (
-                                            <OnlinePayment
-                                                itemCount={itemCount}
-                                                totalPrice={totalPrice}
-                                                totalDiscount={totalDiscount}
-                                                amount={totalAmount}
-                                                deliveryCharge={deliveryCharge}
-                                                address={selectedAddress}
-                                                products={products}
-                                                paymentMethod={'online'}
-                                                checkoutId={product_Id}
-                                            />
-                                        )}
-                                    </div>
-                                    <div className='mt-3'>
-                                        <input
-                                            type="radio"
-                                            id="cod"
-                                            name="payment-method"
-                                            value="COD"
-                                            className='form-check-input radio-btn'
-                                            checked={paymentMethod === 'COD'}
-                                            onChange={() => setPaymentMethod('COD')}
-                                        />
-                                        <label htmlFor="cod">Cash on Delivery</label>
-                                        {paymentMethod === 'COD' && (
-                                            <CODPayment
-                                                itemCount={itemCount}
-                                                totalPrice={totalPrice}
-                                                totalDiscount={totalDiscount}
-                                                amount={totalAmount}
-                                                deliveryCharge={deliveryCharge}
-                                                address={selectedAddress}
-                                                products={products}
-                                                paymentMethod={'COD'}
-                                                checkoutId={product_Id}
-                                            />
-                                        )}
-                                    </div>
-                                </div>
+                                    {!paymetPolicy && (
+                                        <div>
+                                            <PaymentPolicy confirmBtn={() => setPaymetPolicy(true)} />
+                                        </div>
+                                    )}
+                                    {paymetPolicy && (
+                                        <div>
+                                            <div className='d-flex justify-content-between'>
+                                                <h4>Select Payment Method</h4>
+                                                <button className='btn btn-secondary' onClick={() => setPaymetPolicy(false)}>Show Policy</button>
+                                            </div>
 
+                                            <div className='mt-3'>
+                                                <input
+                                                    type="radio"
+                                                    id="razorpay"
+                                                    name="payment-method"
+                                                    value="Razorpay"
+                                                    className='form-check-input radio-btn'
+                                                    checked={paymentMethod === 'Razorpay'}
+                                                    onChange={() => setPaymentMethod('Razorpay')}
+                                                />
+                                                <label htmlFor="razorpay">Online</label>
+                                                {paymentMethod === 'Razorpay' && (
+                                                    <OnlinePayment
+                                                        itemCount={itemCount}
+                                                        totalPrice={totalPrice}
+                                                        totalDiscount={totalDiscount}
+                                                        amount={totalAmount}
+                                                        deliveryCharge={deliveryCharge}
+                                                        address={selectedAddress}
+                                                        products={products}
+                                                        paymentMethod={'online'}
+                                                        checkoutId={product_Id}
+                                                    />
+                                                )}
+                                            </div>
+                                            <div className='mt-3'>
+                                                <input
+                                                    type="radio"
+                                                    id="cod"
+                                                    name="payment-method"
+                                                    value="COD"
+                                                    className='form-check-input radio-btn'
+                                                    checked={paymentMethod === 'COD'}
+                                                    onChange={() => setPaymentMethod('COD')}
+                                                />
+                                                <label htmlFor="cod">Cash on Delivery</label>
+                                                {paymentMethod === 'COD' && (
+                                                    <CODPayment
+                                                        itemCount={itemCount}
+                                                        totalPrice={totalPrice}
+                                                        totalDiscount={totalDiscount}
+                                                        amount={totalAmount}
+                                                        deliveryCharge={deliveryCharge}
+                                                        address={selectedAddress}
+                                                        products={products}
+                                                        paymentMethod={'COD'}
+                                                        checkoutId={product_Id}
+                                                    />
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         ) : (
                             <div className="address-card p-3 mb-3 border rounded position-relative">

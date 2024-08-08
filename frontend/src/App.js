@@ -34,6 +34,7 @@ import Checkout from './views/User/CheckoutPage/Checkout';
 import Order from './views/User/Orders-Page/Order';
 import AdminOrders from './views/Admin/OrderPage/AdminOrders';
 import Wallet from './views/User/Wallet/Wallet';
+import PaymentPolicy from './views/User/Policies/PaymentPolicy';
 
 
 const UserLayout = () => {
@@ -87,6 +88,9 @@ function App() {
           </Route>
           <Route path="/wallet" element={<UserLayout />}>
             <Route index element={<Wallet />} />
+          </Route>
+          <Route path="/payment/policy" element={<UserLayout />}>
+            <Route index element={<PaymentPolicy />} />
           </Route>
           <Route path="/account" element={<UserLayout />}>
             <Route path="" element={<ProfileHome />}>

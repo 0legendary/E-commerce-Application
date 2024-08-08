@@ -975,6 +975,7 @@ router.get('/wallet', authenticateToken, async (req, res) => {
 router.post('/add-wallet', async (req, res) => {
   try {
     const { response, amount, description, userID } = req.body;
+    console.log(description);
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = response;
 
 
