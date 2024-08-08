@@ -139,6 +139,17 @@ function ShoppingPage() {
                 console.error('Error sending data:', error);
             });
     };
+    const addToWishlist = async (productId) => {
+        axiosInstance.post('/user/add-to-wishlist', { productId })
+            .then(response => {
+                if (response.data.status) {
+                    //setCartProducts([...cartProducts, productId]);
+                }
+            })
+            .catch(error => {
+                console.error('Error sending data:', error);
+            });
+    };
 
     const uniqueCategories = Array.from(new Set(products.map(product => product.categoryId._id)))
         .map(categoryId => products.find(product => product.categoryId._id === categoryId).categoryId);
@@ -271,8 +282,8 @@ function ShoppingPage() {
                                                     </Link>
                                                 )}
                                                 <div className="product-background">
-                                                    <i className="bi bi-heart"></i>
-                                                </div>
+                                                    <i className="bi bi-heart" onClick={() => addToWishlist(product._id)}></i>
+                                                </div> 
                                                 <Link to={`/shop/${product._id}`}>
                                                     <div className="product-background">
                                                         <i className="bi bi-search"></i>

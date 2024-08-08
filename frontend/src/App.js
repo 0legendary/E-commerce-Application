@@ -35,6 +35,7 @@ import Order from './views/User/Orders-Page/Order';
 import AdminOrders from './views/Admin/OrderPage/AdminOrders';
 import Wallet from './views/User/Wallet/Wallet';
 import PaymentPolicy from './views/User/Policies/PaymentPolicy';
+import Wishlist from './views/User/WishList/Wishlist';
 
 
 const UserLayout = () => {
@@ -88,6 +89,9 @@ function App() {
           </Route>
           <Route path="/wallet" element={<UserLayout />}>
             <Route index element={<Wallet />} />
+          </Route>
+          <Route path="/wishlist" element={<UserLayout />}>
+            <Route index element={<Wishlist />} />
           </Route>
           <Route path="/payment/policy" element={<UserLayout />}>
             <Route index element={<PaymentPolicy />} />

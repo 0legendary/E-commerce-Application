@@ -8,10 +8,12 @@ import { generateOTP, sendOTPEmail } from '../utils/sendEmail.js';
 import OTP from '../model/otp.js';
 import Address from '../model/address.js';
 import Cart from '../model/cart.js';
+import Wishlist from '../model/wishlist.js';
 import Order from '../model/order.js';
 import Razorpay from 'razorpay'
 import crypto from 'crypto'
 import { v4 } from 'uuid'
+
 const router = Router();
 
 router.get('/getProducts', authenticateToken, async (req, res) => {
@@ -385,7 +387,6 @@ router.delete('/delete-address/:id', authenticateToken, async (req, res) => {
 
 router.post('/add-to-cart', authenticateToken, async (req, res) => {
   const { productId } = req.body;
-
   try {
     const user = await User.findOne({ email: req.user.email });
     if (!user) {
@@ -394,7 +395,6 @@ router.post('/add-to-cart', authenticateToken, async (req, res) => {
     let cart = await Cart.findOne({ userId: user._id });
 
     const product = await Product.findById(productId);
-
     const productDetails = product.variations[0];
     const productPrice = productDetails.price;
     const discountedPrice = productDetails.discountPrice || productPrice;
@@ -1024,5 +1024,99 @@ router.post('/add-wallet', async (req, res) => {
 });
 
 
+//wishlist
+router.post('/add-to-wishlist', authenticateToken, async (req, res) => {
+  const { productId } = req.body;
+
+  try {
+    const user = await User.findOne({ email: req.user.email });
+    if (!user) {
+      return res.status(404).json({ status: false, message: 'User not found' });
+    }
+    let wishlist = await Wishlist.findOne({ userId: user._id });
+
+    if (!wishlist) {
+      wishlist = new Wishlist({
+        userId: user._id,
+        products: [{
+          productId: productId,
+        }],
+      });
+    } else {
+      wishlist.products.push({
+        productId,
+      });
+    }
+    await wishlist.save();
+    res.status(200).json({ status: true });
+  } catch (error) {
+    res.status(500).json({ status: false, message: 'Server error' });
+    console.error('Error deleting address:', error);
+  }
+});
+
+router.get('/get-wishlist-products', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.user.email });
+    if (!user) {
+      return res.status(404).json({ status: false, message: 'User not found' });
+    }
+
+    const wishlist = await Wishlist.findOne({ userId: user._id }).populate({
+      path: 'products.productId',
+      select: 'name brand variations mainImage',
+      populate: {
+        path: 'mainImage',
+        select: 'image'
+      }
+    });
+    if (!wishlist) {
+      return res.status(404).json({ status: false });
+    }
+
+
+    const populatedProducts = wishlist.products.map(product => ({
+      productId: product.productId._id,
+      mainImage: product.productId.mainImage.image,
+      name: product.productId.name,
+      price: product.productId.variations[0].price,
+      discountPrice: product.productId.variations[0].discountPrice,
+      brand:product.productId.brand,
+      stock: product.productId.variations[0].stock,
+      _id: product._id,
+    }));
+
+    res.status(200).json({ status: true, products: populatedProducts });
+  } catch (error) {
+    console.error('Error fetching cart products:', error);
+    res.status(500).json({ status: false, message: 'Server error' });
+  }
+});
+
+
+
+router.delete('/delete-wishlist-item/:id', authenticateToken, async (req, res) => {
+  const {id} = req.params
+  try {
+    const user = await User.findOne({ email: req.user.email });
+    if (!user) {
+      return res.status(404).json({ status: false, message: 'User not found' });
+    }
+
+    const result = await Wishlist.updateOne(
+      { userId: user._id },
+      { $pull: { products: { productId: id } } }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ status: false, message: 'Product not found in wishlist' });
+    }
+
+    res.status(200).json({ status: true });
+  } catch (error) {
+    console.error('Error fetching cart products:', error);
+    res.status(500).json({ status: false, message: 'Server error' });
+  }
+});
 export default router;
 
