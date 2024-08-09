@@ -472,7 +472,7 @@ router.get('/get-coupons', authenticateTokenAdmin, async (req, res) => {
 
 
 router.post('/create-coupon', authenticateTokenAdmin, async (req, res) => {
-    const {code, discountValue, description, minOrderAmount, validFrom, validUntil, usageLimit, maxDiscount } = req.body;
+    const { code, discountValue, description, minOrderAmount, validFrom, validUntil, usageLimit, maxDiscount } = req.body;
 
     try {
         const newCoupon = new Coupon({
@@ -488,6 +488,23 @@ router.post('/create-coupon', authenticateTokenAdmin, async (req, res) => {
 
         await newCoupon.save();
         res.status(201).json({ status: true, coupon: newCoupon });
+    } catch (error) {
+        console.error('Error creating coupon:', error);
+        res.status(500).json({ status: false, message: 'Server error' });
+    }
+});
+
+router.post('/edit-coupon', authenticateTokenAdmin, async (req, res) => {
+    const formData = req.body;
+    try {
+        const { _id, ...updateData } = formData;
+        const updatedCoupon = await Coupon.findByIdAndUpdate(_id, updateData, { new: true });
+
+        if (!updatedCoupon) {
+            return res.status(404).json({ status: false, message: 'Coupon not found' });
+        }
+
+        res.status(200).json({ status: true, coupon: updatedCoupon });
     } catch (error) {
         console.error('Error creating coupon:', error);
         res.status(500).json({ status: false, message: 'Server error' });

@@ -3,12 +3,16 @@ import { Table, Form, InputGroup, Button } from 'react-bootstrap';
 import NewCoupon from './NewCoupon';
 import axiosInstance from '../../../config/axiosConfig';
 import moment from 'moment';
+import EditCoupon from './EditCoupon';
 
 
 function Coupon() {
     const [search, setSearch] = useState('');
     const [showForm, setShowForm] = useState(false)
+    const [showEditForm, setShowEditForm] = useState(false)
+    const [editData, setEditData] = useState({})
     const [coupons, setCoupons] = useState([]);
+
 
     useEffect(() => {
         axiosInstance.get('/admin/get-coupons')
@@ -39,6 +43,21 @@ function Coupon() {
         coupon.code && setCoupons([...coupons, coupon])
         setShowForm(!showForm)
     }
+    const handleEditCoupon = (editCoupon)=> {
+        setShowEditForm(!showEditForm)
+        setEditData(editCoupon)
+    }
+
+    const completeEditCoupon = (editedCoupon)=> {
+        setShowEditForm(!showEditForm)
+        if (editedCoupon._id) {
+            const updatedCoupons = coupons.map(coupon => 
+                coupon._id === editedCoupon._id ? editedCoupon : coupon
+            );
+            setCoupons(updatedCoupons);
+        }
+    }
+
 
     return (
         <div className="container mt-5 text-white font-monospace">
@@ -48,7 +67,12 @@ function Coupon() {
                     <NewCoupon cancelCreate={handleCreateCoupon} coupons={coupons} />
                 </div>
             )}
-            {!showForm && (
+            {showEditForm && (
+                <div>
+                    <EditCoupon completeEditCoupon={completeEditCoupon} coupon={editData} allCoupons={coupons}/>
+                </div>
+            )}
+            {!showForm && !showEditForm && (
                 <div>
                     <Form className="mb-4 d-flex">
                         <Button variant="outline-success" className='me-5' onClick={handleCreateCoupon}>Create</Button>
@@ -73,6 +97,7 @@ function Coupon() {
                                 <th>Valid Until</th>
                                 <th>Usage Limit</th>
                                 <th>Used Count</th>
+                                <th>Change</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -85,7 +110,7 @@ function Coupon() {
                                     <td>{moment(coupon.validUntil).format('MMMM D, YYYY')}</td>
                                     <td>{coupon.usageLimit}</td>
                                     <td>{coupon.usedCount}</td>
-                                    
+                                    <td><Button onClick={() => handleEditCoupon(coupon)}>Edit</Button></td>
                                 </tr>
                             ))}
                         </tbody>
