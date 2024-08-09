@@ -26,6 +26,16 @@ function Checkout() {
     const [message, setMessage] = useState('')
     const [paymentMethod, setPaymentMethod] = useState('Razorpay');
     const [paymetPolicy, setPaymetPolicy] = useState(false)
+    const [couponCode, setCouponCode] = useState('')
+    const [couponAvailable, setCouponAvailable] = useState({})
+    const [errorMsg, setErrorMsg] = useState('')
+    const [priceDetails, setPriceDetails] = useState({
+        itemCount: 0,
+        totalPrice: 0,
+        totalDiscount: 0,
+        totalAmount: 0,
+        deliveryCharge: 0
+    });
 
     const mainHeading = "Checkout";
     const breadcrumbs = [
@@ -48,6 +58,12 @@ function Checkout() {
                 console.error('Error getting data:', error);
             });
     }, [product_Id]);
+
+    useEffect(() => {
+        const initialPriceDetails = calculatePriceDetails(products);
+        setPriceDetails(initialPriceDetails);
+    }, [products]);
+
 
     const handelNewAddress = () => {
         setNewAddress(true)
@@ -150,7 +166,7 @@ function Checkout() {
 
 
 
-    const calculatePriceDetails = (cartItems) => {
+    const calculatePriceDetails = (cartItems, couponAvailable) => {
         let totalPrice = 0;
         let totalDiscount = 0;
 
@@ -162,9 +178,12 @@ function Checkout() {
             totalDiscount += itemDiscount;
         });
 
-        const totalAmount = totalPrice - totalDiscount;
-        let deliveryCharge = totalAmount > 500 ? 0 : 50
 
+        let totalAmount = totalPrice - totalDiscount;
+        if (couponAvailable && couponAvailable.discount) totalAmount -= couponAvailable.discount;
+
+        let deliveryCharge = totalAmount > 500 ? 0 : 50
+        if(deliveryCharge > 0) totalAmount + 50
         return {
             itemCount: cartItems.reduce((total, item) => total + item.quantity, 0),
             totalPrice,
@@ -174,8 +193,29 @@ function Checkout() {
         };
     };
 
-    const { itemCount, totalPrice, totalDiscount, totalAmount, deliveryCharge } = calculatePriceDetails(products);
 
+    const handleApplyCoupon = () => {
+        axiosInstance.post('/user/apply-coupon', { code: couponCode, orderAmount: priceDetails.totalAmount })
+            .then(response => {
+                if (response.data.status) {
+                    setCouponAvailable(response.data.coupon)
+                    setErrorMsg('')
+                    const updatedPriceDetails = calculatePriceDetails(products, response.data.coupon);
+                    setPriceDetails(updatedPriceDetails);
+                } else {
+                    setErrorMsg(response.data.message)
+                    setCouponAvailable({})
+                    const updatedPriceDetails = calculatePriceDetails(products);
+                    setPriceDetails(updatedPriceDetails);
+                }
+            })
+            .catch(error => {
+                setCouponAvailable({})
+                const updatedPriceDetails = calculatePriceDetails(products);
+                setPriceDetails(updatedPriceDetails);
+                console.error('Error getting data:', error);
+            });
+    };
 
     return (
         <div className='checkout'>
@@ -351,15 +391,16 @@ function Checkout() {
                                                 <label htmlFor="razorpay">Online</label>
                                                 {paymentMethod === 'Razorpay' && (
                                                     <OnlinePayment
-                                                        itemCount={itemCount}
-                                                        totalPrice={totalPrice}
-                                                        totalDiscount={totalDiscount}
-                                                        amount={totalAmount}
-                                                        deliveryCharge={deliveryCharge}
+                                                        itemCount={priceDetails.itemCount}
+                                                        totalPrice={priceDetails.totalPrice}
+                                                        totalDiscount={priceDetails.totalDiscount}
+                                                        amount={priceDetails.totalAmount}
+                                                        deliveryCharge={priceDetails.deliveryCharge}
                                                         address={selectedAddress}
                                                         products={products}
                                                         paymentMethod={'online'}
                                                         checkoutId={product_Id}
+                                                        coupon = {couponAvailable}
                                                     />
                                                 )}
                                             </div>
@@ -376,15 +417,16 @@ function Checkout() {
                                                 <label htmlFor="cod">Cash on Delivery</label>
                                                 {paymentMethod === 'COD' && (
                                                     <CODPayment
-                                                        itemCount={itemCount}
-                                                        totalPrice={totalPrice}
-                                                        totalDiscount={totalDiscount}
-                                                        amount={totalAmount}
-                                                        deliveryCharge={deliveryCharge}
+                                                        itemCount={priceDetails.itemCount}
+                                                        totalPrice={priceDetails.totalPrice}
+                                                        totalDiscount={priceDetails.totalDiscount}
+                                                        amount={priceDetails.totalAmount}
+                                                        deliveryCharge={priceDetails.deliveryCharge}
                                                         address={selectedAddress}
                                                         products={products}
                                                         paymentMethod={'COD'}
                                                         checkoutId={product_Id}
+                                                        coupon = {couponAvailable}
                                                     />
                                                 )}
                                             </div>
@@ -398,13 +440,42 @@ function Checkout() {
                             </div>
                         )}
                     </div>
-                    <div className='col-md-4'>
-                        <div className="total-price p-3 border rounded">
-                            <h5>Price Details</h5>
-                            <p>Price ({itemCount} items) ₹{totalPrice}</p>
-                            <p>Discount -₹{totalDiscount}</p>
-                            <p>Delivery Charge -₹{deliveryCharge}</p>
-                            <p>Total Amount ₹{totalAmount}</p>
+                    <div className='col-md-4 font-monospace'>
+                        <div className="total-price p-3 border rounded w-100">
+                            <div className="coupon-section mb-5">
+                                <div className="input-group">
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Enter coupon code"
+                                        value={couponCode}
+                                        onChange={(e) => {setCouponCode(e.target.value); setErrorMsg('')}}
+                                    />
+                                    <button className="btn btn-primary" onClick={handleApplyCoupon}>Apply</button>
+                                </div>
+                                {errorMsg && <p className='text-danger mt-3'>{errorMsg}</p>}
+                            </div>
+                            <h3 className='mb-3 d-flex justify-content-center'>Price Details</h3>
+                            <div className='d-flex justify-content-between'>
+                                <p>Price ({priceDetails.itemCount} items):</p>
+                                <p>₹{priceDetails.totalPrice}</p>
+                            </div>
+                            <div className='d-flex justify-content-between'>
+                                <p>Discount:</p>
+                                <p>- ₹{priceDetails.totalDiscount}</p>
+                            </div>
+                            <div className='d-flex justify-content-between'>
+                                <p>Delivery Charge:</p>
+                                <p>- ₹{priceDetails.deliveryCharge}</p>
+                            </div>
+                            <div className='d-flex justify-content-between'>
+                                <p>Coupons applied: {couponAvailable.couponCode}</p>
+                                <p>{couponAvailable.couponCode ? `- ₹${couponAvailable.discount}` : `₹0`}</p>
+                            </div>
+                            <div className='d-flex justify-content-between'>
+                                <p>Total Amount:</p>
+                                <p> ₹{priceDetails.totalAmount}</p>
+                            </div>
                         </div>
                     </div>
                 </div>

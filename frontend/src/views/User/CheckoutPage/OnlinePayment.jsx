@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import axiosInstance from '../../../config/axiosConfig';
 import { useNavigate } from 'react-router-dom';
 
-function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, products, paymentMethod, checkoutId }) {
+function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, products, paymentMethod, checkoutId, coupon }) {
   const [currentUser, setCurrentUser] = useState({})
   const navigate = useNavigate()
   console.log(products);
@@ -39,6 +39,8 @@ function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, product
       orderTotal: amount,
       shippingCost: deliveryCharge,
       discountAmount: totalDiscount,
+      couponID:coupon.couponID ? coupon.couponID: null,
+      couponDiscount:coupon.discount ? coupon.discount: 0,
       products: products.map(product => ({
         productId: product.productId,
         productName: product.name,

@@ -13,6 +13,7 @@ import Order from '../model/order.js';
 import Razorpay from 'razorpay'
 import crypto from 'crypto'
 import { v4 } from 'uuid'
+import Coupon from '../model/coupon.js';
 
 const router = Router();
 
@@ -48,7 +49,7 @@ router.get('/getProducts', authenticateToken, async (req, res) => {
 });
 
 //without middle ware
-router.get('/home/getProducts',getUser, async (req, res) => {
+router.get('/home/getProducts', getUser, async (req, res) => {
   try {
     const products = await Product.find({})
       .populate('categoryId', 'name')
@@ -771,10 +772,21 @@ router.post('/payment/verify', async (req, res) => {
       orderTotal: orderDetails.orderTotal,
       shippingCost: orderDetails.shippingCost,
       discountAmount: orderDetails.discountAmount,
+      couponID: orderDetails.couponID,
+      couponDiscount: orderDetails.couponDiscount,
       products: orderDetails.products,
     });
 
     await newOrder.save();
+
+    const coupon = await Coupon.findById({ _id: orderDetails.couponID });
+    if (coupon._id) {
+      coupon.usedCount += 1;
+      coupon.usageLimit -= 1;
+      coupon.usedUsers.push(orderDetails.customerId);
+      await coupon.save();
+    }
+
 
     if (checkoutId == 'null') {
       await Cart.deleteOne({ userId: orderDetails.customerId });
@@ -814,10 +826,19 @@ router.post('/payment/cod', async (req, res) => {
       orderTotal: orderDetails.orderTotal,
       shippingCost: orderDetails.shippingCost,
       discountAmount: orderDetails.discountAmount,
+      couponID: orderDetails.couponID,
+      couponDiscount: orderDetails.couponDiscount,
       products: orderDetails.products,
     });
 
     await newOrder.save();
+    const coupon = await Coupon.findById({ _id: orderDetails.couponID });
+    if (coupon._id) {
+      coupon.usedCount += 1;
+      coupon.usageLimit -= 1;
+      coupon.usedUsers.push(orderDetails.customerId);
+      await coupon.save();
+    }
 
     if (checkoutId == 'null') {
       await Cart.deleteOne({ userId: orderDetails.customerId });
@@ -1081,7 +1102,7 @@ router.get('/get-wishlist-products', authenticateToken, async (req, res) => {
       name: product.productId.name,
       price: product.productId.variations[0].price,
       discountPrice: product.productId.variations[0].discountPrice,
-      brand:product.productId.brand,
+      brand: product.productId.brand,
       stock: product.productId.variations[0].stock,
       _id: product._id,
     }));
@@ -1096,7 +1117,7 @@ router.get('/get-wishlist-products', authenticateToken, async (req, res) => {
 
 
 router.delete('/delete-wishlist-item/:id', authenticateToken, async (req, res) => {
-  const {id} = req.params
+  const { id } = req.params
   try {
     const user = await User.findOne({ email: req.user.email });
     if (!user) {
@@ -1118,5 +1139,48 @@ router.delete('/delete-wishlist-item/:id', authenticateToken, async (req, res) =
     res.status(500).json({ status: false, message: 'Server error' });
   }
 });
+
+
+
+router.post('/apply-coupon', authenticateToken, async (req, res) => {
+  const { code, orderAmount } = req.body;
+
+  try {
+    const coupon = await Coupon.findOne({ code });
+    const user = await User.findOne({ email: req.user.email });
+    if (!coupon) {
+      return res.status(200).json({ status: false, message: 'Coupon not found' });
+    }
+
+    if (coupon.validUntil < new Date() || coupon.validFrom > new Date()) {
+      return res.status(200).json({ status: false, message: 'Coupon expired' });
+    }
+
+    if (coupon.minOrderAmount > orderAmount) {
+      return res.status(200).json({ status: false, message: 'Order amount is less than minimum required' });
+    }
+
+    if (coupon.usageLimit > 0 && coupon.usedCount >= coupon.usageLimit) {
+      return res.status(200).json({ status: false, message: 'Coupon usage limit reached' });
+    }
+
+    if (coupon.usedUsers.includes(user._id)) {
+      return res.status(200).json({ status: false, message: 'Coupon already used' });
+    }
+
+    let discount = (orderAmount * coupon.discountValue) / 100;
+    if (coupon.maxDiscount > 0 && discount > coupon.maxDiscount) {
+      discount = coupon.maxDiscount;
+    }
+
+
+    res.status(200).json({ status: true, coupon: { couponID: coupon._id, couponCode: coupon.code, discount } });
+  } catch (error) {
+    console.error('Error applying coupon:', error);
+    res.status(500).json({ status: false, message: 'Server error' });
+  }
+});
+
+
 export default router;
 
