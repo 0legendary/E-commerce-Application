@@ -36,6 +36,7 @@ import AdminOrders from './views/Admin/OrderPage/AdminOrders';
 import Wallet from './views/User/Wallet/Wallet';
 import PaymentPolicy from './views/User/Policies/PaymentPolicy';
 import Wishlist from './views/User/WishList/Wishlist';
+import Coupon from './views/Admin/Coupon/Coupon';
 
 
 const UserLayout = () => {
@@ -111,6 +112,7 @@ function App() {
             <Route path="users" element={<ShowUser />} />
             <Route path="category" element={<Category />} />
             <Route path="orders" element={<AdminOrders />} />
+            <Route path="coupons" element={<Coupon />} />
           </Route>
         </Route>
       </Route>

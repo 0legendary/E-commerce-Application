@@ -8,6 +8,7 @@ import TrashedProduct from '../model/trashedProduct.js';
 import User from '../model/user.js'
 import Category from '../model/category.js';
 import Order from '../model/order.js';
+import Coupon from '../model/coupon.js';
 
 const router = Router();
 
@@ -369,7 +370,7 @@ router.post('/newCategory', authenticateTokenAdmin, async (req, res) => {
     try {
         const newCategory = new Category({
             ...req.body,
-            isBlocked:false
+            isBlocked: false
         });
         await newCategory.save();
         res.status(201).json({ status: true, category: newCategory });
@@ -404,7 +405,7 @@ router.delete('/deleteCategory/:_id', authenticateTokenAdmin, async (req, res) =
     const { _id } = req.params;
     console.log(_id);
     try {
-        await Category.findByIdAndDelete(_id); 
+        await Category.findByIdAndDelete(_id);
         res.status(201).json({ status: true });
     } catch (error) {
         console.error('Error uploading files:', error);
@@ -413,7 +414,7 @@ router.delete('/deleteCategory/:_id', authenticateTokenAdmin, async (req, res) =
 });
 
 router.put('/toggleCategory', authenticateTokenAdmin, async (req, res) => {
-    const {_id} = req.body
+    const { _id } = req.body
     try {
         const category = await Category.findById(_id);
         if (category) {
@@ -434,28 +435,64 @@ router.put('/toggleCategory', authenticateTokenAdmin, async (req, res) => {
 
 //orders
 
+
 router.get('/all-orders', authenticateTokenAdmin, async (req, res) => {
     try {
-      
-      const orders = await Order.find({})
-        .populate({
-          path: 'products.productId',
-          select: 'mainImage',
-          populate: {
-            path: 'mainImage',
-            select: 'image'
-          }
-        })
-        .populate({
-            path: 'customerId',
-            select: 'name email mobile'
-          });
-      res.json({ status: true, orders });
+
+        const orders = await Order.find({})
+            .populate({
+                path: 'products.productId',
+                select: 'mainImage',
+                populate: {
+                    path: 'mainImage',
+                    select: 'image'
+                }
+            })
+            .populate({
+                path: 'customerId',
+                select: 'name email mobile'
+            });
+        res.json({ status: true, orders });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ status: false, message: 'Error fetching user' });
+        console.error(error);
+        res.status(500).json({ status: false, message: 'Error fetching user' });
     }
-  });
-  
+});
+
+
+//coupons
+router.get('/get-coupons', authenticateTokenAdmin, async (req, res) => {
+    try {
+        const coupons = await Coupon.find({})
+        res.status(201).json({ status: true, coupons: coupons });
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching products' });
+    }
+});
+
+
+router.post('/create-coupon', authenticateTokenAdmin, async (req, res) => {
+    const {code, discountValue, description, minOrderAmount, validFrom, validUntil, usageLimit, maxDiscount } = req.body;
+
+    try {
+        const newCoupon = new Coupon({
+            code,
+            description,
+            discountValue,
+            minOrderAmount,
+            validFrom,
+            validUntil,
+            maxDiscount,
+            usageLimit
+        });
+
+        await newCoupon.save();
+        res.status(201).json({ status: true, coupon: newCoupon });
+    } catch (error) {
+        console.error('Error creating coupon:', error);
+        res.status(500).json({ status: false, message: 'Server error' });
+    }
+});
+
 export default router;
 
