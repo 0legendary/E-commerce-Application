@@ -15,6 +15,19 @@ const authenticateToken = (req, res, next) => {
     })
 }
 
+const getUser = (req, res, next) => {
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+    if (token === null || token === undefined) next()  
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+        if (err) return res.status(401);
+        req.user = user
+        if (req.user.isAdmin) return res.status(401)
+        next()
+    })
+}
+
 const authenticateTokenAdmin = (req, res, next) => {
     const authHeader = req.headers['authorization']
     const token = authHeader && authHeader.split(' ')[1]
@@ -45,4 +58,4 @@ const generateAccessToken = (user) => {
     return jwt.sign({ email: user.email, isAdmin: user.isAdmin }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '30d' })
 }
 
-export { authenticateToken, generateAccessToken, authenticateTokenAdmin,CheckAlreadyLogin }
+export { authenticateToken, generateAccessToken, authenticateTokenAdmin,CheckAlreadyLogin, getUser }

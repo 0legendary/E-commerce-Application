@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticateToken } from '../middleware/authMiddleware.js';
+import { authenticateToken, getUser } from '../middleware/authMiddleware.js';
 import Product from '../model/product.js';
 import User from '../model/user.js'
 import Wallet from '../model/wallet.js'
@@ -48,7 +48,7 @@ router.get('/getProducts', authenticateToken, async (req, res) => {
 });
 
 //without middle ware
-router.get('/home/getProducts', async (req, res) => {
+router.get('/home/getProducts',getUser, async (req, res) => {
   try {
     const products = await Product.find({})
       .populate('categoryId', 'name')
