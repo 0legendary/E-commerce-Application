@@ -6,6 +6,7 @@ import { generateOTP, sendOTPEmail } from '../utils/sendEmail.js'
 import bcrypt from 'bcrypt';
 import axios from 'axios';
 import { authenticateToken, authenticateTokenAdmin, generateAccessToken, CheckAlreadyLogin } from '../middleware/authMiddleware.js';
+import Offer from '../model/offer.js';
 
 const router = Router();
 
@@ -21,6 +22,31 @@ router.post('/verify-token-admin', authenticateTokenAdmin, (req, res) => {
 router.post('/verify-login', CheckAlreadyLogin, async (req, res) => {
   res.status(200).json({ Admin: req.user.isAdmin });
 });
+
+
+const generateReferralCode = () => {
+  return Math.random().toString(36).substr(2, 9).toUpperCase();
+};
+
+
+const registerUser = async (userData, referralCode) => {
+  const referrer = await User.findOne({ referralCode });
+  const newUser = new User({
+      ...userData,
+      referralCode: generateReferralCode(),
+      referredBy: referrer ? referrer._id : null
+  });
+  await newUser.save();
+
+  // if (referrer) {
+  //     // Add referral reward to the referrer
+  //     referrer.referralRewards.push({
+  //         offerId: referralOffer._id, 
+  //         rewardAmount: referralOffer.reward
+  //     });
+  //     await referrer.save();
+  // }
+};
 
 const createAdmin = async () => {
   const hashedPassword = await bcrypt.hash('admin123', 10);
@@ -201,22 +227,21 @@ router.post('/forgot-pass/verify-otp', async (req, res) => {
 
 
 router.post('/signup', async (req, res) => {
-  const { username, email, password, otp } = req.body;
+  const { username, email, password, otp, referralCode } = req.body;
   try {
     const findUser = await OTP.findOne({ email });
     if (findUser.otp === otp.toString()) {
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // Create new user
-      const newUser = new User({
+      const userData = {
         name: username,
         email,
         password: hashedPassword,
         isGoogleUser: false
-      });
+      };
+      await registerUser(userData, referralCode)
 
-
-      await newUser.save();
       await OTP.deleteOne({ email });
       const accessToken = generateAccessToken({ email: email, isAdmin: false })
       res.status(201).json({ status: true, accessToken })
@@ -233,13 +258,13 @@ router.post('/signup', async (req, res) => {
 });
 
 router.post('/google/signup', async (req, res) => {
-  const { username, email, password, googleId, profileImg, otp } = req.body;
+  const { username, email, password, googleId, profileImg, otp, referralCode } = req.body;
   try {
     const findUser = await OTP.findOne({ email });
     if (findUser.otp === otp.toString()) {
       const hashedPassword = await bcrypt.hash(password, 10);
       // Create new user
-      const newUser = new User({
+      const newUser = {
         name: username,
         email,
         password: hashedPassword,
@@ -247,9 +272,9 @@ router.post('/google/signup', async (req, res) => {
         profileImg,
         isGoogleUser: true,
         isBlocked: false
-      });
+      };
+      await registerUser(newUser, referralCode)
 
-      await newUser.save();
       await OTP.deleteOne({ email });
       const accessToken = generateAccessToken({ email: email, isAdmin: false })
       res.status(201).json({ status: true, accessToken })

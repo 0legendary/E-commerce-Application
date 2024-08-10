@@ -20,7 +20,7 @@ const productSchema = new mongoose.Schema({
   },
   categoryId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Category', 
+    ref: 'Category',
     required: true
   },
   brand: {
@@ -43,7 +43,13 @@ const productSchema = new mongoose.Schema({
     required: true
   }],
   gender: String,
-  season: String
+  season: String,
+  offers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Offer'
+    }
+  ]
 }, { timestamps: true });
 
 const Product = mongoose.model('Product', productSchema);

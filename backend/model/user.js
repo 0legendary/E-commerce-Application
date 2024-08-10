@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
     unique: true,
   },
   mobile: {
-    type: String 
+    type: String
   },
   password: {
     type: String,
@@ -29,7 +29,27 @@ const userSchema = new mongoose.Schema({
   isBlocked: {
     type: Boolean,
   },
+  referralCode: String,
+  referredBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  referralRewards: [
+    {
+      offerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Offer'
+      },
+      rewardAmount: Number,
+      status: {
+        type: String,
+        enum: ['pending', 'claimed'],
+        default: 'pending'
+      }
+    }
+  ]
 }, { timestamps: true });
+
 
 
 

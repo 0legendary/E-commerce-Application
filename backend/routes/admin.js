@@ -9,6 +9,7 @@ import User from '../model/user.js'
 import Category from '../model/category.js';
 import Order from '../model/order.js';
 import Coupon from '../model/coupon.js';
+import Offer from '../model/offer.js';
 
 const router = Router();
 
@@ -470,7 +471,6 @@ router.get('/get-coupons', authenticateTokenAdmin, async (req, res) => {
     }
 });
 
-
 router.post('/create-coupon', authenticateTokenAdmin, async (req, res) => {
     const { code, discountValue, description, minOrderAmount, validFrom, validUntil, usageLimit, maxDiscount } = req.body;
 
@@ -508,6 +508,62 @@ router.post('/edit-coupon', authenticateTokenAdmin, async (req, res) => {
     } catch (error) {
         console.error('Error creating coupon:', error);
         res.status(500).json({ status: false, message: 'Server error' });
+    }
+});
+
+
+//offers
+
+router.get('/get-offers', authenticateTokenAdmin, async (req, res) => {
+    try {
+        const offers = await Offer.find({})
+        const categories = await Category.find({})
+        const products = await Product.find({}).lean();
+        const populatedProducts = await getBase64Image(products)
+
+        res.status(201).json({ status: true, offers, categories, products:populatedProducts });
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching products' });
+    }
+});
+
+router.post('/add-offer', authenticateTokenAdmin, async (req, res) => {
+    const offerData = req.body;
+
+    try {
+        const newImage = new Image({ image: offerData.image });
+        const savedImage = await newImage.save();
+
+        const offer = new Offer({
+            type: offerData.type,
+            imageID: savedImage ? savedImage._id : null,
+            description: offerData.description,
+            discountPercentage: offerData.discountPercentage,
+            discountAmount:offerData.discountAmount,
+            startDate: offerData.startDate,
+            endDate: offerData.endDate,
+            applicableTo: offerData.applicableTo,
+            referralCode: offerData.referralCode,
+            rewardPerReferral: offerData.rewardPerReferral
+        });
+        await offer.save();
+
+        if (offerData.type === 'product') {
+            await Product.updateMany(
+                { _id: { $in: offerData.applicableTo } },
+                { $push: { offers: offer._id } }
+            );
+        } else if (offerData.type === 'category') {
+            await Category.updateMany(
+                { _id: { $in: offerData.applicableTo } },
+                { $push: { offers: offer._id } }
+            );
+        }
+
+        res.status(200).json({ status: true });
+    } catch (error) {
+        res.status(500).json({ status: false, message: 'Server error' });
+        console.error('Error deleting address:', error);
     }
 });
 
