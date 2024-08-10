@@ -1,9 +1,10 @@
 
 const offerValidate = (offer) => {
+    console.log(offer);
     let errors = {}
     if (!offer.type) errors.type = 'Offer type is required';
     if (!offer.description) errors.description = 'Description is required';
-    if (!offer.image) errors.image = 'Image is required';
+    if (!offer.imageID) errors.imageID = 'Image is required';
     if (!offer.discountPercentage && !offer.discountAmount) {
         errors.discountPercentage = 'Required'
         errors.discountAmount = 'Required'

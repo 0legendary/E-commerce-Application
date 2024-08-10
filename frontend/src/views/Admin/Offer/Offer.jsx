@@ -56,13 +56,28 @@ function Offer() {
 
     const completeEditOffer = (editOffer) => {
         setShowEditForm(!showEditForm)
-        console.log(editOffer);
         if (editOffer._id) {
             const updatedOffers = offers.map(offer =>
                 offer._id === editOffer._id ? editOffer : offer
             );
             setOffers(updatedOffers);
         }
+    }
+
+    const handleToggle = (offer_id) => {
+        axiosInstance.put('/admin/toggle-offers',{offer_id})
+            .then(response => {
+                if (response.data.status) {
+                    setOffers(prevOffers =>
+                        prevOffers.map(offer =>
+                            offer._id === offer_id ? { ...offer, isActive: !offer.isActive } : offer
+                        )
+                    );
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching categories:', error);
+            });
     }
 
 
@@ -77,7 +92,7 @@ function Offer() {
             )}
             {showEditForm && (
                 <div>
-                    <EditOffer completeEditCoupon={completeEditOffer} offer={editData} allOffers={offers} />
+                    <EditOffer completeEditCoupon={completeEditOffer} offer={editData} products={products} categories={categories} />
                 </div>
             )}
             {!showForm && !showEditForm && (
@@ -104,8 +119,8 @@ function Offer() {
                                 <th>Valid From</th>
                                 <th>Valid Until</th>
                                 <th>Discount amount</th>
-                                <th>Is Active</th>
                                 <th>Change</th>
+                                <th>Block/Unblock</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -117,8 +132,8 @@ function Offer() {
                                     <td>{moment(offer.startDate).format('MMMM D, YYYY')}</td>
                                     <td>{moment(offer.endDate).format('MMMM D, YYYY')}</td>
                                     <td>{offer.discountAmount ? offer.discountAmount : 0}</td>
-                                    <td>{offer.isActive ? 'Active' : 'In-Active'}</td>
                                     <td><Button onClick={() => handleEditOffer(offer)}>Edit</Button></td>
+                                    <td><Button variant={offer.isActive ? 'danger': 'secondary'} onClick={() => handleToggle(offer._id)}>{offer.isActive ? 'Block' : 'Unblock'}</Button></td>
                                 </tr>
                             ))}
                         </tbody>

@@ -10,6 +10,7 @@ import Category from '../model/category.js';
 import Order from '../model/order.js';
 import Coupon from '../model/coupon.js';
 import Offer from '../model/offer.js';
+import mongoose from 'mongoose';
 
 const router = Router();
 
@@ -521,7 +522,7 @@ router.get('/get-offers', authenticateTokenAdmin, async (req, res) => {
         const products = await Product.find({}).lean();
         const populatedProducts = await getBase64Image(products)
 
-        res.status(201).json({ status: true, offers, categories, products:populatedProducts });
+        res.status(201).json({ status: true, offers, categories, products: populatedProducts });
     } catch (error) {
         res.status(500).json({ error: 'Error fetching products' });
     }
@@ -531,7 +532,7 @@ router.post('/add-offer', authenticateTokenAdmin, async (req, res) => {
     const offerData = req.body;
 
     try {
-        const newImage = new Image({ image: offerData.image });
+        const newImage = new Image({ image: offerData.imageID });
         const savedImage = await newImage.save();
 
         const offer = new Offer({
@@ -539,7 +540,7 @@ router.post('/add-offer', authenticateTokenAdmin, async (req, res) => {
             imageID: savedImage ? savedImage._id : null,
             description: offerData.description,
             discountPercentage: offerData.discountPercentage,
-            discountAmount:offerData.discountAmount,
+            discountAmount: offerData.discountAmount,
             startDate: offerData.startDate,
             endDate: offerData.endDate,
             applicableTo: offerData.applicableTo,
@@ -563,9 +564,134 @@ router.post('/add-offer', authenticateTokenAdmin, async (req, res) => {
         res.status(200).json({ status: true });
     } catch (error) {
         res.status(500).json({ status: false, message: 'Server error' });
-        console.error('Error deleting address:', error);
+        console.error('Error creating offer:', error);
     }
 });
+
+
+
+
+router.post('/edit-offer', authenticateTokenAdmin, async (req, res) => {
+    const offerData = req.body;
+    
+    try {
+        const offer = await Offer.findById(offerData._id);
+
+        if (!offer) {
+            return res.status(404).json({ status: false, message: 'Offer not found' });
+        }
+
+        // Handle image updates
+        if (offerData.image && typeof offerData.image === 'string' && offerData.image.startsWith('data:image')) {
+            // Delete old image if a new base64 image is provided
+            if (offer.imageID) {
+                await Image.findByIdAndDelete(offer.imageID);
+            }
+
+            const newImage = new Image({ image: offerData.image });
+            const savedImage = await newImage.save();
+            offer.imageID = savedImage._id;
+        } else if (offerData.imageID && mongoose.Types.ObjectId.isValid(offerData.imageID)) {
+            // If the imageID is a valid ObjectId, don't update the image
+            offer.imageID = offerData.imageID;
+        }
+
+
+        // Update applicableTo
+        if (offerData.type !== offer.type) {
+            if (offer.type === 'product') {
+                await Product.updateMany(
+                    { _id: { $in: offer.applicableTo } },
+                    { $pull: { offers: offer._id } }
+                );
+            } else if (offer.type === 'category') {
+                await Category.updateMany(
+                    { _id: { $in: offer.applicableTo } },
+                    { $pull: { offers: offer._id } }
+                );
+            }
+
+            if (offerData.type === 'product') {
+                await Product.updateMany(
+                    { _id: { $in: offerData.applicableTo } },
+                    { $push: { offers: offer._id } }
+                );
+            } else if (offerData.type === 'category') {
+                await Category.updateMany(
+                    { _id: { $in: offerData.applicableTo } },
+                    { $push: { offers: offer._id } }
+                );
+            }
+        } else {
+            // If the type remains the same, only update applicableTo
+            const addedApplicableTo = offerData.applicableTo.filter(id => !offer.applicableTo.includes(id));
+            const removedApplicableTo = offer.applicableTo.filter(id => !offerData.applicableTo.includes(id));
+
+            if (addedApplicableTo.length > 0) {
+                if (offer.type === 'product') {
+                    await Product.updateMany(
+                        { _id: { $in: addedApplicableTo } },
+                        { $push: { offers: offer._id } }
+                    );
+                } else if (offer.type === 'category') {
+                    await Category.updateMany(
+                        { _id: { $in: addedApplicableTo } },
+                        { $push: { offers: offer._id } }
+                    );
+                }
+            }
+
+            if (removedApplicableTo.length > 0) {
+                if (offer.type === 'product') {
+                    await Product.updateMany(
+                        { _id: { $in: removedApplicableTo } },
+                        { $pull: { offers: offer._id } }
+                    );
+                } else if (offer.type === 'category') {
+                    await Category.updateMany(
+                        { _id: { $in: removedApplicableTo } },
+                        { $pull: { offers: offer._id } }
+                    );
+                }
+            }
+        }
+
+        // Update offer details
+        offer.type = offerData.type;
+        offer.description = offerData.description;
+        offer.discountPercentage = offerData.discountPercentage;
+        offer.discountAmount = offerData.discountAmount;
+        offer.startDate = offerData.startDate;
+        offer.endDate = offerData.endDate;
+        offer.applicableTo = offerData.applicableTo;
+        offer.referralCode = offerData.referralCode;
+        offer.rewardPerReferral = offerData.rewardPerReferral;
+        await offer.save();
+
+
+        res.status(200).json({ status: true });
+    } catch (error) {
+        res.status(500).json({ status: false, message: 'Server error' });
+        console.error('Error while editing offer:', error);
+    }
+});
+
+router.put('/toggle-offers', authenticateTokenAdmin, async (req, res) => {
+    const {offer_id} = req.body
+    try {
+        const offer = await Offer.findById(offer_id);
+        if (!offer) {
+            return res.status(404).json({ status: false, message: 'Offer not found' });
+        }
+        offer.isActive = !offer.isActive;
+        await offer.save();
+
+        res.status(201).json({ status: true});
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching products' });
+    }
+});
+
 
 export default router;
 

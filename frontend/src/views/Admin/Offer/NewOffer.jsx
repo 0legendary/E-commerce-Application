@@ -9,7 +9,7 @@ function NewOffer({ cancelCreate, products, categories }) {
     const [formData, setFormData] = useState({
         type: '',
         description: '',
-        image: null,
+        imageID: null,
         discountPercentage: '',
         discountAmount: '',
         startDate: '',
@@ -45,11 +45,11 @@ function NewOffer({ cancelCreate, products, categories }) {
         let validate = offerValidate(formData)
         setErrors(validate)
         if (Object.keys(validate).length === 0) {
-            if (formData.image) {
+            if (formData.imageID) {
                 const reader = new FileReader();
                 reader.onloadend = () => {
                     const base64Image = reader.result;
-                    const formDataWithBase64 = { ...formData, image: base64Image };
+                    const formDataWithBase64 = { ...formData, imageID: base64Image };
                     console.log(formDataWithBase64);
             
                     axiosInstance.post('/admin/add-offer', formDataWithBase64)
@@ -64,7 +64,7 @@ function NewOffer({ cancelCreate, products, categories }) {
                             console.error('Error sending data:', error);
                         });
                 };
-                reader.readAsDataURL(formData.image);
+                reader.readAsDataURL(formData.imageID);
             } else {
                 // Handle case when no image is selected
                 console.log(formData);
@@ -123,7 +123,7 @@ function NewOffer({ cancelCreate, products, categories }) {
                             <Form.Group className='w-50' controlId="formImage">
                                 <Form.Label>Image</Form.Label>
                                 <Form.Control type="file" name="image" onChange={handleChange} />
-                                {errors.image && <p className='text-danger pt-2'>{errors.image}</p>}
+                                {errors.imageID && <p className='text-danger pt-2'>{errors.imageID}</p>}
                             </Form.Group>
                         </div>
                         {formData.type === 'referral' && (
