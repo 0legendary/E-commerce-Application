@@ -14,6 +14,7 @@ import Razorpay from 'razorpay'
 import crypto from 'crypto'
 import { v4 } from 'uuid'
 import Coupon from '../model/coupon.js';
+import Offer from '../model/offer.js';
 
 const router = Router();
 
@@ -56,6 +57,7 @@ router.get('/home/getProducts', getUser, async (req, res) => {
       .populate('mainImage', 'image')
       .populate('additionalImages', 'image')
       .lean();
+    const offers = await Offer.find({}).populate('imageID', 'image')
 
     if (req.user && req.user.email) {
       const user = await User.findOne({ email: req.user.email });
@@ -66,13 +68,14 @@ router.get('/home/getProducts', getUser, async (req, res) => {
           res.status(200).json({
             status: true,
             products,
+            offers,
             cartProducts: cartProductIds
           });
           return;
         }
       }
     }
-    res.status(201).json({ status: true, products });
+    res.status(201).json({ status: true, products, offers });
   } catch (error) {
     res.status(500).json({ error: 'Error fetching products' });
   }
@@ -89,6 +92,12 @@ router.get('/shop-product/:id', async (req, res) => {
       .populate('mainImage', 'image')
       .populate('additionalImages', 'image');
     if (product) {
+      const offers = await Offer.find({
+        $or: [
+          { applicableTo: productId },
+          { applicableTo: product.categoryId._id }
+        ]
+      })
       if (req.user && req.user.email) {
         const user = await User.findOne({ email: req.user.email });
         if (user) {
@@ -100,13 +109,14 @@ router.get('/shop-product/:id', async (req, res) => {
             res.status(200).json({
               status: true,
               product,
-              cartProducts: cartProducts
+              cartProducts: cartProducts,
+              offers
             });
             return;
           }
         }
       }
-      res.status(200).json({ status: true, product: product });
+      res.status(200).json({ status: true, product: product, offers });
     } else {
       res.status(404).json({ status: false, message: 'Product not found' });
     }
@@ -409,7 +419,8 @@ router.post('/add-to-cart', authenticateToken, async (req, res) => {
           price: productPrice,
           discountedPrice: discountedPrice,
           selectedColor: product.variations[0].color[0],
-          selectedSize: product.variations[0].size
+          selectedSize: product.variations[0].size,
+          categoryId: product.categoryId
         }],
         totalPrice: productPrice,
         totalDiscount: productPrice - discountedPrice
@@ -421,7 +432,8 @@ router.post('/add-to-cart', authenticateToken, async (req, res) => {
         selectedStock: productDetails.stock,
         discountedPrice: discountedPrice,
         selectedColor: product.variations[0].color[0],
-        selectedSize: product.variations[0].size
+        selectedSize: product.variations[0].size,
+        categoryId: product.categoryId
       });
 
       cart.totalPrice = cart.products.reduce((total, p) => total + (p.quantity * p.price), 0);
@@ -438,7 +450,7 @@ router.post('/add-to-cart', authenticateToken, async (req, res) => {
 
 
 router.post('/shop/add-to-cart', authenticateToken, async (req, res) => {
-  const { productId, price, discountedPrice, selectedStock, selectedColor, selectedSize } = req.body;
+  const { productId, price, discountedPrice, selectedStock, selectedColor, selectedSize, categoryId } = req.body;
   try {
     const user = await User.findOne({ email: req.user.email });
     if (!user) {
@@ -457,7 +469,8 @@ router.post('/shop/add-to-cart', authenticateToken, async (req, res) => {
           selectedStock,
           discountedPrice,
           selectedColor,
-          selectedSize
+          selectedSize,
+          categoryId
         }],
         totalPrice: price,
         totalDiscount: discountedPrice ? price - discountedPrice : 0
@@ -469,7 +482,8 @@ router.post('/shop/add-to-cart', authenticateToken, async (req, res) => {
         selectedStock,
         discountedPrice,
         selectedColor,
-        selectedSize
+        selectedSize,
+        categoryId
       });
 
       cart.totalPrice = cart.products.reduce((total, p) => total + (p.quantity * p.price), 0);
@@ -670,6 +684,7 @@ router.get('/checkout/:product_id', authenticateToken, async (req, res) => {
           selectedColor: product.selectedColor,
           selectedSize: product.selectedSize,
           selectedStock: product.selectedStock,
+          categoryId: product.categoryId,
           _id: product._id,
         }));
       } else {
@@ -691,11 +706,12 @@ router.get('/checkout/:product_id', authenticateToken, async (req, res) => {
         selectedColor: Variations.color[0],
         selectedSize: Variations.size,
         selectedStock: Variations.stock,
+        categoryId: product.categoryId,
         _id: product._id,
       }]
     }
-
-    res.status(200).json({ status: true, addresses, products: populatedProducts });
+    const offers = await Offer.find({})
+    res.status(200).json({ status: true, addresses, products: populatedProducts, offers });
   } catch (error) {
     console.error('Error updating address:', error);
     res.status(500).json({ status: false, message: 'Server error' });
@@ -774,18 +790,21 @@ router.post('/payment/verify', async (req, res) => {
       discountAmount: orderDetails.discountAmount,
       couponID: orderDetails.couponID,
       couponDiscount: orderDetails.couponDiscount,
+      offerDiscount: orderDetails.offerDiscount,
       products: orderDetails.products,
     });
 
     await newOrder.save();
-
-    const coupon = await Coupon.findById({ _id: orderDetails.couponID });
-    if (coupon._id) {
-      coupon.usedCount += 1;
-      coupon.usageLimit -= 1;
-      coupon.usedUsers.push(orderDetails.customerId);
-      await coupon.save();
+    if (orderDetails.couponID) {
+      const coupon = await Coupon.findById({ _id: orderDetails.couponID });
+      if (coupon._id) {
+        coupon.usedCount += 1;
+        coupon.usageLimit -= 1;
+        coupon.usedUsers.push(orderDetails.customerId);
+        await coupon.save();
+      }
     }
+
 
 
     if (checkoutId == 'null') {
@@ -828,17 +847,21 @@ router.post('/payment/cod', async (req, res) => {
       discountAmount: orderDetails.discountAmount,
       couponID: orderDetails.couponID,
       couponDiscount: orderDetails.couponDiscount,
+      offerDiscount: orderDetails.offerDiscount,
       products: orderDetails.products,
     });
 
     await newOrder.save();
-    const coupon = await Coupon.findById({ _id: orderDetails.couponID });
-    if (coupon._id) {
-      coupon.usedCount += 1;
-      coupon.usageLimit -= 1;
-      coupon.usedUsers.push(orderDetails.customerId);
-      await coupon.save();
+    if (orderDetails.couponID) {
+      const coupon = await Coupon.findById({ _id: orderDetails.couponID });
+      if (coupon._id) {
+        coupon.usedCount += 1;
+        coupon.usageLimit -= 1;
+        coupon.usedUsers.push(orderDetails.customerId);
+        await coupon.save();
+      }
     }
+
 
     if (checkoutId == 'null') {
       await Cart.deleteOne({ userId: orderDetails.customerId });

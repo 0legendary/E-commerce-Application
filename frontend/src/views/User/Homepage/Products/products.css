@@ -1,3 +1,51 @@
+/* Offers Section */
+.offers-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.offer-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 300px;
+    position: relative;
+}
+
+.offer-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.offer-details {
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    padding: 1rem;
+}
+
+.offer-description {
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.offer-discount {
+    font-size: 1.2rem;
+    color: #d9534f; /* Bootstrap danger color */
+}
+
+
+
+
+
+
+
+
+
+
+
 .products-container {
     padding: 20px;
 }

@@ -15,6 +15,7 @@ function Checkout() {
     const { product_Id } = useParams();
     const [addresses, setAddresses] = useState([])
     const [products, setProducts] = useState([])
+    const [offers, setOffers] = useState([])
     const [showAddress, setShowAddress] = useState(true)
     const [showProduct, setShowProduct] = useState(false)
     const [showPayment, setShowPayment] = useState(false)
@@ -34,7 +35,8 @@ function Checkout() {
         totalPrice: 0,
         totalDiscount: 0,
         totalAmount: 0,
-        deliveryCharge: 0
+        deliveryCharge: 0,
+        offerDiscount:0
     });
 
     const mainHeading = "Checkout";
@@ -46,8 +48,9 @@ function Checkout() {
         axiosInstance.get(`/user/checkout/${product_Id}`)
             .then(response => {
                 if (response.data.status) {
-                    console.log(response.data);
+                    console.log(response.data.products);
                     let data = response.data
+                    setOffers(data.offers)
                     const primaryAddress = data.addresses.find(address => address.isPrimary);
                     setSelectedAddress(primaryAddress)
                     setAddresses(data.addresses)
@@ -60,7 +63,7 @@ function Checkout() {
     }, [product_Id]);
 
     useEffect(() => {
-        const initialPriceDetails = calculatePriceDetails(products);
+        const initialPriceDetails = calculatePriceDetails(products, {}, offers );
         setPriceDetails(initialPriceDetails);
     }, [products]);
 
@@ -166,9 +169,10 @@ function Checkout() {
 
 
 
-    const calculatePriceDetails = (cartItems, couponAvailable) => {
+    const calculatePriceDetails = (cartItems, couponAvailable, offers) => {
         let totalPrice = 0;
         let totalDiscount = 0;
+        let offerDiscount = 0;
 
         cartItems.forEach(item => {
             const itemTotalPrice = item.quantity * item.price;
@@ -176,6 +180,8 @@ function Checkout() {
 
             totalPrice += itemTotalPrice;
             totalDiscount += itemDiscount;
+
+            offerDiscount += getApplicableOffer(item.productId, item.categoryId, item.discountedPrice);
         });
 
 
@@ -183,13 +189,19 @@ function Checkout() {
         if (couponAvailable && couponAvailable.discount) totalAmount -= couponAvailable.discount;
 
         let deliveryCharge = totalAmount > 500 ? 0 : 50
-        if(deliveryCharge > 0) totalAmount + 50
+        if (deliveryCharge > 0) totalAmount + 50
+
+        console.log(cartItems);
+        console.log(offers);
+
+        totalAmount -= offerDiscount
         return {
             itemCount: cartItems.reduce((total, item) => total + item.quantity, 0),
             totalPrice,
             totalDiscount,
             totalAmount,
-            deliveryCharge
+            deliveryCharge,
+            offerDiscount
         };
     };
 
@@ -216,6 +228,29 @@ function Checkout() {
                 console.error('Error getting data:', error);
             });
     };
+
+
+    const getApplicableOffer = (productId, categoryId, price) => {
+        const currentDate = new Date();
+    
+        // Filter offers based on applicability and date validity
+        const applicableOffers = offers.filter(offer =>
+            (offer.applicableTo.includes(productId) || offer.applicableTo.includes(categoryId)) &&
+            new Date(offer.startDate) <= currentDate &&
+            new Date(offer.endDate) >= currentDate &&
+            offer.isActive
+        );
+    
+        // Calculate the maximum discount based on the offers
+        const discount = applicableOffers.reduce((maxDiscount, offer) => {
+            const offerDiscount = offer.discountAmount + (price * offer.discountPercentage / 100);
+            return Math.max(maxDiscount, offerDiscount);
+        }, 0);
+    
+        return discount;
+    };
+    
+
 
     return (
         <div className='checkout'>
@@ -301,39 +336,45 @@ function Checkout() {
                             <div>
                                 {products.length > 0 ? (
                                     <div>
-                                        {products.map(item => (
-                                            <div key={item._id} className="cart-item d-flex align-items-center mb-3 border rounded p-3">
-                                                <div className="cart-item-image me-3">
-                                                    <img src={item.mainImage} alt={item.name} className="img-thumbnail" />
-                                                </div>
-                                                <div className="cart-item-details d-flex flex-column">
-                                                    <div className="d-flex align-items-center mb-2">
-                                                        <h5 className="me-3">{item.name}</h5>
-                                                        <span className="text-white">{item.brand}</span>
+                                        {products.map(item => {
+
+                                            const offerPrice = getApplicableOffer(item._id, item.categoryId, item.discountedPrice)
+                                            const finalPrice =  item.discountedPrice - offerPrice 
+                                            return (
+                                                <div key={item._id} className="cart-item d-flex align-items-center mb-3 border rounded p-3">
+                                                    <div className="cart-item-image me-3">
+                                                        <img src={item.mainImage} alt={item.name} className="img-thumbnail" />
                                                     </div>
-                                                    <div className="mb-2">
-                                                        <span className="me-3">Size: {item.selectedSize}</span>
-                                                        <span className="me-3">Color: {item.selectedColor}</span>
-                                                    </div>
-                                                    <div className="d-flex align-items-center mb-2">
-                                                        <i class="bi bi-dash-circle me-2" onClick={() => handleQuantityChange(item._id, -1)}></i>
-                                                        <span className="me-2">{item.quantity}</span>
-                                                        <i class="bi bi-plus-circle" onClick={() => handleQuantityChange(item._id, +1)}></i>
-                                                    </div>
-                                                    <div className="mb-2">
-                                                        <span className="me-2">${item.discountedPrice}</span>
-                                                        {item.discountedPrice !== item.price && (
-                                                            <span className="text-danger"><del>${item.price}</del></span>
+                                                    <div className="cart-item-details d-flex flex-column">
+                                                        <div className="d-flex align-items-center mb-2">
+                                                            <h5 className="me-3">{item.name}</h5>
+                                                            <span className="text-white">{item.brand}</span>
+                                                        </div>
+                                                        <div className="mb-2">
+                                                            <span className="me-3">Size: {item.selectedSize}</span>
+                                                            <span className="me-3">Color: {item.selectedColor}</span>
+                                                        </div>
+                                                        <div className="d-flex align-items-center mb-2">
+                                                            <i class="bi bi-dash-circle me-2" onClick={() => handleQuantityChange(item._id, -1)}></i>
+                                                            <span className="me-2">{item.quantity}</span>
+                                                            <i class="bi bi-plus-circle" onClick={() => handleQuantityChange(item._id, +1)}></i>
+                                                        </div>
+                                                        <div className="mb-2">
+                                                            <span className="me-2">₹ {finalPrice}</span>
+                                                            {item.discountedPrice !== item.price && (
+                                                                <span className="text-danger me-2"><del>${item.price}</del></span>
+                                                            )}
+                                                            {offerPrice > 0 && <span className="me-2 mt-1 text-success">₹ {offerPrice.toFixed(2)} OFF</span>}
+                                                        </div>
+                                                        {product_Id == 'null' && (
+                                                            <Button variant="danger" onClick={() => handleRemoveFromCart(item._id)}>
+                                                                Remove
+                                                            </Button>
                                                         )}
                                                     </div>
-                                                    {product_Id == 'null' && (
-                                                        <Button variant="danger" onClick={() => handleRemoveFromCart(item._id)}>
-                                                            Remove
-                                                        </Button>
-                                                    )}
                                                 </div>
-                                            </div>
-                                        ))}
+                                            )
+                                        })}
                                         <div className='d-flex justify-content-end p-2'>
                                             <button className='btn btn-success' onClick={() => { setShowAddress(false); setShowProduct(false); setShowPayment(true) }}>Continue</button>
                                         </div>
@@ -400,7 +441,8 @@ function Checkout() {
                                                         products={products}
                                                         paymentMethod={'online'}
                                                         checkoutId={product_Id}
-                                                        coupon = {couponAvailable}
+                                                        coupon={couponAvailable}
+                                                        offerDiscount={priceDetails.offerDiscount}
                                                     />
                                                 )}
                                             </div>
@@ -426,7 +468,8 @@ function Checkout() {
                                                         products={products}
                                                         paymentMethod={'COD'}
                                                         checkoutId={product_Id}
-                                                        coupon = {couponAvailable}
+                                                        coupon={couponAvailable}
+                                                        offerDiscount={priceDetails.offerDiscount}
                                                     />
                                                 )}
                                             </div>
@@ -449,7 +492,7 @@ function Checkout() {
                                         className="form-control"
                                         placeholder="Enter coupon code"
                                         value={couponCode}
-                                        onChange={(e) => {setCouponCode(e.target.value); setErrorMsg('')}}
+                                        onChange={(e) => { setCouponCode(e.target.value); setErrorMsg('') }}
                                     />
                                     <button className="btn btn-primary" onClick={handleApplyCoupon}>Apply</button>
                                 </div>
@@ -463,6 +506,10 @@ function Checkout() {
                             <div className='d-flex justify-content-between'>
                                 <p>Discount:</p>
                                 <p>- ₹{priceDetails.totalDiscount}</p>
+                            </div>
+                            <div className='d-flex justify-content-between'>
+                                <p>Offer discount:</p>
+                                <p>- ₹{priceDetails.offerDiscount}</p>
                             </div>
                             <div className='d-flex justify-content-between'>
                                 <p>Delivery Charge:</p>

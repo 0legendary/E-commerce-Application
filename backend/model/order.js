@@ -48,6 +48,10 @@ const orderSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    offerDiscount: {
+        type: Number,
+        default: 0
+    },
     products: [{
         productId: {
             type: mongoose.Schema.Types.ObjectId,

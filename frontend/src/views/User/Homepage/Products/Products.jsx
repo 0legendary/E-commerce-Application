@@ -8,11 +8,14 @@ import axiosInstance from '../../../../config/axiosConfig';
 function Products() {
     const [cartProducts, setCartProducts] = useState([])
     const [products, setProducts] = useState([])
+    const [offers, setOffers] = useState([])
 
     useEffect(() => {
         axiosInstance.get('/user/home/getProducts')
             .then(response => {
                 if (response.data.status) {
+                    console.log(response.data.offers[0]);
+                    setOffers(response.data.offers ? response.data.offers : []);
                     setCartProducts(response.data.cartProducts ? response.data.cartProducts : []);
                     const sortedProducts = response.data.products.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
                     const latestProducts = sortedProducts.slice(0, 10);
@@ -35,11 +38,26 @@ function Products() {
             });
     };
     return (
-        <div className="container products-container" style={{'margin-top':'180rem'}}>
+        <div className="container products-container" style={{ 'margin-top': '230rem' }}>
+            <div className="offers-section mb-4 text-success">
+                {offers && offers.length > 0 ? (
+                    offers.map((offer) => (
+                        <div key={offer._id} className="offer-card">
+                            <img src={offer.imageID.image} alt={offer.description} className="offer-image" />
+                            <div className="offer-details">
+                                <p className="offer-description">{offer.description}</p>
+                                <span className="offer-discount">Save {offer.discountPercentage}%</span>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <p>No current offers.</p>
+                )}
+            </div>
             <div className="products-header">
                 <span className="products-title"><span>Latest Products</span></span>
             </div>
-            <div className="products-grid mt-4" style={{ 'grid-template-columns': 'repeat(4, 1fr)'}}>
+            <div className="products-grid mt-4" style={{ 'grid-template-columns': 'repeat(4, 1fr)' }}>
                 {products.map((product, index) => {
                     const isInCart = Array.isArray(cartProducts) && cartProducts.includes(product._id);
                     return (

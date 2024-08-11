@@ -2,7 +2,7 @@ import React from 'react'
 import axiosInstance from '../../../config/axiosConfig';
 import { useNavigate } from 'react-router-dom'; 
 
-function CODPayment({ amount, totalDiscount, deliveryCharge, address, products, paymentMethod, checkoutId,coupon }) {
+function CODPayment({ amount, totalDiscount, deliveryCharge, address, products, paymentMethod, checkoutId,coupon, offerDiscount }) {
   const navigate = useNavigate();
 
 
@@ -27,6 +27,7 @@ function CODPayment({ amount, totalDiscount, deliveryCharge, address, products, 
       discountAmount: totalDiscount,
       couponID:coupon.couponID ? coupon.couponID: null,
       couponDiscount:coupon.discount ? coupon.discount: 0,
+      offerDiscount: offerDiscount > 0 ? offerDiscount : 0,
       products: products.map(product => ({
         productId: product.productId,
         productName: product.name,

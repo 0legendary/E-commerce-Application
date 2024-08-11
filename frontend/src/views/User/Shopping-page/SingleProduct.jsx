@@ -12,11 +12,13 @@ function SingleProduct() {
   const [additionalImages, setAdditionalImages] = useState([]);
   const [selectedColor, setSelectedColor] = useState(null);
   const [cartProducts, setCartProducts] = useState([])
+  const [offers, setOffers] = useState([])
   useEffect(() => {
     axiosInstance.get(`/user/shop-product/${id}`)
       .then(response => {
         if (response.data.status) {
-          console.log(response.data.cartProducts);
+          console.log(response.data.offers);
+          setOffers(response.data.offers ? response.data.offers : []);
           setProduct(response.data.product);
           setSelectedVariation(response.data.product.variations[0]);
           setMainImage(response.data.product.mainImage);
@@ -50,14 +52,15 @@ function SingleProduct() {
 
 
   const handleAddToCart = () => {
-    
+    console.log(selectedVariation);
     axiosInstance.post('/user/shop/add-to-cart', {
       productId: product._id,
       price: selectedVariation.price,
       discountedPrice: selectedVariation.discountPrice,
-      selectedStock:selectedVariation.stock,
+      selectedStock: selectedVariation.stock,
       selectedColor,
-      selectedSize: selectedVariation.size
+      selectedSize: selectedVariation.size,
+      categoryId:product.categoryId._id
     })
       .then(response => {
         if (response.data.status) {
@@ -74,6 +77,17 @@ function SingleProduct() {
     cartProduct.selectedColor === selectedColor &&
     cartProduct.selectedSize == selectedVariation?.size
   );
+
+  const getApplicableOffer = (productId) => {
+    const currentDate = new Date();
+    return offers.find(offer =>
+      offer.applicableTo.includes(productId) &&
+      new Date(offer.startDate) <= currentDate &&
+      new Date(offer.endDate) >= currentDate
+    );
+  };
+
+
 
   return (
     <div className="container" style={{ marginTop: '15rem', color: 'white' }}>
@@ -126,6 +140,17 @@ function SingleProduct() {
                   {selectedVariation.price !== selectedVariation.discountPrice && (
                     <div className="discount-price">Original Price: ₹{selectedVariation.price}</div>
                   )}
+                  <div className='d-flex justify-content-center'>
+                    {offers.map((offer) => (
+                      <div key={offer._id} className="offer-badge">
+                        {offer.discountPercentage
+                          ? `|| ${offer.discountPercentage}% OFF ||`
+                          : `|| Discount: ${offer.discountAmount} ||`
+                        }
+                        <p>{offer.description}</p>
+                      </div>
+                    ))}
+                  </div>
                   <div className="variation-details">
                     <div className="color-options border m-3 rounded">
                       {selectedVariation.color.map((color, index) => (

@@ -13,6 +13,8 @@ function ShoppingPage() {
     const [selectedColor, setSelectedColor] = useState(null);
     const [priceRange, setPriceRange] = useState([0, 1000000]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [offers, setOffers] = useState([])
+
 
     const mainHeading = "Shop Category";
     const breadcrumbs = [
@@ -24,6 +26,7 @@ function ShoppingPage() {
         axiosInstance.get('/user/home/getProducts')
             .then(response => {
                 if (response.data.status) {
+                    setOffers(response.data.offers ? response.data.offers : []);
                     setCartProducts(response.data.cartProducts ? response.data.cartProducts : []);
                     setProducts(response.data.products);
                     setFilteredProducts(response.data.products);
@@ -158,6 +161,14 @@ function ShoppingPage() {
         product.variations.flatMap(variation => variation.color)
     )));
 
+    const getApplicableOffer = (productId) => {
+        const currentDate = new Date();
+        return offers.find(offer =>
+            offer.applicableTo.includes(productId) &&
+            new Date(offer.startDate) <= currentDate &&
+            new Date(offer.endDate) >= currentDate
+        );
+    };
 
 
     return (
@@ -169,16 +180,32 @@ function ShoppingPage() {
                         <div className="sidebar-categories">
                             <div className="head">Browse Categories</div>
                             <ul className="main-categories">
-                                {uniqueCategories.map((category, index) => (
-                                    
-                                    <li key={index} className="main-nav-list">
-                                        {/* eslint-disable-next-line */}
-                                        <a onClick={() => handleCategoryClick(category._id)} className="link-button">
-                                            <span className="lnr lnr-arrow-right"></span>{category.name}
-                                            <span className="number">({products.filter(product => product.categoryId._id === category._id).length})</span>
-                                        </a>
-                                    </li>
-                                ))}
+                                {uniqueCategories.map((category, index) => {
+
+                                    const applicableOffer = getApplicableOffer(category._id);
+                                    return (
+                                        <li key={index} className="main-nav-list">
+                                            {/* eslint-disable-next-line */}
+                                            <a onClick={() => handleCategoryClick(category._id)} className="link-button d-flex justify-content-between">
+                                                <div className='d-flex'>
+                                                    <span className="lnr lnr-arrow-right"></span>{category.name}
+                                                    {applicableOffer && (
+                                                        <div className="offer-badge">
+                                                            {applicableOffer.discountPercentage
+                                                                ? `${applicableOffer.discountPercentage}% OFF`
+                                                                : `Discount: ${applicableOffer.discountAmount}`}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className="">
+                                                    <span className="number">({products.filter(product => product.categoryId._id === category._id).length})</span>
+
+                                                </div>
+                                            </a>
+                                        </li>
+                                    )
+                                })}
                             </ul>
                         </div>
                         <div className="sidebar-categories">
@@ -258,6 +285,9 @@ function ShoppingPage() {
                         <div className="products-grid mt-4" style={{ 'grid-template-columns': 'repeat(4, 1fr)' }}>
                             {filteredProducts.map((product, index) => {
                                 const isInCart = Array.isArray(cartProducts) && cartProducts.includes(product._id);
+                                const applicableOffer = getApplicableOffer(product._id);
+                                const applicableCategoryOffer = getApplicableOffer(product.categoryId._id.toString());
+
                                 return (
                                     <div key={index} className="product-card ">
                                         <img src={product.mainImage.image} alt={product.name} className="product-image" />
@@ -268,6 +298,23 @@ function ShoppingPage() {
                                             <span className="product-current-price text-white"><span>{product.variations[0].price}</span></span>
                                             <span className="product-original-price text-white"><span>{product.variations[0].discountPrice}</span></span>
                                         </div>
+                                        <div className='d-flex'>
+                                            {applicableOffer && (
+                                                <div className="offer-badge">
+                                                    {applicableOffer.discountPercentage
+                                                        ? `|| ${applicableOffer.discountPercentage}% OFF ||`
+                                                        : `|| Discount: ${applicableOffer.discountAmount} ||`}
+                                                </div>
+                                            )}
+                                            {applicableCategoryOffer && (
+                                                <div className="offer-badge">
+                                                    {applicableCategoryOffer.discountPercentage
+                                                        ? `|| ${applicableCategoryOffer.discountPercentage}% OFF ||`
+                                                        : `|| Discount: ${applicableCategoryOffer.discountAmount} ||`}
+                                                </div>
+                                            )}
+                                        </div>
+
                                         <div className="product-actions w-100 text-white justify-content-between">
                                             <div className='d-flex gap-1'>
                                                 {!isInCart ? (
@@ -283,7 +330,7 @@ function ShoppingPage() {
                                                 )}
                                                 <div className="product-background">
                                                     <i className="bi bi-heart" onClick={() => addToWishlist(product._id)}></i>
-                                                </div> 
+                                                </div>
                                                 <Link to={`/shop/${product._id}`}>
                                                     <div className="product-background">
                                                         <i className="bi bi-search"></i>
