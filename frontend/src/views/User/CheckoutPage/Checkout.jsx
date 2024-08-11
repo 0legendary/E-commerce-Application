@@ -418,7 +418,6 @@ function Checkout() {
                                                 <h4>Select Payment Method</h4>
                                                 <button className='btn btn-secondary' onClick={() => setPaymetPolicy(false)}>Show Policy</button>
                                             </div>
-
                                             <div className='mt-3'>
                                                 <input
                                                     type="radio"

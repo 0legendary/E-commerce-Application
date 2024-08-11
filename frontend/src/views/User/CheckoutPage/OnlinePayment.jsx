@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import axiosInstance from '../../../config/axiosConfig';
 import { useNavigate } from 'react-router-dom';
+import OrderSuccess from './OrderSuccess';
 
 function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, products, paymentMethod, checkoutId, coupon, offerDiscount }) {
   const [currentUser, setCurrentUser] = useState({})
+  const [showSuccessPage, setShowSuccessPage] = useState(false)
+  const [orderAddress, setOrderAddress] = useState({})
   const navigate = useNavigate()
   console.log(products);
   useEffect(() => {
@@ -39,8 +42,8 @@ function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, product
       orderTotal: amount,
       shippingCost: deliveryCharge,
       discountAmount: totalDiscount,
-      couponID:coupon.couponID ? coupon.couponID: null,
-      couponDiscount:coupon.discount ? coupon.discount: 0,
+      couponID: coupon.couponID ? coupon.couponID : null,
+      couponDiscount: coupon.discount ? coupon.discount : 0,
       offerDiscount: offerDiscount > 0 ? offerDiscount : 0,
       products: products.map(product => ({
         productId: product.productId,
@@ -49,7 +52,7 @@ function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, product
         selectedColor: product.selectedColor,
         selectedSize: product.selectedSize,
         price: product.price,
-        discountPrice:product.discountedPrice,
+        discountPrice: product.discountedPrice,
         totalPrice: product.quantity * product.price
       }))
     }
@@ -65,7 +68,10 @@ function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, product
           axiosInstance.post('/user/payment/verify', { response, orderDetails, checkoutId })
             .then(response => {
               if (response.data.status) {
-                navigate('/orders')
+                setOrderAddress(orderDetails.shippingAddress)
+                setShowSuccessPage(true)
+              } else {
+                setShowSuccessPage(false)
               }
             })
             .catch(error => {
@@ -101,6 +107,9 @@ function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, product
   return (
     <div>
       <button className='btn btn-success m-3' onClick={handlePayment}>Pay with Razorpay</button>
+      {showSuccessPage && (
+        <OrderSuccess onClose={() => navigate('/orders')} address={orderAddress} />
+      )}
     </div>
   )
 }

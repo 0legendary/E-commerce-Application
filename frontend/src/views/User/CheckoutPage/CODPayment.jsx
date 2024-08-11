@@ -1,8 +1,11 @@
-import React from 'react'
+import React, { useState } from 'react'
 import axiosInstance from '../../../config/axiosConfig';
 import { useNavigate } from 'react-router-dom'; 
+import OrderSuccess from './OrderSuccess';
 
 function CODPayment({ amount, totalDiscount, deliveryCharge, address, products, paymentMethod, checkoutId,coupon, offerDiscount }) {
+  const [showSuccessPage, setShowSuccessPage] = useState(false)
+  const [orderAddress, setOrderAddress] = useState({})
   const navigate = useNavigate();
 
 
@@ -43,7 +46,10 @@ function CODPayment({ amount, totalDiscount, deliveryCharge, address, products, 
     try {
       const response = await axiosInstance.post('/user/payment/cod', { orderDetails, checkoutId });
       if (response.data.status) {
-        navigate('/orders');
+        setOrderAddress(orderDetails.shippingAddress)
+        setShowSuccessPage(true)
+      } else {
+        setShowSuccessPage(false)
       }
     } catch (error) {
       console.error('Error getting data:', error);
@@ -53,6 +59,9 @@ function CODPayment({ amount, totalDiscount, deliveryCharge, address, products, 
   return (
     <div>
       <button className='btn btn-success m-3' onClick={handleCODPayment}>Continue with Cash on Delivery</button>
+      {showSuccessPage && (
+        <OrderSuccess onClose={() => navigate('/orders')} address={orderAddress} />
+      )}
     </div>
   )
 }
