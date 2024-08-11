@@ -454,6 +454,7 @@ router.get('/all-orders', authenticateTokenAdmin, async (req, res) => {
                 path: 'customerId',
                 select: 'name email mobile'
             });
+
         res.json({ status: true, orders });
     } catch (error) {
         console.error(error);
