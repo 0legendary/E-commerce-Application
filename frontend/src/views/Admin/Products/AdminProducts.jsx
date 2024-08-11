@@ -4,59 +4,87 @@ import { Link } from 'react-router-dom';
 import axiosInstance from '../../../config/axiosConfig';
 
 function AdminProducts() {
-  const [products, setProducts] = useState([])
-  const [deleteProduct, setDeleteProduct] = useState(false)
-  const [confirmDelete, setConfirmDelete] = useState({})
+  const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [deleteProduct, setDeleteProduct] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   useEffect(() => {
     axiosInstance.get('/admin/getProducts')
       .then(response => {
         if (response.data.status) {
-          setProducts(response.data.products)
+          setProducts(response.data.products);
+          setFilteredProducts(response.data.products);
         }
       })
       .catch(error => {
         // Handle error
-        console.error('Error sending data:', error);
+        console.error('Error fetching data:', error);
       });
-  }, [])
+  }, []);
+
+  useEffect(() => {
+    if (searchTerm) {
+      const filtered = products.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredProducts(filtered);
+      setCurrentPage(1); // Reset to the first page when searching
+    } else {
+      setFilteredProducts(products);
+    }
+  }, [searchTerm, products]);
 
   const handleDelete = (_id, index) => {
     console.log(_id);
-    setConfirmDelete(products[index])
-    setDeleteProduct(true)
-  }
+    setConfirmDelete(products[index]);
+    setDeleteProduct(true);
+  };
 
   const handleMoveToTrash = (_id) => {
     axiosInstance.post('/admin/moveToTrash', { product_id: _id })
       .then((response) => {
         if (response.data.status) {
-          setProducts((prevProducts) => prevProducts.filter(product => product._id !== _id));
-          setDeleteProduct(false)
+          setProducts(prevProducts => prevProducts.filter(product => product._id !== _id));
+          setDeleteProduct(false);
         } else {
-          console.log('sdfd');
+          console.log('Failed to move to trash');
         }
       })
       .catch(() => {
-      })
-  }
+        console.log('Error moving to trash');
+      });
+  };
 
-  const handleDeletePermenantly = (_id) => {
-    axiosInstance.post('/admin/deletePermenent', { product_id: _id })
+  const handleDeletePermanently = (_id) => {
+    axiosInstance.post('/admin/deletePermanently', { product_id: _id })
       .then((response) => {
         if (response.data.status) {
-          setProducts((prevProducts) => prevProducts.filter(product => product._id !== _id));
-          setDeleteProduct(false)
+          setProducts(prevProducts => prevProducts.filter(product => product._id !== _id));
+          setDeleteProduct(false);
         } else {
-          console.log('Something went wrong');
-          setDeleteProduct(false)
+          console.log('Failed to delete permanently');
+          setDeleteProduct(false);
         }
       })
       .catch(() => {
-        setDeleteProduct(false)
-      })
-  }
+        console.log('Error deleting permanently');
+        setDeleteProduct(false);
+      });
+  };
 
+  // Pagination logic
+  const indexOfLastProduct = currentPage * itemsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - itemsPerPage;
+  const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   return (
     <>
@@ -69,11 +97,22 @@ function AdminProducts() {
             </button>
           </Link>
         </div>
+        <div className="search-bar">
+          <input
+            type="text"
+            placeholder="Search by product name"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="form-control"
+          />
+        </div>
         {deleteProduct && (
           <div className="update-form bg-dark">
-            <h5 className='text-danger d-flex justify-content-center pt-3 pb-3 txt-heading'>Are you sure to delete the user named '{confirmDelete.name}' permenantly ?</h5>
+            <h5 className='text-danger d-flex justify-content-center pt-3 pb-3 txt-heading'>
+              Are you sure you want to delete the product named '{confirmDelete.name}' permanently?
+            </h5>
             <div className='d-flex gap-2 justify-content-center pb-3'>
-              <button className='btn btn-danger w-50' onClick={() => handleDeletePermenantly(confirmDelete._id)}>Delete Permenantly</button>
+              <button className='btn btn-danger w-50' onClick={() => handleDeletePermanently(confirmDelete._id)}>Delete Permanently</button>
               <button className='btn btn-warning w-50' onClick={() => handleMoveToTrash(confirmDelete._id)}>Move to Trash</button>
             </div>
             <button className='btn btn-primary w-100' onClick={() => setDeleteProduct(false)}>Cancel Deletion</button>
@@ -92,12 +131,12 @@ function AdminProducts() {
             </tr>
           </thead>
           <tbody>
-            {products.map((product, index) => (
+            {currentProducts.map((product, index) => (
               <tr key={product._id}>
-                <th scope="row">{index + 1}</th>
+                <th scope="row">{indexOfFirstProduct + index + 1}</th>
                 <td>
                   <div className="product-image-wrapper">
-                    <img src={product.mainImage} alt={product.name} className="product-image" style={{"width": "100px","height": "100px"}}/>
+                    <img src={product.mainImage} alt={product.name} className="product-image" style={{ width: '100px', height: '100px' }} />
                     <img src={product.mainImage} alt={product.name} className="product-image-hover" />
                   </div>
                 </td>
@@ -119,8 +158,22 @@ function AdminProducts() {
             ))}
           </tbody>
         </table>
+        <nav aria-label="Page navigation">
+          <ul className="pagination justify-content-end">
+            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => handlePageChange(currentPage - 1)}>&laquo; Previous</button>
+            </li>
+            {Array.from({ length: totalPages }, (_, index) => (
+              <li key={index + 1} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
+                <button className="page-link" onClick={() => handlePageChange(index + 1)}>{index + 1}</button>
+              </li>
+            ))}
+            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => handlePageChange(currentPage + 1)}>Next &raquo;</button>
+            </li>
+          </ul>
+        </nav>
       </div>
-
     </>
   );
 }
