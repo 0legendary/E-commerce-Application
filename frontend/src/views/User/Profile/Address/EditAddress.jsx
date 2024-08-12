@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import axiosInstance from '../../../../config/axiosConfig';
 import { addressValidate } from '../../../../config/addressValidation';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function EditAddress({ address, handleCancel }) {
   const [errors, setErrors] = useState({})
@@ -9,14 +11,22 @@ function EditAddress({ address, handleCancel }) {
 
   const handleUpdateAddress = async (e) => {
     e.preventDefault();
-    console.log(addressData);
     let Errors = addressValidate(addressData)
     setErrors(Errors)
-    if (Object.keys(Errors).length == 0) {
+    if (Object.keys(Errors).length === 0) {
       axiosInstance.post('/user/edit-address', { address: addressData })
         .then(response => {
           if (response.data.status) {
             handleCancel(response.data.address)
+            toast.success("Address edited", {
+              autoClose: 2000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: false,
+              draggable: true,
+              progress: undefined,
+              theme: "dark",
+          });
           }
         })
     }
@@ -45,6 +55,7 @@ function EditAddress({ address, handleCancel }) {
 
   return (
     <div>
+      <ToastContainer/>
       Edit Address
       <form className="address-form p-4 border rounded d-flex w-100 gap-3" onSubmit={handleUpdateAddress}>
         <div className='w-50'>

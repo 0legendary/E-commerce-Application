@@ -122,7 +122,7 @@ function NewOffer({ cancelCreate, products, categories }) {
 
                             <Form.Group className='w-50' controlId="formImage">
                                 <Form.Label>Image</Form.Label>
-                                <Form.Control type="file" name="image" onChange={handleChange} />
+                                <Form.Control type="file" name="imageID" onChange={handleChange} />
                                 {errors.imageID && <p className='text-danger pt-2'>{errors.imageID}</p>}
                             </Form.Group>
                         </div>

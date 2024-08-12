@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import axiosInstance from '../../../../config/axiosConfig';
 import { addressValidate } from '../../../../config/addressValidation';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 function NewAddress({ handleCancel }) {
     const [states, setStates] = useState([]);
@@ -44,15 +47,33 @@ function NewAddress({ handleCancel }) {
 
     const saveAddress = async (e) => {
         e.preventDefault();
-        console.log('Form Data:', formData);
         let Errors = addressValidate(formData)
         setErrors(Errors)
-        if (Object.keys(Errors).length == 0) {
+        if (Object.keys(Errors).length === 0) {
             axiosInstance.post('/user/add-address', { address: formData })
                 .then(response => {
                     if (response.data.status) {
+                        toast.success("New address added", {
+                            autoClose: 2000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: false,
+                            draggable: true,
+                            progress: undefined,
+                            theme: "dark",
+                        });
                         handleCancel(response.data.address)
                     }
+                }).catch((error) => {
+                    toast.error("Something went wrong white saving address", {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
                 })
         }
     };
@@ -60,6 +81,7 @@ function NewAddress({ handleCancel }) {
 
     return (
         <div>
+            <ToastContainer/>
             <form className="address-form p-4 border rounded d-flex w-100 gap-3" onSubmit={saveAddress}>
                 <div className='w-50'>
                     <div className="form-group">

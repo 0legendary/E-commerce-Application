@@ -1,6 +1,5 @@
 
 const offerValidate = (offer) => {
-    console.log(offer);
     let errors = {}
     if (!offer.type) errors.type = 'Offer type is required';
     if (!offer.description) errors.description = 'Description is required';

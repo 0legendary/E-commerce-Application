@@ -4,6 +4,9 @@ import axiosInstance from '../../../config/axiosConfig';
 import { Modal, Button } from 'react-bootstrap';
 import './Cart.css'
 import { Link } from 'react-router-dom'
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 function Cart() {
     const [addresses, setAddresses] = useState([])
     const [showAddressModal, setShowAddressModal] = useState(false);
@@ -34,7 +37,6 @@ function Cart() {
         axiosInstance.get('/user/get-cart-products')
             .then(response => {
                 if (response.data.status) {
-                    console.log(response.data.products);
                     setCartItems(response.data.products ? response.data.products : [])
                 }
             })
@@ -80,7 +82,15 @@ function Cart() {
         axiosInstance.delete(`/user/delete-cart-items/${item_id}`)
             .then(response => {
                 if (response.data.status) {
-                    //setCartItems(response.data.cart)
+                    toast.success("Removed from cart", {
+                        autoClose: 1000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
                     setCartItems(cartItems.filter(items => items._id !== item_id));
                 }
             })
@@ -154,8 +164,9 @@ function Cart() {
     const { itemCount, totalPrice, totalDiscount, totalAmount, deliveryCharge } = calculatePriceDetails(cartItems);
 
     return (
-        <div >
+        <div>
             <Layout mainHeading={mainHeading} breadcrumbs={breadcrumbs} />
+            <ToastContainer/>
             <div className="container text-white p-3 mb-4 ">
                 <h5 className="mb-3">Primary Address</h5>
                 {selectedAddress ? (

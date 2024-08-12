@@ -4,7 +4,8 @@ import axiosInstance from '../../../../config/axiosConfig';
 import { editPasswordAuth, editProfileAuth } from '../../../../config/editProfileAuth';
 import { otpVerification, signUpGoogleAuthenticate } from '../../../../config/authenticateCondition';
 import OTPInput from 'react-otp-input';
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function AccountSettings() {
     const [isEditing, setIsEditing] = useState(false);
@@ -16,7 +17,6 @@ function AccountSettings() {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [errors, setErrors] = useState({})
-    const [successMsg, setSuccessMsg] = useState({})
     const [countdown, setCountdown] = useState(null);
     const [buttonEnabled, setButtonEnabled] = useState(false);
     const [showOtpPage, setShowOtpPage] = useState(false)
@@ -73,9 +73,27 @@ function AccountSettings() {
                         setMobile(response.data.user.mobile ? response.data.user.mobile : null);
                         setErrors({})
                         setIsEditing(false);
+                        toast.success('Profile updated', {
+                            autoClose: 2000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: false,
+                            draggable: true,
+                            progress: undefined,
+                            theme: "dark",
+                        });
                     }
                 })
                 .catch(error => {
+                    toast.error('Error while updating profile', {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
                     console.error('Error updating user:', error);
                 });
         }
@@ -94,8 +112,25 @@ function AccountSettings() {
                         setErrors({})
                         setIsEditing(false);
                         setIsUpdatingPassword(false);
+                        toast.success('Password changed', {
+                            autoClose: 2000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: false,
+                            draggable: true,
+                            progress: undefined,
+                            theme: "dark",
+                        });
                     } else {
-                        setErrors({ currPass: response.data.message })
+                        toast.error(response.data.message, {
+                            autoClose: 2000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: false,
+                            draggable: true,
+                            progress: undefined,
+                            theme: "dark",
+                        });
                     }
                 })
                 .catch(error => {
@@ -119,13 +154,26 @@ function AccountSettings() {
                 if (response.data.status) {
                     setCountdown(10)
                     setButtonEnabled(false)
-                    setSuccessMsg({ newOTPSend: 'New OTP sended to your email' })
                     setErrors({})
-                    setTimeout(() => {
-                        setSuccessMsg({ newOTPSend: '' })
-                    }, 2000)
+                    toast.success('OTP send to your verified Email', {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
                 } else {
-                    setErrors({ unAuthorised: 'Verification failed' })
+                    toast.error('Verification Failed', {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
                 }
             })
             .catch(error => {
@@ -143,14 +191,31 @@ function AccountSettings() {
             axiosInstance.post('/user/verify-otp', { otp: otp })
                 .then(response => {
                     if (response.data.status) {
-                        setSuccessMsg({ otpVerified: 'OTP verified' })
+                        toast.success('OTP verified', {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
                         setTimeout(() => {
                             setShowOtpPage(false)
                             setNewPassword('')
                             setConfirmPassword('')
                             setShowNewPassInput(true)
-                            setSuccessMsg({ otpVerified: '' })
                         }, 2000);
+                    }else{
+                        toast.error('Something went wrong', {
+                            autoClose: 2000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: false,
+                            draggable: true,
+                            progress: undefined,
+                            theme: "dark",
+                        });
                     }
                 })
         }
@@ -166,7 +231,15 @@ function AccountSettings() {
       axiosInstance.post('/user/reset-password', { password: newPassword })
         .then(response => {
           if (response.data.status) {
-            setSuccessMsg({ passChanged: 'Password changed' })
+            toast.success('Password changed', {
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+            });
             setNewPassword('')
             setConfirmPassword('')
             setTimeout(() => {
@@ -174,20 +247,28 @@ function AccountSettings() {
               setShowNewPassInput(false)
               setIsEditing(false)
               setIsUpdatingPassword(false)
-              setSuccessMsg({ passChanged: '' })
             }, 1000);
           } else {
-            setErrors({ unAuthorised: 'something went wrong, try again later' })
+            toast.error('something went wrong, try again later', {
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+            });
             setShowOtpPage(false)
             setShowNewPassInput(false)
-            console.log('password not changed');
           }
         })
     }
   }
 
+
     return (
         <div className="container acc-setting mt-5">
+            <ToastContainer/>
             {!isEditing && !isUpdatingPassword && !showOtpPage && !showNewPassInput &&(
                 <div className="account-details text-white">
                     <h2>Account Settings</h2>
@@ -305,8 +386,6 @@ function AccountSettings() {
                     {errors.unAuthorised && <div className="error">{errors.unAuthorised}</div>}
                     {errors.otp && <div className="error">{errors.otp}</div>}
                     <button onClick={verifyOTP}>Verify OTP</button>
-                    {successMsg.otpVerified && <p className='successMsg text-success'>{successMsg.otpVerified}</p>}
-                    {successMsg.newOTPSend && <p className='successMsg text-success'>{successMsg.newOTPSend}</p>}
 
                 </>
             )}
@@ -334,7 +413,6 @@ function AccountSettings() {
                         <button onClick={updatePassword}>Submit</button>
                         {/* <button onClick={() => { setShowManualLogin(true); setShowGooglePass(false); setShowOtpPage(false) }}>Cancel</button> */}
                     </div>
-                    {successMsg.passChanged && <p className='successMsg text-success'>{successMsg.passChanged}</p>}
 
                 </>
             )}

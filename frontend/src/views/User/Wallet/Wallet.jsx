@@ -4,6 +4,8 @@ import Layout from '../Header/Layout';
 import { Button, Card, Form, Tab, Tabs, ListGroup } from 'react-bootstrap';
 import './Wallet.css'; // Create a Wallet.css file for custom styling
 import { walletValidate } from '../../../config/validateWallet';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function Wallet() {
     const [wallet, setWallet] = useState({});
@@ -40,6 +42,15 @@ function Wallet() {
                 axiosInstance.post('/user/add-wallet', { response, amount: parseInt(amount), description:'Adding money to wallet', userID: user._id })
                     .then(response => {
                         if (response.data.status) {
+                            toast.success(`₹ ${amount} added to your wallet`, {
+                                autoClose: 2000,
+                                hideProgressBar: false,
+                                closeOnClick: true,
+                                pauseOnHover: false,
+                                draggable: true,
+                                progress: undefined,
+                                theme: "dark",
+                            });
                             let res = response.data
                             setWallet(prevWallet => ({
                                 ...prevWallet,
@@ -98,6 +109,7 @@ function Wallet() {
     return (
         <div>
             <Layout mainHeading={mainHeading} breadcrumbs={breadcrumbs} />
+            <ToastContainer/>
             <div className="container mt-4">
                 <div className="row">
                     <div className="col-md-6">
@@ -105,10 +117,10 @@ function Wallet() {
                             <Card.Header>Wallet Balance</Card.Header>
                             <Card.Body>
                                 <h3>₹{wallet ? wallet.balance : 0}</h3>
-                                <Button variant="primary" onClick={() => { setShowAddMoney(!showAddMoney); setShowTransfer(false); setAmount(''); setDescription('') }}>
+                                <Button variant="primary" onClick={() => { setShowAddMoney(!showAddMoney); setShowTransfer(false); setAmount(''); }}>
                                     {showAddMoney ? 'Cancel' : 'Add Money'}
                                 </Button>
-                                <Button variant="secondary" className="ms-2" onClick={() => { setShowTransfer(!showTransfer); setShowAddMoney(false); setAmount(''); setDescription('') }}>
+                                <Button variant="secondary" className="ms-2" onClick={() => { setShowTransfer(!showTransfer); setShowAddMoney(false); setAmount(''); }}>
                                     {showTransfer ? 'Cancel' : 'Transfer to Bank'}
                                 </Button>
                                 {showAddMoney && (

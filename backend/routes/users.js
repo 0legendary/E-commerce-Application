@@ -29,10 +29,8 @@ router.get('/getProducts', authenticateToken, async (req, res) => {
     if (req.user && req.user.email) {
       const user = await User.findOne({ email: req.user.email });
       if (user) {
-        // Find the user's cart
         const cart = await Cart.findOne({ userId: user._id }).lean();
         if (cart) {
-          // Extract product IDs from the cart
           const cartProductIds = cart.products.map(p => p.productId.toString());
           res.status(200).json({
             status: true,
@@ -59,20 +57,25 @@ router.get('/home/getProducts', getUser, async (req, res) => {
       .lean();
     const offers = await Offer.find({}).populate('imageID', 'image')
 
+    
     if (req.user && req.user.email) {
       const user = await User.findOne({ email: req.user.email });
       if (user) {
+        // Find the user's cart
         const cart = await Cart.findOne({ userId: user._id }).lean();
-        if (cart) {
-          const cartProductIds = cart.products.map(p => p.productId.toString());
-          res.status(200).json({
-            status: true,
-            products,
-            offers,
-            cartProducts: cartProductIds
-          });
-          return;
-        }
+        const wishlist = await Wishlist.findOne({userId: user._id}).lean();
+        let cartProductIds;
+        let wishlistProductIds;
+        if (cart) cartProductIds = cart.products.map(p => p.productId.toString());
+        if (wishlist) wishlistProductIds = wishlist.products.map(v => v.productId.toString())
+        res.status(200).json({
+          status: true,
+          products,
+          offers,
+          cartProducts: cartProductIds.length > 0 ? cartProductIds : [],
+          wishlistProducts: wishlistProductIds.length > 0 ? wishlistProductIds : []
+        });
+        return;
       }
     }
     res.status(201).json({ status: true, products, offers });

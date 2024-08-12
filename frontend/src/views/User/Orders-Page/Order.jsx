@@ -3,6 +3,8 @@ import Layout from '../Header/Layout';
 import axiosInstance from '../../../config/axiosConfig';
 import './Order.css';
 import DetailedOrder from './DetailedOrder';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function Order() {
     const [orders, setOrders] = useState([]);
@@ -35,6 +37,15 @@ function Order() {
             axiosInstance.post('/user/update-order-status', { orderId: currentOrderId, productId: currentProductId, status: currentStatus })
                 .then(response => {
                     if (response.data.status) {
+                        toast.error("Order canceled!", {
+                            autoClose: 2000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: false,
+                            draggable: true,
+                            progress: undefined,
+                            theme: "dark",
+                          });
                         setOrders(prevOrders =>
                             prevOrders.map(order =>
                                 order.orderId === currentOrderId
@@ -83,6 +94,7 @@ function Order() {
 
         <div>
             <Layout mainHeading={mainHeading} breadcrumbs={breadcrumbs} />
+            <ToastContainer />
             <div className="container mt-4">
                 {!showDetailedOrder ? (
                     <div>

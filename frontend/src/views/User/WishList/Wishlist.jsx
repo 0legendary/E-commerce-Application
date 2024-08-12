@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import axiosInstance from '../../../config/axiosConfig'
 import Layout from '../Header/Layout'
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function Wishlist() {
     const [wishlistItems, setWishlistItems] = useState([])
@@ -25,6 +27,15 @@ function Wishlist() {
         axiosInstance.delete(`/user/delete-wishlist-item/${product_id}`)
             .then(response => {
                 if (response.data.status) {
+                    toast.success("Removed from wishlist", {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
                     setWishlistItems(wishlistItems.filter(items => items.productId !== product_id));
                 }
             })
@@ -37,16 +48,27 @@ function Wishlist() {
         axiosInstance.post('/user/add-to-cart', { productId })
             .then(response => {
                 if (response.data.status) {
+                    toast.success("Added to Cart", {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
                     setWishlistItems(wishlistItems.filter(items => items.productId !== productId));
                 }
             })
             .catch(error => {
                 console.error('Error sending data:', error);
+                
             });
     };
 
     return (
         <div>
+            <ToastContainer/>
             <Layout mainHeading={mainHeading} breadcrumbs={breadcrumbs} />
             <div className="container text-white p-3 mb-4 ">
                 {wishlistItems.length > 0 ? (

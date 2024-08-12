@@ -3,6 +3,8 @@ import './Address.css'
 import NewAddress from './NewAddress'
 import EditAddress from './EditAddress'
 import axiosInstance from '../../../../config/axiosConfig'
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function Address() {
     const [newAddress, setNewAddress] = useState(false)
@@ -73,7 +75,15 @@ function Address() {
         try {
             const response = await axiosInstance.delete(`/user/delete-address/${add_id}`);
             if (response.data.status) {
-                console.log('deleted');
+                toast.success('Address deleted', {
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "dark",
+                });                
                 const updatedAddresses = addresses.filter(address => address._id !== add_id);
                 if (addresses.find(address => address._id === add_id).isPrimary) {
                     if (updatedAddresses.length > 0) {
@@ -81,8 +91,18 @@ function Address() {
                     }
                 }
                 setAddresses(updatedAddresses);
+                
             }
         } catch (error) {
+            toast.error('Something went wrong white deleting address', {
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+            });
             console.error('Error deleting address:', error);
         }
     };
@@ -103,8 +123,10 @@ function Address() {
         setShowConfirmModal(false);
     };
 
+
     return (
         <div className='container text-white'>
+            <ToastContainer/>
             <h2>Address Management</h2>
             {!newAddress && (
                 <button className="btn btn-primary my-3 address-card p-3 mb-3 border rounded position-relative" onClick={handelNewAddress}>

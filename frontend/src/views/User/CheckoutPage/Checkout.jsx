@@ -10,6 +10,8 @@ import './Checkout.css'
 import OnlinePayment from './OnlinePayment';
 import CODPayment from './CODPayment';
 import PaymentPolicy from '../Policies/PaymentPolicy';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function Checkout() {
     const { product_Id } = useParams();
@@ -24,19 +26,17 @@ function Checkout() {
     const [showEditAddress, setShowEditAddress] = useState(false)
     const [editAddress, setEditAddress] = useState({})
     const [selectedAddress, setSelectedAddress] = useState(null);
-    const [message, setMessage] = useState('')
     const [paymentMethod, setPaymentMethod] = useState('Razorpay');
     const [paymetPolicy, setPaymetPolicy] = useState(false)
     const [couponCode, setCouponCode] = useState('')
     const [couponAvailable, setCouponAvailable] = useState({})
-    const [errorMsg, setErrorMsg] = useState('')
     const [priceDetails, setPriceDetails] = useState({
         itemCount: 0,
         totalPrice: 0,
         totalDiscount: 0,
         totalAmount: 0,
         deliveryCharge: 0,
-        offerDiscount:0
+        offerDiscount: 0
     });
 
     const mainHeading = "Checkout";
@@ -48,7 +48,6 @@ function Checkout() {
         axiosInstance.get(`/user/checkout/${product_Id}`)
             .then(response => {
                 if (response.data.status) {
-                    console.log(response.data.products);
                     let data = response.data
                     setOffers(data.offers)
                     const primaryAddress = data.addresses.find(address => address.isPrimary);
@@ -63,8 +62,9 @@ function Checkout() {
     }, [product_Id]);
 
     useEffect(() => {
-        const initialPriceDetails = calculatePriceDetails(products, {}, offers );
+        const initialPriceDetails = calculatePriceDetails(products, {}, offers);
         setPriceDetails(initialPriceDetails);
+        // eslint-disable-next-line 
     }, [products]);
 
 
@@ -129,20 +129,49 @@ function Checkout() {
 
                 if (newQuantity > maxLimit) {
                     newQuantity = maxLimit;
-                    setMessage(`Maximum ${newQuantity} can added for ${item.name}`)
-                }
-                if (newQuantity > stockAvailable) {
+                    toast.error(`Maximum ${newQuantity} can added for ${item.name}`, {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
+                } else if (newQuantity > stockAvailable) {
                     newQuantity = stockAvailable;
-                    setMessage(`${item.selectedStock} stock are available for ${item.name}`)
-                }
-                if (newQuantity < 1) {
+                    toast.error(`${item.selectedStock} stock are available for ${item.name}`, {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
+                } else if (newQuantity < 1) {
                     newQuantity = 1;
-                    setMessage(`Minimum ${newQuantity} are required`)
+                    toast.error(`Minimum ${newQuantity} are required`, {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
+                } else {
+                    toast.success(`You've changed ${item.name} QUANTITY to ${newQuantity}`, {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
                 }
-                setMessage(`You've changed ${item.name} QUANTITY to ${newQuantity}`)
-                setTimeout(() => {
-                    setMessage('')
-                }, 2000);
+
                 return { ...item, quantity: newQuantity };
             }
             return item;
@@ -159,6 +188,15 @@ function Checkout() {
         axiosInstance.delete(`/user/delete-cart-items/${item_id}`)
             .then(response => {
                 if (response.data.status) {
+                    toast.success("Prouct removed", {
+                        autoClose: 1000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
                     setProducts(products.filter(items => items._id !== item_id));
                 }
             })
@@ -189,12 +227,10 @@ function Checkout() {
         if (couponAvailable && couponAvailable.discount) totalAmount -= couponAvailable.discount;
 
         let deliveryCharge = totalAmount > 500 ? 0 : 50
-        if (deliveryCharge > 0) totalAmount + 50
-
-        console.log(cartItems);
-        console.log(offers);
+        if (deliveryCharge > 0) totalAmount += 50
 
         totalAmount -= offerDiscount
+
         return {
             itemCount: cartItems.reduce((total, item) => total + item.quantity, 0),
             totalPrice,
@@ -207,15 +243,44 @@ function Checkout() {
 
 
     const handleApplyCoupon = () => {
+        if(!couponCode) {
+            toast.error('Please enter coupon code', {
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+            });
+            return
+        }
+        
         axiosInstance.post('/user/apply-coupon', { code: couponCode, orderAmount: priceDetails.totalAmount })
             .then(response => {
                 if (response.data.status) {
                     setCouponAvailable(response.data.coupon)
-                    setErrorMsg('')
+                    toast.success("Coupon Applied", {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
                     const updatedPriceDetails = calculatePriceDetails(products, response.data.coupon);
                     setPriceDetails(updatedPriceDetails);
                 } else {
-                    setErrorMsg(response.data.message)
+                    toast.error(response.data.message, {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
                     setCouponAvailable({})
                     const updatedPriceDetails = calculatePriceDetails(products);
                     setPriceDetails(updatedPriceDetails);
@@ -232,7 +297,7 @@ function Checkout() {
 
     const getApplicableOffer = (productId, categoryId, price) => {
         const currentDate = new Date();
-    
+
         // Filter offers based on applicability and date validity
         const applicableOffers = offers.filter(offer =>
             (offer.applicableTo.includes(productId) || offer.applicableTo.includes(categoryId)) &&
@@ -240,21 +305,22 @@ function Checkout() {
             new Date(offer.endDate) >= currentDate &&
             offer.isActive
         );
-    
+
         // Calculate the maximum discount based on the offers
         const discount = applicableOffers.reduce((maxDiscount, offer) => {
             const offerDiscount = offer.discountAmount + (price * offer.discountPercentage / 100);
             return Math.max(maxDiscount, offerDiscount);
         }, 0);
-    
+
         return discount;
     };
-    
+
 
 
     return (
         <div className='checkout'>
             <Layout mainHeading={mainHeading} breadcrumbs={breadcrumbs} />
+            <ToastContainer />
             <div className='container text-white'>
 
                 <div className='row'>
@@ -339,7 +405,7 @@ function Checkout() {
                                         {products.map(item => {
 
                                             const offerPrice = getApplicableOffer(item._id, item.categoryId, item.discountedPrice)
-                                            const finalPrice =  item.discountedPrice - offerPrice 
+                                            const finalPrice = item.discountedPrice - offerPrice
                                             return (
                                                 <div key={item._id} className="cart-item d-flex align-items-center mb-3 border rounded p-3">
                                                     <div className="cart-item-image me-3">
@@ -366,7 +432,7 @@ function Checkout() {
                                                             )}
                                                             {offerPrice > 0 && <span className="me-2 mt-1 text-success">₹ {offerPrice.toFixed(2)} OFF</span>}
                                                         </div>
-                                                        {product_Id == 'null' && (
+                                                        {product_Id === 'null' && (
                                                             <Button variant="danger" onClick={() => handleRemoveFromCart(item._id)}>
                                                                 Remove
                                                             </Button>
@@ -378,7 +444,6 @@ function Checkout() {
                                         <div className='d-flex justify-content-end p-2'>
                                             <button className='btn btn-success' onClick={() => { setShowAddress(false); setShowProduct(false); setShowPayment(true) }}>Continue</button>
                                         </div>
-                                        {message && <p className='text-success'>{message}</p>}
                                     </div>
                                 ) : (
                                     <div>
@@ -491,11 +556,10 @@ function Checkout() {
                                         className="form-control"
                                         placeholder="Enter coupon code"
                                         value={couponCode}
-                                        onChange={(e) => { setCouponCode(e.target.value); setErrorMsg('') }}
+                                        onChange={(e) =>  setCouponCode(e.target.value)}
                                     />
                                     <button className="btn btn-primary" onClick={handleApplyCoupon}>Apply</button>
                                 </div>
-                                {errorMsg && <p className='text-danger mt-3'>{errorMsg}</p>}
                             </div>
                             <h3 className='mb-3 d-flex justify-content-center'>Price Details</h3>
                             <div className='d-flex justify-content-between'>

@@ -3,10 +3,13 @@ import Layout from '../Header/Layout';
 import './shoppingPage.css';
 import axiosInstance from '../../../config/axiosConfig';
 import { Link } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function ShoppingPage() {
     const [products, setProducts] = useState([]);
     const [cartProducts, setCartProducts] = useState([]);
+    const [wishlistProducts, setWishlistProducts] = useState([])
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [sortOption, setSortOption] = useState('default');
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -26,8 +29,11 @@ function ShoppingPage() {
         axiosInstance.get('/user/home/getProducts')
             .then(response => {
                 if (response.data.status) {
+                    console.log(response.data.offers);
                     setOffers(response.data.offers ? response.data.offers : []);
+                    console.log(response.data.wishlistProducts);
                     setCartProducts(response.data.cartProducts ? response.data.cartProducts : []);
+                    setWishlistProducts(response.data.wishlistProducts ? response.data.wishlistProducts : []);
                     setProducts(response.data.products);
                     setFilteredProducts(response.data.products);
                 }
@@ -117,7 +123,7 @@ function ShoppingPage() {
 
     const handlePriceRangeChange = (event) => {
         const { name, value } = event.target;
-        const newValue = Math.max(0, Number(value));  // Ensure the value is a number
+        const newValue = Math.max(0, Number(value));
 
         if (name === 'min') {
             setPriceRange(prev => [newValue, prev[1]]);
@@ -135,7 +141,17 @@ function ShoppingPage() {
         axiosInstance.post('/user/add-to-cart', { productId })
             .then(response => {
                 if (response.data.status) {
+                    toast.success("Added to Cart", {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
                     setCartProducts([...cartProducts, productId]);
+
                 }
             })
             .catch(error => {
@@ -146,7 +162,16 @@ function ShoppingPage() {
         axiosInstance.post('/user/add-to-wishlist', { productId })
             .then(response => {
                 if (response.data.status) {
-                    //setCartProducts([...cartProducts, productId]);
+                    toast.success("Added to Wishlist", {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
+                    setWishlistProducts([...wishlistProducts, productId])
                 }
             })
             .catch(error => {
@@ -171,9 +196,20 @@ function ShoppingPage() {
     };
 
 
+     // Reset Filters Function
+     const resetFilters = () => {
+        setSelectedCategory(null);
+        setSelectedColor(null);
+        setPriceRange([0, 1000000]);
+        setSearchTerm('');
+        setSortOption('default');
+    };
+
+
     return (
         <div>
             <Layout mainHeading={mainHeading} breadcrumbs={breadcrumbs} />
+            <ToastContainer />
             <div className='row col-md-12 p-5'>
                 <div className="mt-3 col-md-3 ">
                     <div className="row pe-5">
@@ -181,7 +217,6 @@ function ShoppingPage() {
                             <div className="head">Browse Categories</div>
                             <ul className="main-categories">
                                 {uniqueCategories.map((category, index) => {
-
                                     const applicableOffer = getApplicableOffer(category._id);
                                     return (
                                         <li key={index} className="main-nav-list">
@@ -281,12 +316,15 @@ function ShoppingPage() {
                                 />
                                 <i className="bi bi-search search-icon"></i>
                             </div>
+                            <button className="btn btn-secondary" onClick={resetFilters}>Reset Filters</button>
                         </div>
                         <div className="products-grid mt-4" style={{ 'grid-template-columns': 'repeat(4, 1fr)' }}>
                             {filteredProducts.map((product, index) => {
                                 const isInCart = Array.isArray(cartProducts) && cartProducts.includes(product._id);
+                                const isWishlist = Array.isArray(wishlistProducts) && wishlistProducts.includes(product._id)
                                 const applicableOffer = getApplicableOffer(product._id);
                                 const applicableCategoryOffer = getApplicableOffer(product.categoryId._id.toString());
+                                const inStock = product.variations[0].stock > 0;
 
                                 return (
                                     <div key={index} className="product-card ">
@@ -314,35 +352,47 @@ function ShoppingPage() {
                                                 </div>
                                             )}
                                         </div>
-
-                                        <div className="product-actions w-100 text-white justify-content-between">
-                                            <div className='d-flex gap-1'>
-                                                {!isInCart ? (
-                                                    <div className="product-background">
-                                                        <i className="bi bi-cart3" onClick={() => addToCart(product._id)}></i>
-                                                    </div>
-                                                ) : (
-                                                    <Link to={`/cart`}>
+                                        {inStock ? (
+                                            <div className="product-actions w-100 text-white justify-content-between">
+                                                <div className='d-flex gap-1'>
+                                                    {!isInCart ? (
                                                         <div className="product-background">
-                                                            <i class="bi bi-cart-check"></i>
+                                                            <i className="bi bi-cart3" onClick={() => addToCart(product._id)}></i>
+                                                        </div>
+                                                    ) : (
+                                                        <Link to={`/cart`}>
+                                                            <div className="product-background">
+                                                                <i class="bi bi-cart-check"></i>
+                                                            </div>
+                                                        </Link>
+                                                    )}
+                                                    {!isWishlist ? (
+                                                        <div className="product-background">
+                                                            <i className="bi bi-heart" onClick={() => addToWishlist(product._id)}></i>
+                                                        </div>
+                                                    ) : (
+                                                        <Link to={`/wishlist`}>
+                                                            <div className="product-background">
+                                                                <i class="bi bi-heart-half"></i>
+                                                            </div>
+                                                        </Link>
+                                                    )}
+
+                                                    <Link to={`/shop/${product._id}`}>
+                                                        <div className="product-background">
+                                                            <i className="bi bi-search"></i>
                                                         </div>
                                                     </Link>
-                                                )}
-                                                <div className="product-background">
-                                                    <i className="bi bi-heart" onClick={() => addToWishlist(product._id)}></i>
                                                 </div>
-                                                <Link to={`/shop/${product._id}`}>
-                                                    <div className="product-background">
-                                                        <i className="bi bi-search"></i>
-                                                    </div>
-                                                </Link>
+                                                <div>
+                                                    <Link to={`/checkout/${product._id}`}>
+                                                        <button className='btn border border-success text-white'>Buy</button>
+                                                    </Link>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <Link to={`/checkout/${product._id}`}>
-                                                    <button className='btn border border-success text-white'>Buy</button>
-                                                </Link>
-                                            </div>
-                                        </div>
+                                        ) : (
+                                            <h5 className='text-danger'>Out of Stock</h5>
+                                        )}
                                     </div>
                                 );
                             })}
