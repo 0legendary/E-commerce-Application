@@ -1,15 +1,19 @@
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv';
+import User from '../model/user.js';
 dotenv.config();
 
-const authenticateToken = (req, res, next) => {
+const authenticateToken =  (req, res, next) => {
     const authHeader = req.headers['authorization']
     const token = authHeader && authHeader.split(' ')[1]
     if (token === null || token === undefined) return res.status(401)  
 
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
         if (err) return res.status(401);
         req.user = user
+        console.log(user.email);
+        const userData = await User.findOne({email: user.email})
+        if(userData && userData.isBlocked)  return res.status(401)
         if (req.user.isAdmin) return res.status(401)
         next()
     })

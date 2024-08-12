@@ -9,16 +9,16 @@ function NewAddress({ handleCancel }) {
     const [states, setStates] = useState([]);
     const [errors, setErrors] = useState({})
     const [formData, setFormData] = useState({
-        name: 'Alen.m',
-        mobile: '9961689333',
-        pincode: '673301',
-        locality: 'Kinfra Kakancheri',
-        address: 'Kinfra industrial park',
-        city: 'Chelambra',
-        state: 'Kerala',
-        landmark: 'Kinfra Industrial park',
+        name: '',
+        mobile: '',
+        pincode: '',
+        locality: '',
+        address: '',
+        city: '',
+        state: '',
+        landmark: '',
         altPhone: '',
-        addressType: 'home',
+        addressType: '',
         isPrimary: false
     });
 

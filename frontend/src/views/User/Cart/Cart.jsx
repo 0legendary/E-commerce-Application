@@ -1,17 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import Layout from '../Header/Layout'
 import axiosInstance from '../../../config/axiosConfig';
-import { Modal, Button } from 'react-bootstrap';
+import { Button } from 'react-bootstrap';
 import './Cart.css'
 import { Link } from 'react-router-dom'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 function Cart() {
-    const [addresses, setAddresses] = useState([])
-    const [showAddressModal, setShowAddressModal] = useState(false);
-    const [selectedAddress, setSelectedAddress] = useState({});
-    const [initialAddress, setInitialAddress] = useState({});
     const [message, setMessage] = useState('')
     const mainHeading = "Cart";
     const breadcrumbs = [
@@ -20,19 +16,6 @@ function Cart() {
     const [cartItems, setCartItems] = useState([]);
 
     useEffect(() => {
-        axiosInstance.get('/user/addresses')
-            .then(response => {
-                if (response.data.status) {
-                    setAddresses(response.data.addresses)
-                    const primaryAddress = response.data.addresses.find(address => address.isPrimary);
-                    const initial = primaryAddress || response.data.addresses[0] || {};
-                    setSelectedAddress(initial);
-                    setInitialAddress(initial);
-                }
-            })
-            .catch(error => {
-                console.error('Error getting data:', error);
-            })
 
         axiosInstance.get('/user/get-cart-products')
             .then(response => {
@@ -45,38 +28,7 @@ function Cart() {
             });
     }, [])
 
-    const handleShowAddressModal = () => setShowAddressModal(true);
 
-    const handleCloseAddressModal = () => {
-        setSelectedAddress(initialAddress);
-        setShowAddressModal(false)
-    };
-
-    const handleAddressChange = (selectedAdd) => {
-        setSelectedAddress(selectedAdd);
-    };
-
-
-    const handleAddressSelection = async () => {
-        selectedAddress.isPrimary = true
-        setInitialAddress(selectedAddress)
-        setShowAddressModal(false)
-        await axiosInstance.put(`/user/update-address/${selectedAddress._id}`)
-            .then(response => {
-                if (response.data.status) {
-                    setAddresses(prevAddresses =>
-                        prevAddresses.map(preAddress =>
-                            preAddress._id === selectedAddress._id
-                                ? { ...preAddress, isPrimary: true }
-                                : { ...preAddress, isPrimary: false }
-                        )
-                    );
-                }
-            })
-            .catch(error => {
-                console.error('Error getting data:', error);
-            });
-    };
 
     const handleRemoveFromCart = async (item_id) => {
         axiosInstance.delete(`/user/delete-cart-items/${item_id}`)
@@ -168,31 +120,6 @@ function Cart() {
             <Layout mainHeading={mainHeading} breadcrumbs={breadcrumbs} />
             <ToastContainer/>
             <div className="container text-white p-3 mb-4 ">
-                <h5 className="mb-3">Primary Address</h5>
-                {selectedAddress ? (
-                    <div>
-                        <div key={selectedAddress._id} className={`address-card p-3 mb-3 border rounded position-relative ${selectedAddress.isPrimary ? 'border-success' : ''}`}>
-                            <div className="dropdown position-absolute top-0 end-0 p-2">
-                                <button className="btn btn-secondary" type="button" onClick={handleShowAddressModal}>
-                                    Change Address
-                                </button>
-                            </div>
-                            <div className="address-type mb-2">
-                                <strong>{selectedAddress.addressType}</strong>
-                            </div>
-                            <div className="address-details">
-                                <div className="mb-2">
-                                    <strong>{selectedAddress.name}</strong> - {selectedAddress.mobile}
-                                </div>
-                                <div>
-                                    {selectedAddress.address}, {selectedAddress.city}, {selectedAddress.state}, {selectedAddress.pincode}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                ) : (
-                    <p>No primary address available</p>
-                )}
                 {cartItems.length > 0 ? (
                     <div className="row">
                         <div className='col-md-8'>
@@ -255,36 +182,7 @@ function Cart() {
                         </Link>
                     </div>
                 )}
-                <Modal show={showAddressModal} onHide={handleCloseAddressModal}>
-                    <Modal.Header closeButton>
-                        <Modal.Title>Select Address</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                        {addresses.map(address => (
-                            <div key={address._id} className="form-check mb-2">
-                                <input
-                                    className="form-check-input"
-                                    type="radio"
-                                    name="address"
-                                    id={`address-${address._id}`}
-                                    onChange={() => handleAddressChange(address)}
-                                    checked={selectedAddress._id === address._id}
-                                />
-                                <label className="form-check-label" htmlFor={`address-${address._id}`}>
-                                    {address.name} - {address.address}, {address.city}, {address.state}, {address.pincode}
-                                </label>
-                            </div>
-                        ))}
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <Button variant="secondary" onClick={handleCloseAddressModal}>
-                            Close
-                        </Button>
-                        <Button variant="primary" onClick={handleAddressSelection}>
-                            Save Changes
-                        </Button>
-                    </Modal.Footer>
-                </Modal>
+                
             </div>
         </div>
     )

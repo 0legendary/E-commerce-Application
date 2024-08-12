@@ -71,15 +71,15 @@ const addProductformValidation = (product) => {
 
       if (!variation.price || isNaN(variation.price)) {
         newErrors[`variations[${index}].price`] = 'Valid price is required.';
-      }else if(variation.price <= 0){
+      }else if(parseFloat(variation.price) <= 0){
         newErrors[`variations[${index}].price`] = 'Positive number only'
       }
 
       if (!variation.discountPrice || isNaN(variation.discountPrice)) {
         newErrors[`variations[${index}].discountPrice`] = 'Valid discount price is required.';
-      }else if(variation.discountPrice <= 0){
+      }else if(parseFloat(variation.discountPrice) <= 0){
         newErrors[`variations[${index}].discountPrice`] = 'Positive number only'
-      }else if(variation.discountPrice > variation.price){
+      }else if(parseFloat(variation.discountPrice) > parseFloat(variation.price)){
         newErrors[`variations[${index}].discountPrice`] = 'Must be less than Regular price'
       }
 

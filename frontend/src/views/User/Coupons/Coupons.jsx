@@ -7,7 +7,6 @@ function Coupons() {
     axiosInstance.get('/user/get-coupons')
       .then(response => {
         if (response.data.status) {
-          console.log(response.data.coupons);
           setCoupons(response.data.coupons);
         }
       })
