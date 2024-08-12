@@ -13,16 +13,16 @@ function AddProduct() {
   const [successMsg, setSuccessMsg] = useState('');
 
   const [product, setProduct] = useState({
-    name: 'Adidas ULTRA 4DFWD SHOES',
-    description: 'RUNNING SHOES DESIGNED TO MOVE YOU FORWARD, MADE IN PART WITH PARLEY OCEAN PLASTIC.',
-    categoryId: '669789676290d67ae6e8adf0',
-    brand: 'Adidas',
-    variations: [{ size: 3, stock: 23, color: ['Red', 'Grey', 'White', 'Black'], price: 1000, discountPrice: 354, weight: 345 }],
-    material: 'Rubber outsole',
+    name: '',
+    description: '',
+    categoryId: '',
+    brand: '',
+    variations: [],
+    material: '',
     mainImage: null,
     additionalImages: [],
-    gender: 'unisex',
-    season: 'all-seasons',
+    gender: '',
+    season: '',
   });
 
 
@@ -134,9 +134,7 @@ function AddProduct() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     let Errors = {};
-    console.log(product);
     Errors = addProductformValidation(product);
-    console.log(Errors);
     setNewErrors(Errors);
     if (Object.keys(Errors).length === 0) {
       const mainImageBase64 = await convertFileToBase64(product.mainImage.file);
@@ -213,98 +211,7 @@ function AddProduct() {
             </div>
           </div>
           <div className='w-50'>
-            <div className="form-group">
-              <label htmlFor="variations">Variations</label>
-              {product.variations.map((variation, index) => (
-                <div key={index} className="variation w-100 d-flex border gap-3 border-secondary">
-                  <div className='w-50 m-2'>
-                    <div className='form-group '>
-                      <label htmlFor="size">Size</label>
-                      <input
-                        type="number"
-                        name="size"
-                        className="form-control"
-                        value={variation.size}
-                        onChange={(e) => handleVariationChange(index, e)}
-                        placeholder="Size"
-                      />
-                      {newErrors[`variations[${index}].size`] && <div className="error">{newErrors[`variations[${index}].size`]}</div>}
-                    </div>
-                    <div className='form-group'>
-                      <label htmlFor="size">Color</label>
-                      <div>
-                        {colors.map(color => (
-                          <div key={color}>
-                            <input
-                              type="checkbox"
-                              name="color"
-                              value={color}
-                              checked={variation.color.includes(color)}
-                              onChange={(e) => handleColorChange(index, e)}
-                            />
-                            <label>{color}</label>
-                          </div>
-                        ))}
-                      </div>
-                      {newErrors[`variations[${index}].color`] && <div className="error">{newErrors[`variations[${index}].color`]}</div>}
-                    </div>
-                    <div className='form-group'>
-                      <label htmlFor="price">Price</label>
-                      <input
-                        className="form-control"
-                        type="number"
-                        name="price"
-                        value={variation.price}
-                        onChange={(e) => handleVariationChange(index, e)}
-                        placeholder="Price"
-                      />
-                      {newErrors[`variations[${index}].price`] && <div className="error">{newErrors[`variations[${index}].price`]}</div>}
-                    </div>
-                  </div>
 
-                  <div className='w-50  m-2'>
-                    <div className='form-group'>
-                      <label htmlFor="stock">Stock</label>
-                      <input
-                        type="number"
-                        name="stock"
-                        className="form-control"
-                        value={variation.stock}
-                        onChange={(e) => handleVariationChange(index, e)}
-                        placeholder="Stock"
-                      />
-                      {newErrors[`variations[${index}].stock`] && <div className="error">{newErrors[`variations[${index}].stock`]}</div>}
-                    </div>
-                    <div className='form-group'>
-                      <label htmlFor="weight">Weight</label>
-                      <input
-                        className="form-control"
-                        type="number"
-                        name="weight"
-                        value={variation.weight}
-                        onChange={(e) => handleVariationChange(index, e)}
-                        placeholder="Weight"
-                      />
-                      {newErrors[`variations[${index}].weight`] && <div className="error">{newErrors[`variations[${index}].weight`]}</div>}
-                    </div>
-                    <div className='form-group'>
-                      <label htmlFor="discountePrice">Discount Price</label>
-                      <input
-                        className="form-control"
-                        type="number"
-                        name="discountPrice"
-                        value={variation.discountPrice}
-                        onChange={(e) => handleVariationChange(index, e)}
-                        placeholder="Discount Price"
-                      />
-                      {newErrors[`variations[${index}].discountPrice`] && <div className="error">{newErrors[`variations[${index}].discountPrice`]}</div>}
-                    </div>
-                    <button type="button" className='btn btn-danger btn-remove' onClick={() => removeVariation(index)}>Remove</button>
-                  </div>
-                </div>
-              ))}
-              <button type="button" className='btn btn-success mt-2' onClick={addVariation}>Add Variation</button>
-            </div>
 
             <div className="form-group">
               <label htmlFor="category">Category</label>
@@ -321,6 +228,18 @@ function AddProduct() {
                 ))}
               </select>
               {newErrors.category && <div className="error">{newErrors.category}</div>}
+            </div>
+            <div className="form-group">
+              <label htmlFor="material">Material</label>
+              <input
+                type="text"
+                className="form-control"
+                id="material"
+                name="material"
+                value={product.material}
+                onChange={handleInputChange}
+              />
+              {newErrors.material && <div className="error">{newErrors.material}</div>}
             </div>
           </div>
         </div>
@@ -371,19 +290,99 @@ function AddProduct() {
               </select>
               {newErrors.season && <div className="error">{newErrors.season}</div>}
             </div>
-            <div className="form-group">
-              <label htmlFor="material">Material</label>
-              <input
-                type="text"
-                className="form-control"
-                id="material"
-                name="material"
-                value={product.material}
-                onChange={handleInputChange}
-              />
-              {newErrors.material && <div className="error">{newErrors.material}</div>}
-            </div>
           </div>
+        </div>
+        <div className="form-group">
+          <label htmlFor="variations">Variations</label>
+          {product.variations.map((variation, index) => (
+            <div key={index} className="variation w-100 d-flex border gap-3 border-secondary">
+              <div className='w-50 m-2'>
+                <div className='form-group '>
+                  <label htmlFor="size">Size</label>
+                  <input
+                    type="number"
+                    name="size"
+                    className="form-control"
+                    value={variation.size}
+                    onChange={(e) => handleVariationChange(index, e)}
+                    placeholder="Size"
+                  />
+                  {newErrors[`variations[${index}].size`] && <div className="error">{newErrors[`variations[${index}].size`]}</div>}
+                </div>
+                <div className='form-group'>
+                  <label htmlFor="size">Color</label>
+                  <div>
+                    {colors.map(color => (
+                      <div key={color}>
+                        <input
+                          type="checkbox"
+                          name="color"
+                          value={color}
+                          checked={variation.color.includes(color)}
+                          onChange={(e) => handleColorChange(index, e)}
+                        />
+                        <label>{color}</label>
+                      </div>
+                    ))}
+                  </div>
+                  {newErrors[`variations[${index}].color`] && <div className="error">{newErrors[`variations[${index}].color`]}</div>}
+                </div>
+                <div className='form-group'>
+                  <label htmlFor="price">Price</label>
+                  <input
+                    className="form-control"
+                    type="number"
+                    name="price"
+                    value={variation.price}
+                    onChange={(e) => handleVariationChange(index, e)}
+                    placeholder="Price"
+                  />
+                  {newErrors[`variations[${index}].price`] && <div className="error">{newErrors[`variations[${index}].price`]}</div>}
+                </div>
+              </div>
+
+              <div className='w-50  m-2'>
+                <div className='form-group'>
+                  <label htmlFor="stock">Stock</label>
+                  <input
+                    type="number"
+                    name="stock"
+                    className="form-control"
+                    value={variation.stock}
+                    onChange={(e) => handleVariationChange(index, e)}
+                    placeholder="Stock"
+                  />
+                  {newErrors[`variations[${index}].stock`] && <div className="error">{newErrors[`variations[${index}].stock`]}</div>}
+                </div>
+                <div className='form-group'>
+                  <label htmlFor="weight">Weight</label>
+                  <input
+                    className="form-control"
+                    type="number"
+                    name="weight"
+                    value={variation.weight}
+                    onChange={(e) => handleVariationChange(index, e)}
+                    placeholder="Weight"
+                  />
+                  {newErrors[`variations[${index}].weight`] && <div className="error">{newErrors[`variations[${index}].weight`]}</div>}
+                </div>
+                <div className='form-group'>
+                  <label htmlFor="discountePrice">Discount Price</label>
+                  <input
+                    className="form-control"
+                    type="number"
+                    name="discountPrice"
+                    value={variation.discountPrice}
+                    onChange={(e) => handleVariationChange(index, e)}
+                    placeholder="Discount Price"
+                  />
+                  {newErrors[`variations[${index}].discountPrice`] && <div className="error">{newErrors[`variations[${index}].discountPrice`]}</div>}
+                </div>
+                <button type="button" className='btn btn-danger btn-remove' onClick={() => removeVariation(index)}>Remove</button>
+              </div>
+            </div>
+          ))}
+          <button type="button" className='btn btn-success mt-2' onClick={addVariation}>Add Variation</button>
         </div>
         <div className="form-group">
           <label htmlFor="mainImage">Main Image</label>

@@ -1208,5 +1208,16 @@ router.post('/apply-coupon', authenticateToken, async (req, res) => {
 });
 
 
+//coupons
+router.get('/get-coupons', authenticateToken, async (req, res) => {
+  try {
+      const coupons = await Coupon.find({})
+      res.status(201).json({ status: true, coupons: coupons });
+  } catch (error) {
+      res.status(500).json({ error: 'Error fetching products' });
+  }
+});
+
+
 export default router;
 

@@ -39,6 +39,7 @@ import Wishlist from './views/User/WishList/Wishlist';
 import Coupon from './views/Admin/Coupon/Coupon';
 import Offer from './views/Admin/Offer/Offer';
 import Dashboard from './views/Admin/Dashboard/Dashboard';
+import Coupons from './views/User/Coupons/Coupons';
 
 
 const UserLayout = () => {
@@ -103,6 +104,7 @@ function App() {
             <Route path="" element={<ProfileHome />}>
               <Route path="settings" element={<AccountSettings />} />
               <Route path="address" element={<Address />} />
+              <Route path="coupons" element={<Coupons />} />
             </Route>
           </Route>
         </Route>

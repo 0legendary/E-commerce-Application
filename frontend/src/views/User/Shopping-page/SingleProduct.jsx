@@ -3,6 +3,9 @@ import './SingleProduct.css';
 import axiosInstance from '../../../config/axiosConfig';
 import { Link, useParams } from 'react-router-dom';
 import ReactImageMagnify from 'react-image-magnify';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 function SingleProduct() {
   const { id } = useParams();
@@ -60,7 +63,7 @@ function SingleProduct() {
       selectedStock: selectedVariation.stock,
       selectedColor,
       selectedSize: selectedVariation.size,
-      categoryId:product.categoryId._id
+      categoryId: product.categoryId._id
     })
       .then(response => {
         if (response.data.status) {
@@ -78,19 +81,32 @@ function SingleProduct() {
     cartProduct.selectedSize == selectedVariation?.size
   );
 
-  const getApplicableOffer = (productId) => {
-    const currentDate = new Date();
-    return offers.find(offer =>
-      offer.applicableTo.includes(productId) &&
-      new Date(offer.startDate) <= currentDate &&
-      new Date(offer.endDate) >= currentDate
-    );
-  };
 
+  const addToWishlist = async (productId) => {
+    console.log(productId);
+    axiosInstance.post('/user/add-to-wishlist', { productId })
+        .then(response => {
+            if (response.data.status) {
+                toast.success("Added to Wishlist", {
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "dark",
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error sending data:', error);
+        });
+};
 
 
   return (
     <div className="container" style={{ marginTop: '15rem', color: 'white' }}>
+      <ToastContainer />
       <div className="container">
         {product.name ? (
           <div className="product-details">
@@ -191,14 +207,19 @@ function SingleProduct() {
                 {selectedColor && selectedVariation ? (
                   isProductInCart ? (
                     <Link to='/cart'>
-                      <button className="btn btn-secondary">Go to Cart</button>
+                      <button className="btn btn-secondary me-2">Go to Cart</button>
                     </Link>
                   ) : (
-                    <button className="btn btn-primary" onClick={handleAddToCart}>Add to Cart</button>
+                    <button className="btn border border-success text-white me-2" onClick={handleAddToCart}>Add to Cart</button>
                   )
                 ) : (
                   <button className="btn btn-primary" disabled>Add to Cart</button>
                 )}
+                {/* <button className='btn btn-success me-2'>Buy now</button> */}
+                <Link to={`/checkout/${product._id}`}>
+                  <button className='btn border border-success text-white me-2'>Buy now</button>
+                </Link>
+                <button className='btn border border-success text-white' onClick={() => addToWishlist(product._id)}>Add to wishlist</button>
               </div>
             </div>
           </div>

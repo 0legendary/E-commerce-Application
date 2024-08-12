@@ -153,11 +153,20 @@ const Dashboard = () => {
                     new Date(order.orderDate).toLocaleDateString() === new Date(startDate).toLocaleDateString()
                 );
             case 'weekly':
-                const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
-                return ordersData.filter(order => {
-                    const orderDate = new Date(order.orderDate);
-                    return orderDate >= startOfWeek && orderDate <= now;
-                });
+                const startOfWeek = new Date(now);
+            startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+            // Reset the time to midnight for startOfWeek
+            startOfWeek.setHours(0, 0, 0, 0);
+
+            // End of week is 6 days after the start of the week
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            endOfWeek.setHours(23, 59, 59, 999);
+
+            return ordersData.filter(order => {
+                const orderDate = new Date(order.orderDate);
+                return orderDate >= startOfWeek && orderDate <= endOfWeek;
+            });
             case 'monthly':
                 const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
                 return ordersData.filter(order => {

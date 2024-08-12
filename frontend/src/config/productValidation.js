@@ -17,7 +17,7 @@ const addProductformValidation = (product) => {
     newErrors.description = 'Description must be at least 40 characters long.';
   }
 
-    if (!product.categoryId) {
+  if (!product.categoryId) {
     newErrors.category = 'Category is required.';
   }
 
@@ -55,22 +55,50 @@ const addProductformValidation = (product) => {
     product.variations.forEach((variation, index) => {
       if (!variation.size) {
         newErrors[`variations[${index}].size`] = 'Size is required.';
+      }else if(isNaN(variation.size) ){
+        newErrors[`variations[${index}].size`] = 'Only number is allowed'
+      }else if(variation.size <= 0){
+        newErrors[`variations[${index}].size`] = 'Positive number only'
+      }else if(variation.size >= 13){
+        newErrors[`variations[${index}].size`] = 'Enter valid shoes size'
       }
+
       if (!variation.stock || isNaN(variation.stock)) {
         newErrors[`variations[${index}].stock`] = 'Valid stock is required.';
+      }else if(variation.stock < 0){
+        newErrors[`variations[${index}].stock`] = 'Positive number only'
       }
+
       if (!variation.price || isNaN(variation.price)) {
         newErrors[`variations[${index}].price`] = 'Valid price is required.';
+      }else if(variation.price <= 0){
+        newErrors[`variations[${index}].price`] = 'Positive number only'
       }
+
       if (!variation.discountPrice || isNaN(variation.discountPrice)) {
         newErrors[`variations[${index}].discountPrice`] = 'Valid discount price is required.';
+      }else if(variation.discountPrice <= 0){
+        newErrors[`variations[${index}].discountPrice`] = 'Positive number only'
+      }else if(variation.discountPrice > variation.price){
+        newErrors[`variations[${index}].discountPrice`] = 'Must be less than Regular price'
       }
+
+      
+
       if (!variation.weight || isNaN(variation.weight)) {
         newErrors[`variations[${index}].weight`] = 'Valid weight is required.';
+      }else if(variation.weight < 0){
+        newErrors[`variations[${index}].weight`] = 'Positive number only'
       }
+
       if (!variation.color || variation.color.length === 0) {
         newErrors[`variations[${index}].color`] = 'At least one color is required.';
+      }else if(variation.color < 0){
+        newErrors[`variations[${index}].color`] = 'Positive number only'
       }
+
+      
+      
     });
   }
   return newErrors;
