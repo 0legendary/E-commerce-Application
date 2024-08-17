@@ -195,9 +195,9 @@ const Dashboard = () => {
 
         // Add Summary
         doc.setFontSize(16);
-        doc.text(`Total Sales: $₹{totalSales}`, 14, 40);
+        doc.text(`Total Sales: ${totalSales} Rs`, 14, 40);
         doc.text(`Number of Orders: ${totalOrders}`, 14, 50);
-        doc.text(`Average Order Value: $₹{averageOrderVal}`, 14, 60);
+        doc.text(`Average Order Value: ${averageOrderVal} Rs`, 14, 60);
         doc.text(`Discount Impact: ${discountImpact}%`, 14, 70);
         doc.text(`Return Rate: ${returnRate}%`, 14, 80);
 

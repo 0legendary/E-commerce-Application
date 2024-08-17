@@ -8,7 +8,6 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 function Cart() {
-    const [message, setMessage] = useState('')
     const mainHeading = "Cart";
     const breadcrumbs = [
         { name: "Home", path: "/" },
@@ -34,7 +33,7 @@ function Cart() {
         axiosInstance.delete(`/user/delete-cart-items/${item_id}`)
             .then(response => {
                 if (response.data.status) {
-                    toast.success("Removed from cart", {
+                    toast.error("Removed from cart", {
                         autoClose: 1000,
                         hideProgressBar: false,
                         closeOnClick: true,
@@ -62,20 +61,51 @@ function Cart() {
 
                 if (newQuantity > maxLimit) {
                     newQuantity = maxLimit;
-                    setMessage(`Maximum ${newQuantity} can added for ${item.name}`)
+                    toast.error(`Maximum ${newQuantity} can added for ${item.name}`, {
+                        autoClose: 1000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
                 }
-                if (newQuantity > stockAvailable) {
+                else if (newQuantity > stockAvailable) {
                     newQuantity = stockAvailable;
-                    setMessage(`${item.selectedStock} stock are available for ${item.name}`)
+                    toast.error(`${item.selectedStock} stock are available for ${item.name}`, {
+                        autoClose: 1000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
                 }
-                if (newQuantity < 1) {
+                else if (newQuantity < 1) {
                     newQuantity = 1;
-                    setMessage(`Minimum ${newQuantity} are required`)
+                    toast.error(`Minimum ${newQuantity} are required`, {
+                        autoClose: 1000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
+                }else{
+                    toast.success(`You've changed ${item.name} QUANTITY to ${newQuantity}`, {
+                        autoClose: 1000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
                 }
-                setMessage(`You've changed ${item.name} QUANTITY to ${newQuantity}`)
-                setTimeout(() => {
-                    setMessage('')
-                }, 2000);
+                
                 return { ...item, quantity: newQuantity };
             }
             return item;
@@ -156,7 +186,6 @@ function Cart() {
                                         </div>
                                     </div>
                                 ))}
-                                {message && <p className='text-success'>{message}</p>}
                             </div>
                         </div>
                         <div className='col-md-4'>

@@ -75,7 +75,7 @@ function Address() {
         try {
             const response = await axiosInstance.delete(`/user/delete-address/${add_id}`);
             if (response.data.status) {
-                toast.success('Address deleted', {
+                toast.error('Address deleted', {
                     autoClose: 2000,
                     hideProgressBar: false,
                     closeOnClick: true,

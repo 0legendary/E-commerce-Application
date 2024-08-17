@@ -62,11 +62,22 @@ function Checkout() {
     }, [product_Id]);
 
     useEffect(() => {
-        const initialPriceDetails = calculatePriceDetails(products, {}, offers);
-        setPriceDetails(initialPriceDetails);
+        calculatePriceDetails(products);
+        
         // eslint-disable-next-line 
     }, [products]);
 
+    const updateOfferPrices = () => {
+        console.log(couponAvailable);
+        const updatedProducts = products.map(item => {
+            const offerPrice = getApplicableOffer(item.productId, item.categoryId, item.discountedPrice);
+            return {
+                ...item,
+                offerDiscountPrice: offerPrice > 0 ? offerPrice : 0
+            };
+        });
+        setProducts(updatedProducts);
+    };
 
     const handelNewAddress = () => {
         setNewAddress(true)
@@ -130,7 +141,7 @@ function Checkout() {
                 if (newQuantity > maxLimit) {
                     newQuantity = maxLimit;
                     toast.error(`Maximum ${newQuantity} can added for ${item.name}`, {
-                        autoClose: 2000,
+                        autoClose: 3000,
                         hideProgressBar: false,
                         closeOnClick: true,
                         pauseOnHover: false,
@@ -141,7 +152,7 @@ function Checkout() {
                 } else if (newQuantity > stockAvailable) {
                     newQuantity = stockAvailable;
                     toast.error(`${item.selectedStock} stock are available for ${item.name}`, {
-                        autoClose: 2000,
+                        autoClose: 3000,
                         hideProgressBar: false,
                         closeOnClick: true,
                         pauseOnHover: false,
@@ -152,7 +163,7 @@ function Checkout() {
                 } else if (newQuantity < 1) {
                     newQuantity = 1;
                     toast.error(`Minimum ${newQuantity} are required`, {
-                        autoClose: 2000,
+                        autoClose: 3000,
                         hideProgressBar: false,
                         closeOnClick: true,
                         pauseOnHover: false,
@@ -162,7 +173,7 @@ function Checkout() {
                     });
                 } else {
                     toast.success(`You've changed ${item.name} QUANTITY to ${newQuantity}`, {
-                        autoClose: 2000,
+                        autoClose: 3000,
                         hideProgressBar: false,
                         closeOnClick: true,
                         pauseOnHover: false,
@@ -188,7 +199,7 @@ function Checkout() {
         axiosInstance.delete(`/user/delete-cart-items/${item_id}`)
             .then(response => {
                 if (response.data.status) {
-                    toast.success("Prouct removed", {
+                    toast.error("Prouct removed", {
                         autoClose: 1000,
                         hideProgressBar: false,
                         closeOnClick: true,
@@ -207,7 +218,7 @@ function Checkout() {
 
 
 
-    const calculatePriceDetails = (cartItems, couponAvailable, offers) => {
+    const calculatePriceDetails = (cartItems) => {
         let totalPrice = 0;
         let totalDiscount = 0;
         let offerDiscount = 0;
@@ -224,28 +235,29 @@ function Checkout() {
 
 
         let totalAmount = totalPrice - totalDiscount;
-        if (couponAvailable && couponAvailable.discount) totalAmount -= couponAvailable.discount;
 
         let deliveryCharge = totalAmount > 500 ? 0 : 50
         if (deliveryCharge > 0) totalAmount += 50
 
         totalAmount -= offerDiscount
 
-        return {
+        setPriceDetails({
             itemCount: cartItems.reduce((total, item) => total + item.quantity, 0),
             totalPrice,
             totalDiscount,
             totalAmount,
             deliveryCharge,
             offerDiscount
-        };
+        });
+
+        getCouponDetails(couponAvailable.couponCode, totalAmount)
     };
 
 
     const handleApplyCoupon = () => {
         if(!couponCode) {
             toast.error('Please enter coupon code', {
-                autoClose: 2000,
+                autoClose: 3000,
                 hideProgressBar: false,
                 closeOnClick: true,
                 pauseOnHover: false,
@@ -261,7 +273,7 @@ function Checkout() {
                 if (response.data.status) {
                     setCouponAvailable(response.data.coupon)
                     toast.success("Coupon Applied", {
-                        autoClose: 2000,
+                        autoClose: 3000,
                         hideProgressBar: false,
                         closeOnClick: true,
                         pauseOnHover: false,
@@ -269,11 +281,9 @@ function Checkout() {
                         progress: undefined,
                         theme: "dark",
                     });
-                    const updatedPriceDetails = calculatePriceDetails(products, response.data.coupon);
-                    setPriceDetails(updatedPriceDetails);
                 } else {
                     toast.error(response.data.message, {
-                        autoClose: 2000,
+                        autoClose: 3000,
                         hideProgressBar: false,
                         closeOnClick: true,
                         pauseOnHover: false,
@@ -282,14 +292,11 @@ function Checkout() {
                         theme: "dark",
                     });
                     setCouponAvailable({})
-                    const updatedPriceDetails = calculatePriceDetails(products);
-                    setPriceDetails(updatedPriceDetails);
+                   
                 }
             })
             .catch(error => {
                 setCouponAvailable({})
-                const updatedPriceDetails = calculatePriceDetails(products);
-                setPriceDetails(updatedPriceDetails);
                 console.error('Error getting data:', error);
             });
     };
@@ -297,32 +304,51 @@ function Checkout() {
 
     const getApplicableOffer = (productId, categoryId, price) => {
         const currentDate = new Date();
-
-        // Filter offers based on applicability and date validity
-        const applicableOffers = offers.filter(offer =>
+        const applicableOffers = offers.filter(offer => 
             (offer.applicableTo.includes(productId) || offer.applicableTo.includes(categoryId)) &&
             new Date(offer.startDate) <= currentDate &&
             new Date(offer.endDate) >= currentDate &&
             offer.isActive
         );
 
-        // Calculate the maximum discount based on the offers
-        const discount = applicableOffers.reduce((maxDiscount, offer) => {
-            const offerDiscount = offer.discountAmount + (price * offer.discountPercentage / 100);
-            return Math.max(maxDiscount, offerDiscount);
+        const discount = applicableOffers.reduce((totalDiscount, offer) => {
+            let offerDiscount = 0;
+            if (offer.discountAmount) {
+                offerDiscount += offer.discountAmount;
+            }
+            if (offer.discountPercentage) {
+                offerDiscount += price * (offer.discountPercentage / 100);
+            }
+            return totalDiscount + offerDiscount;
         }, 0);
 
         return discount;
     };
 
+    const getCouponDetails = (code , totalAmount) => {
+        axiosInstance.post('/user/apply-coupon', { code: code, orderAmount: totalAmount })
+            .then(response => {
+                if (response.data.status) {
+                    setCouponAvailable(response.data.coupon)
 
+                } else {
+
+                    setCouponAvailable({})
+                   
+                }
+            })
+            .catch(error => {
+                setCouponAvailable({})
+                console.error('Error getting data:', error);
+            });
+    }
 
     return (
         <div className='checkout'>
             <Layout mainHeading={mainHeading} breadcrumbs={breadcrumbs} />
             <ToastContainer />
             <div className='container text-white'>
-
+            
                 <div className='row'>
                     <div className='col-md-8'>
                         {showAddress ? (
@@ -403,8 +429,9 @@ function Checkout() {
                                 {products.length > 0 ? (
                                     <div>
                                         {products.map(item => {
-
-                                            const offerPrice = getApplicableOffer(item._id, item.categoryId, item.discountedPrice)
+                                            console.log(item);
+                                            const offerPrice = getApplicableOffer(item.productId, item.categoryId, item.discountedPrice)
+                                            
                                             const finalPrice = item.discountedPrice - offerPrice
                                             return (
                                                 <div key={item._id} className="cart-item d-flex align-items-center mb-3 border rounded p-3">
@@ -442,7 +469,7 @@ function Checkout() {
                                             )
                                         })}
                                         <div className='d-flex justify-content-end p-2'>
-                                            <button className='btn btn-success' onClick={() => { setShowAddress(false); setShowProduct(false); setShowPayment(true) }}>Continue</button>
+                                            <button className='btn btn-success' onClick={() => { setShowAddress(false); setShowProduct(false); setShowPayment(true); updateOfferPrices() }}>Continue</button>
                                         </div>
                                     </div>
                                 ) : (
@@ -581,10 +608,11 @@ function Checkout() {
                             <div className='d-flex justify-content-between'>
                                 <p>Coupons applied: {couponAvailable.couponCode}</p>
                                 <p>{couponAvailable.couponCode ? `- ₹${couponAvailable.discount}` : `₹0`}</p>
+                                {/* <p>{getCouponDetails(couponAvailable, priceDetails.totalAmount)}</p> */}
                             </div>
                             <div className='d-flex justify-content-between'>
                                 <p>Total Amount:</p>
-                                <p> ₹{priceDetails.totalAmount}</p>
+                                <p> ₹{couponAvailable.discount ? priceDetails.totalAmount - couponAvailable.discount : priceDetails.totalAmount}</p>
                             </div>
                         </div>
                     </div>

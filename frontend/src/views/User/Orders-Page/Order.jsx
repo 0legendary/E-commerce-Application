@@ -5,6 +5,7 @@ import './Order.css';
 import DetailedOrder from './DetailedOrder';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Invoice from '../Invoice/Invoice';
 
 function Order() {
     const [orders, setOrders] = useState([]);
@@ -157,6 +158,7 @@ function Order() {
                                     <p className="order-purchase-date d-flex justify-content-end">
                                         Purchased on: {new Date(order.orderDate).toLocaleDateString()} at {new Date(order.orderDate).toLocaleTimeString()}
                                     </p>
+                                    <Invoice order={order}/>
                                 </div>
                             ))}
                     </div>

@@ -27,7 +27,7 @@ function Wishlist() {
         axiosInstance.delete(`/user/delete-wishlist-item/${product_id}`)
             .then(response => {
                 if (response.data.status) {
-                    toast.success("Removed from wishlist", {
+                    toast.error("Removed from wishlist", {
                         autoClose: 2000,
                         hideProgressBar: false,
                         closeOnClick: true,

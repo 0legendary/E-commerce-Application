@@ -6,7 +6,7 @@ import OrderSuccess from './OrderSuccess';
 function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, products, paymentMethod, checkoutId, coupon, offerDiscount }) {
   const [currentUser, setCurrentUser] = useState({})
   const [showSuccessPage, setShowSuccessPage] = useState(false)
-  const [orderAddress, setOrderAddress] = useState({})
+  const [orderDetailsData, setOrderDetailsData] = useState({})
   const navigate = useNavigate()
   console.log(products);
   useEffect(() => {
@@ -23,7 +23,7 @@ function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, product
   }, []);
 
   const handlePayment = async () => {
-
+    
     const orderDetails = {
       customerId: address.userId,
       shippingAddress: {
@@ -39,22 +39,28 @@ function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, product
         altPhone: address.altPhone
       },
       paymentMethod: paymentMethod,
-      orderTotal: amount,
+      orderTotal: coupon.discount ? amount - coupon.discount : amount,
       shippingCost: deliveryCharge,
       discountAmount: totalDiscount,
       couponID: coupon.couponID ? coupon.couponID : null,
-      couponDiscount: coupon.discount ? coupon.discount : 0,
+      couponDiscount: coupon.discountPercentage ? coupon.discountPercentage : 0,
       offerDiscount: offerDiscount > 0 ? offerDiscount : 0,
-      products: products.map(product => ({
-        productId: product.productId,
-        productName: product.name,
-        quantity: product.quantity,
-        selectedColor: product.selectedColor,
-        selectedSize: product.selectedSize,
-        price: product.price,
-        discountPrice: product.discountedPrice,
-        totalPrice: product.quantity * product.price
-      }))
+      products: products.map(product => {
+        const offerDiscountPrice = product.offerDiscountPrice || 0;
+        const discountPrice = product.discountedPrice - offerDiscountPrice;
+        const totalPrice = product.quantity * discountPrice;
+        return {
+          productId: product.productId,
+          productName: product.name,
+          quantity: product.quantity,
+          selectedColor: product.selectedColor,
+          selectedSize: product.selectedSize,
+          price: product.price,
+          discountPrice: discountPrice,
+          offerDiscount: offerDiscountPrice,
+          totalPrice: totalPrice
+        };
+      })
     }
     const initPayment = async (paymentData) => {
       const options = {
@@ -68,7 +74,7 @@ function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, product
           axiosInstance.post('/user/payment/verify', { response, orderDetails, checkoutId })
             .then(response => {
               if (response.data.status) {
-                setOrderAddress(orderDetails.shippingAddress)
+                setOrderDetailsData(response.data.order)
                 setShowSuccessPage(true)
               } else {
                 setShowSuccessPage(false)
@@ -97,7 +103,7 @@ function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, product
     }
 
     try {
-      const { data } = await axiosInstance.post('/user/payments', { amount: amount })
+      const { data } = await axiosInstance.post('/user/payments', { amount: coupon.discount ? amount - coupon.discount : amount })
       initPayment(data.data)
     } catch (error) {
       console.log(error);
@@ -108,7 +114,7 @@ function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, product
     <div>
       <button className='btn btn-success m-3' onClick={handlePayment}>Pay with Razorpay</button>
       {showSuccessPage && (
-        <OrderSuccess onClose={() => navigate('/orders')} address={orderAddress} />
+        <OrderSuccess onClose={() => navigate('/orders')} order={orderDetailsData} />
       )}
     </div>
   )

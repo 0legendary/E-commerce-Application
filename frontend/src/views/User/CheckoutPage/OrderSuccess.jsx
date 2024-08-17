@@ -1,18 +1,20 @@
 import React, { useEffect } from 'react';
 import './OrderSuccess.css';
+import Invoice from '../Invoice/Invoice';
 
-function OrderSuccess({ onClose, address }) {
-    console.log(address);
+function OrderSuccess({ onClose, order }) {
+    //console.log(order);
 
-    const currentDate = new Date().toLocaleDateString();    useEffect(() => {
+    const currentDate = new Date().toLocaleDateString();
+    useEffect(() => {
         const timer = setTimeout(() => {
             onClose();
-        }, 3000);
+        }, 30000);
         return () => clearTimeout(timer);
     }, [onClose]);
 
     return (
-        <div className='success-page'>
+        <div className='success-page '>
             <div className="order-success-overlay">
                 <div className="order-success-content">
                     <h1 className="success-title">Order Placed Successfully!</h1>
@@ -22,14 +24,17 @@ function OrderSuccess({ onClose, address }) {
                         <p><strong>Order Date:</strong> {currentDate}</p>
                         <p><strong>Delivery Address:</strong></p>
                         <address className='text-dark'>
-                            {address.name} <br />
-                            {address.address}, <br />
-                            {address.city}, {address.state}, {address.pincode}
+                            {order.shippingAddress.name} <br />
+                            {order.shippingAddress.address}, <br />
+                            {order.shippingAddress.city}, {order.shippingAddress.state}, {order.shippingAddress.pincode}
                         </address>
+                        <div className="button-container">
+                            <a href="/" className="btn btn-primary">Continue Shopping</a>
+                            <a href="/orders" className="btn btn-secondary">View Orders</a>
+                        </div>
                     </div>
-                    <div className="button-container">
-                        <a href="/" className="btn btn-primary">Continue Shopping</a>
-                        <a href="/orders" className="btn btn-secondary">View Orders</a>
+                    <div className='mt-5'>
+                        <Invoice order={order} />
                     </div>
                 </div>
             </div>

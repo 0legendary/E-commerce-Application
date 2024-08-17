@@ -17,7 +17,8 @@ function ShoppingPage() {
     const [priceRange, setPriceRange] = useState([0, 1000000]);
     const [searchTerm, setSearchTerm] = useState('');
     const [offers, setOffers] = useState([])
-
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 8;
 
     const mainHeading = "Shop Category";
     const breadcrumbs = [
@@ -196,15 +197,27 @@ function ShoppingPage() {
     };
 
 
-     // Reset Filters Function
-     const resetFilters = () => {
+    // Reset Filters Function
+    const resetFilters = () => {
         setSelectedCategory(null);
         setSelectedColor(null);
         setPriceRange([0, 1000000]);
         setSearchTerm('');
         setSortOption('default');
+        setCurrentPage(1);
     };
 
+
+    const indexOfLastProduct = currentPage * itemsPerPage;
+    const indexOfFirstProduct = indexOfLastProduct - itemsPerPage;
+    const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
+    const handlePageChange = (pageNumber) => {
+        if (pageNumber > 0 && pageNumber <= totalPages) {
+            setCurrentPage(pageNumber);
+        }
+    };
 
     return (
         <div>
@@ -319,7 +332,7 @@ function ShoppingPage() {
                             <button className="btn btn-secondary" onClick={resetFilters}>Reset Filters</button>
                         </div>
                         <div className="products-grid mt-4" style={{ 'grid-template-columns': 'repeat(4, 1fr)' }}>
-                            {filteredProducts.map((product, index) => {
+                            {currentProducts.map((product, index) => {
                                 const isInCart = Array.isArray(cartProducts) && cartProducts.includes(product._id);
                                 const isWishlist = Array.isArray(wishlistProducts) && wishlistProducts.includes(product._id)
                                 const applicableOffer = getApplicableOffer(product._id);
@@ -396,6 +409,23 @@ function ShoppingPage() {
                                     </div>
                                 );
                             })}
+                        </div>
+                        <div className="pagination mt-3 d-flex justify-content-end">
+                            <ul className="pagination">
+                                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                                    <button className="page-link" onClick={() => handlePageChange(currentPage - 1)}>Previous</button>
+                                </li>
+                                {[...Array(totalPages).keys()].map(pageNumber => (
+                                    <li key={pageNumber} className={`page-item ${currentPage === pageNumber + 1 ? 'active' : ''}`}>
+                                        <button className="page-link" onClick={() => handlePageChange(pageNumber + 1)}>
+                                            {pageNumber + 1}
+                                        </button>
+                                    </li>
+                                ))}
+                                <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                                    <button className="page-link" onClick={() => handlePageChange(currentPage + 1)}>Next</button>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>

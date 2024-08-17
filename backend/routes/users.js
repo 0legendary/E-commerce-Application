@@ -50,39 +50,52 @@ router.get('/getProducts', authenticateToken, async (req, res) => {
 //without middle ware
 router.get('/home/getProducts', getUser, async (req, res) => {
   try {
+    // Fetch products and offers
     const products = await Product.find({})
       .populate('categoryId', 'name')
       .populate('mainImage', 'image')
       .populate('additionalImages', 'image')
       .lean();
-    const offers = await Offer.find({}).populate('imageID', 'image')
+    const offers = await Offer.find({}).populate('imageID', 'image');
 
-    
+    // Initialize cart and wishlist product IDs as empty arrays
+    let cartProductIds = [];
+    let wishlistProductIds = [];
+
+    // Check if user is authenticated and has an email
     if (req.user && req.user.email) {
       const user = await User.findOne({ email: req.user.email });
+
       if (user) {
         // Find the user's cart
         const cart = await Cart.findOne({ userId: user._id }).lean();
-        const wishlist = await Wishlist.findOne({userId: user._id}).lean();
-        let cartProductIds;
-        let wishlistProductIds;
-        if (cart) cartProductIds = cart.products.map(p => p.productId.toString());
-        if (wishlist) wishlistProductIds = wishlist.products.map(v => v.productId.toString())
-        res.status(200).json({
-          status: true,
-          products,
-          offers,
-          cartProducts: cartProductIds.length > 0 ? cartProductIds : [],
-          wishlistProducts: wishlistProductIds.length > 0 ? wishlistProductIds : []
-        });
-        return;
+        const wishlist = await Wishlist.findOne({ userId: user._id }).lean();
+
+        // Check if cart and wishlist exist and are not null
+        if (cart) {
+          cartProductIds = cart.products ? cart.products.map(p => p.productId.toString()) : [];
+        }
+
+        if (wishlist) {
+          wishlistProductIds = wishlist.products ? wishlist.products.map(v => v.productId.toString()) : [];
+        }
       }
     }
-    res.status(201).json({ status: true, products, offers });
+
+    // Send the response
+    res.status(200).json({
+      status: true,
+      products,
+      offers,
+      cartProducts: cartProductIds,
+      wishlistProducts: wishlistProductIds
+    });
   } catch (error) {
+    console.error('Error fetching products:', error);
     res.status(500).json({ error: 'Error fetching products' });
   }
 });
+
 
 
 //without middle ware
@@ -814,6 +827,8 @@ router.post('/payment/verify', async (req, res) => {
       await Cart.deleteOne({ userId: orderDetails.customerId });
     }
 
+
+    
     for (const product of orderDetails.products) {
       const foundProduct = await Product.findOne({ _id: product.productId });
       if (foundProduct) {
@@ -828,7 +843,7 @@ router.post('/payment/verify', async (req, res) => {
       }
     }
 
-    res.status(200).json({ status: true })
+    res.status(200).json({ status: true , order: newOrder})
 
   } catch (error) {
     console.log(error);
@@ -884,7 +899,7 @@ router.post('/payment/cod', async (req, res) => {
       }
     }
 
-    res.status(200).json({ status: true })
+    res.status(200).json({ status: true, order : newOrder })
 
   } catch (error) {
     console.log(error);
@@ -954,20 +969,31 @@ router.post('/update-order-status', async (req, res) => {
         return res.status(404).json({ status: false, message: 'Order not found' });
       }
 
+      // Recalculate order total
       const newTotal = order.products
         .filter(product => product.orderStatus !== 'canceled')
-        .reduce((total, product) => total + product.discountPrice * product.quantity, 0);
+        .reduce((total, product) => total + product.totalPrice, 0);
 
-      await Order.updateOne({ orderId }, { $set: { orderTotal: newTotal } });
+      const coupon = await Coupon.findById(order.couponID);
+      let newDiscountAmount = 0;
+      if (order.couponDiscount > 0) {
+        newDiscountAmount = newTotal * (order.couponDiscount / 100);
+        if(newDiscountAmount > coupon.maxDiscount)  newDiscountAmount = coupon.maxDiscount
+      }
 
-      if (order.paymentMethod !== 'COD') {
+      await Order.updateOne({ orderId }, { $set: { orderTotal: newTotal  - newDiscountAmount } });
+
+      //refund the amount
+      if (status === 'canceled' || status === 'returned' && order.paymentMethod === 'online') {
         const canceledProduct = order.products.find(product =>
           product._id.toString() === productId && product.orderStatus === 'canceled'
         );
         if (!canceledProduct) {
           return res.status(404).json({ status: false, message: 'Canceled product not found' });
         }
-        const refundAmount = canceledProduct.discountPrice * canceledProduct.quantity;
+        let couponDiscount = order.couponDiscount > 0 ? (canceledProduct.totalPrice * order.couponDiscount / 100) > coupon.maxDiscount ? coupon.maxDiscount :  (canceledProduct.totalPrice * order.couponDiscount / 100)  : 0
+        const refundAmount = canceledProduct.totalPrice - couponDiscount
+
         let wallet = await Wallet.findOne({ userId: order.customerId });
         if (!wallet) {
           wallet = new Wallet({
@@ -978,11 +1004,11 @@ router.post('/update-order-status', async (req, res) => {
         wallet.balance += refundAmount;
 
         await wallet.save();
-
+        let description = canceledProduct.productName ? `Refund for ${status} order: ${canceledProduct.productName}` : `Refund for ${status} order`
         wallet.transactions.push({
           amount: refundAmount,
           type: 'credit',
-          description: `Refund for canceled order`,
+          description: description,
           createdAt: new Date()
         });
 
@@ -1198,9 +1224,7 @@ router.post('/apply-coupon', authenticateToken, async (req, res) => {
     if (coupon.maxDiscount > 0 && discount > coupon.maxDiscount) {
       discount = coupon.maxDiscount;
     }
-
-
-    res.status(200).json({ status: true, coupon: { couponID: coupon._id, couponCode: coupon.code, discount } });
+    res.status(200).json({ status: true, coupon: { couponID: coupon._id, couponCode: coupon.code, discount, discountPercentage: coupon.discountValue } });
   } catch (error) {
     console.error('Error applying coupon:', error);
     res.status(500).json({ status: false, message: 'Server error' });
@@ -1211,10 +1235,10 @@ router.post('/apply-coupon', authenticateToken, async (req, res) => {
 //coupons
 router.get('/get-coupons', authenticateToken, async (req, res) => {
   try {
-      const coupons = await Coupon.find({})
-      res.status(201).json({ status: true, coupons: coupons });
+    const coupons = await Coupon.find({})
+    res.status(201).json({ status: true, coupons: coupons });
   } catch (error) {
-      res.status(500).json({ error: 'Error fetching products' });
+    res.status(500).json({ error: 'Error fetching products' });
   }
 });
 
