@@ -4,7 +4,6 @@ const orderSchema = new mongoose.Schema({
     orderId: {
         type: String,
         auto: true,
-        unique: true
     },
     orderDate: {
         type: Date,
@@ -28,7 +27,7 @@ const orderSchema = new mongoose.Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ['online', 'COD'],
+        enum: ['online', 'COD', 'pending'],
         required: true
     },
     orderTotal: {

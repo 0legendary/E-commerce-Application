@@ -828,7 +828,7 @@ router.post('/payment/verify', async (req, res) => {
     }
 
 
-    
+
     for (const product of orderDetails.products) {
       const foundProduct = await Product.findOne({ _id: product.productId });
       if (foundProduct) {
@@ -843,7 +843,7 @@ router.post('/payment/verify', async (req, res) => {
       }
     }
 
-    res.status(200).json({ status: true , order: newOrder})
+    res.status(200).json({ status: true, order: newOrder })
 
   } catch (error) {
     console.log(error);
@@ -899,7 +899,7 @@ router.post('/payment/cod', async (req, res) => {
       }
     }
 
-    res.status(200).json({ status: true, order : newOrder })
+    res.status(200).json({ status: true, order: newOrder })
 
   } catch (error) {
     console.log(error);
@@ -907,6 +907,92 @@ router.post('/payment/cod', async (req, res) => {
   }
 });
 
+router.post('/pendingOrder', async (req, res) => {
+  console.log('Creating pending order');
+  try {
+    const orderDetails = req.body.order;
+    const newOrder = new Order({
+      orderId: null,
+      customerId: orderDetails.customerId,
+      shippingAddress: orderDetails.shippingAddress,
+      paymentMethod: 'pending',
+      orderTotal: orderDetails.orderTotal,
+      shippingCost: orderDetails.shippingCost,
+      couponID: orderDetails.couponID,
+      couponDiscount: orderDetails.couponDiscount,
+      offerDiscount: orderDetails.offerDiscount,
+      products: orderDetails.products,
+    });
+
+    await newOrder.save();
+
+    if (req.body.checkoutId == 'null') {
+      await Cart.deleteOne({ userId: orderDetails.customerId });
+    }
+    console.log('order saved');
+    res.status(200).json({ status: true, order: newOrder })
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+router.post('/pay/pending-payment', async (req, res) => {
+  try {
+    const { response, order, paymentMethod } = req.body;
+    if (response && response.razorpay_order_id && response.razorpay_payment_id) {
+      const sign = response.razorpay_order_id + "|" + response.razorpay_payment_id;
+
+      const expectedSign = crypto
+        .createHmac("sha256", process.env.RAZORPAY_SECRET_KEY)
+        .update(sign.toString())
+        .digest("hex");
+
+      if (response.razorpay_signature !== expectedSign) {
+        console.log("Invalid signature");
+        res.status(400).json({ status: false, message: "invalid signature sent!" });
+      }
+    }
+
+
+    const PendingOrder = await Order.findOne({ _id: order._id })
+    PendingOrder.orderId = response && response.razorpay_order_id ? response.razorpay_order_id : v4()
+    PendingOrder.paymentMethod = paymentMethod
+
+    await PendingOrder.save();
+
+    if (PendingOrder.couponID) {
+      const coupon = await Coupon.findById({ _id: PendingOrder.couponID });
+      if (coupon._id) {
+        coupon.usedCount += 1;
+        coupon.usageLimit -= 1;
+        coupon.usedUsers.push(PendingOrder.customerId);
+        await coupon.save();
+      }
+    }
+
+    for (const product of PendingOrder.products) {
+      const foundProduct = await Product.findOne({ _id: product.productId });
+      if (foundProduct) {
+        const productVariation = foundProduct.variations.find(
+          (variation) => variation.size == parseInt(product.selectedSize)
+        );
+
+        if (productVariation) {
+          productVariation.stock -= product.quantity;
+          await foundProduct.save();
+        }
+      }
+    }
+
+    res.status(200).json({ status: true, order: PendingOrder })
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
 
 
 //orders
@@ -978,10 +1064,10 @@ router.post('/update-order-status', async (req, res) => {
       let newDiscountAmount = 0;
       if (order.couponDiscount > 0) {
         newDiscountAmount = newTotal * (order.couponDiscount / 100);
-        if(newDiscountAmount > coupon.maxDiscount)  newDiscountAmount = coupon.maxDiscount
+        if (newDiscountAmount > coupon.maxDiscount) newDiscountAmount = coupon.maxDiscount
       }
 
-      await Order.updateOne({ orderId }, { $set: { orderTotal: newTotal  - newDiscountAmount } });
+      await Order.updateOne({ orderId }, { $set: { orderTotal: newTotal - newDiscountAmount } });
 
       //refund the amount
       if (status === 'canceled' || status === 'returned' && order.paymentMethod === 'online') {
@@ -991,7 +1077,7 @@ router.post('/update-order-status', async (req, res) => {
         if (!canceledProduct) {
           return res.status(404).json({ status: false, message: 'Canceled product not found' });
         }
-        let couponDiscount = order.couponDiscount > 0 ? (canceledProduct.totalPrice * order.couponDiscount / 100) > coupon.maxDiscount ? coupon.maxDiscount :  (canceledProduct.totalPrice * order.couponDiscount / 100)  : 0
+        let couponDiscount = order.couponDiscount > 0 ? (canceledProduct.totalPrice * order.couponDiscount / 100) > coupon.maxDiscount ? coupon.maxDiscount : (canceledProduct.totalPrice * order.couponDiscount / 100) : 0
         const refundAmount = canceledProduct.totalPrice - couponDiscount
 
         let wallet = await Wallet.findOne({ userId: order.customerId });

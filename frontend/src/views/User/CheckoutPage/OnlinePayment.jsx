@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react'
 import axiosInstance from '../../../config/axiosConfig';
 import { useNavigate } from 'react-router-dom';
 import OrderSuccess from './OrderSuccess';
+import { UploadPendingOrder } from '../../../config/CreatePendingPayment';
 
 function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, products, paymentMethod, checkoutId, coupon, offerDiscount }) {
   const [currentUser, setCurrentUser] = useState({})
   const [showSuccessPage, setShowSuccessPage] = useState(false)
   const [orderDetailsData, setOrderDetailsData] = useState({})
   const navigate = useNavigate()
-  console.log(products);
   useEffect(() => {
     axiosInstance.get('/user/user-payment')
       .then(response => {
@@ -77,10 +77,13 @@ function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, product
                 setOrderDetailsData(response.data.order)
                 setShowSuccessPage(true)
               } else {
+                console.log('order canceled');
+                UploadPendingOrder(orderDetails,checkoutId)
                 setShowSuccessPage(false)
               }
             })
             .catch(error => {
+              UploadPendingOrder(orderDetails,checkoutId)
               console.error('Error getting data:', error);
             })
         },
@@ -90,12 +93,15 @@ function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, product
           contact: currentUser.mobile ? currentUser.mobile : null,
           userId: currentUser._id
         },
-        notes: {
-          address: "Your Address",
-        },
         theme: {
           color: "#3399cc",
         },
+        modal: {
+          ondismiss: () => {
+            console.log('Payment modal closed');
+            UploadPendingOrder(orderDetails);
+          }
+        }
       };
 
       const paymentObject = new window.Razorpay(options);

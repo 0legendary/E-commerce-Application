@@ -63,7 +63,7 @@ function Checkout() {
 
     useEffect(() => {
         calculatePriceDetails(products);
-        
+
         // eslint-disable-next-line 
     }, [products]);
 
@@ -255,7 +255,7 @@ function Checkout() {
 
 
     const handleApplyCoupon = () => {
-        if(!couponCode) {
+        if (!couponCode) {
             toast.error('Please enter coupon code', {
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -267,7 +267,7 @@ function Checkout() {
             });
             return
         }
-        
+
         axiosInstance.post('/user/apply-coupon', { code: couponCode, orderAmount: priceDetails.totalAmount })
             .then(response => {
                 if (response.data.status) {
@@ -292,7 +292,7 @@ function Checkout() {
                         theme: "dark",
                     });
                     setCouponAvailable({})
-                   
+
                 }
             })
             .catch(error => {
@@ -304,7 +304,7 @@ function Checkout() {
 
     const getApplicableOffer = (productId, categoryId, price) => {
         const currentDate = new Date();
-        const applicableOffers = offers.filter(offer => 
+        const applicableOffers = offers.filter(offer =>
             (offer.applicableTo.includes(productId) || offer.applicableTo.includes(categoryId)) &&
             new Date(offer.startDate) <= currentDate &&
             new Date(offer.endDate) >= currentDate &&
@@ -325,7 +325,7 @@ function Checkout() {
         return discount;
     };
 
-    const getCouponDetails = (code , totalAmount) => {
+    const getCouponDetails = (code, totalAmount) => {
         axiosInstance.post('/user/apply-coupon', { code: code, orderAmount: totalAmount })
             .then(response => {
                 if (response.data.status) {
@@ -334,7 +334,7 @@ function Checkout() {
                 } else {
 
                     setCouponAvailable({})
-                   
+
                 }
             })
             .catch(error => {
@@ -348,7 +348,7 @@ function Checkout() {
             <Layout mainHeading={mainHeading} breadcrumbs={breadcrumbs} />
             <ToastContainer />
             <div className='container text-white'>
-            
+
                 <div className='row'>
                     <div className='col-md-8'>
                         {showAddress ? (
@@ -431,7 +431,7 @@ function Checkout() {
                                         {products.map(item => {
                                             console.log(item);
                                             const offerPrice = getApplicableOffer(item.productId, item.categoryId, item.discountedPrice)
-                                            
+
                                             const finalPrice = item.discountedPrice - offerPrice
                                             return (
                                                 <div key={item._id} className="cart-item d-flex align-items-center mb-3 border rounded p-3">
@@ -510,45 +510,65 @@ function Checkout() {
                                                 <h4>Select Payment Method</h4>
                                                 <button className='btn btn-secondary' onClick={() => setPaymetPolicy(false)}>Show Policy</button>
                                             </div>
-                                            <div className='mt-3'>
-                                                <input
-                                                    type="radio"
-                                                    id="razorpay"
-                                                    name="payment-method"
-                                                    value="Razorpay"
-                                                    className='form-check-input radio-btn'
-                                                    checked={paymentMethod === 'Razorpay'}
-                                                    onChange={() => setPaymentMethod('Razorpay')}
-                                                />
-                                                <label htmlFor="razorpay">Online</label>
-                                                {paymentMethod === 'Razorpay' && (
-                                                    <OnlinePayment
-                                                        itemCount={priceDetails.itemCount}
-                                                        totalPrice={priceDetails.totalPrice}
-                                                        totalDiscount={priceDetails.totalDiscount}
-                                                        amount={priceDetails.totalAmount}
-                                                        deliveryCharge={priceDetails.deliveryCharge}
-                                                        address={selectedAddress}
-                                                        products={products}
-                                                        paymentMethod={'online'}
-                                                        checkoutId={product_Id}
-                                                        coupon={couponAvailable}
-                                                        offerDiscount={priceDetails.offerDiscount}
-                                                    />
-                                                )}
-                                            </div>
-                                            <div className='mt-3'>
-                                                <input
-                                                    type="radio"
-                                                    id="cod"
-                                                    name="payment-method"
-                                                    value="COD"
-                                                    className='form-check-input radio-btn'
-                                                    checked={paymentMethod === 'COD'}
-                                                    onChange={() => setPaymentMethod('COD')}
-                                                />
-                                                <label htmlFor="cod">Cash on Delivery</label>
-                                                {paymentMethod === 'COD' && (
+                                            {couponAvailable.discount ? priceDetails.totalAmount - couponAvailable.discount : priceDetails.totalAmount > 1000 ? (
+                                                <>
+                                                    <div className='mt-3'>
+                                                        <input
+                                                            type="radio"
+                                                            id="razorpay"
+                                                            name="payment-method"
+                                                            value="Razorpay"
+                                                            className='form-check-input radio-btn'
+                                                            checked={paymentMethod === 'Razorpay'}
+                                                            onChange={() => setPaymentMethod('Razorpay')}
+                                                        />
+                                                        <label htmlFor="razorpay">Online</label>
+                                                        {paymentMethod === 'Razorpay' && (
+                                                            <OnlinePayment
+                                                                itemCount={priceDetails.itemCount}
+                                                                totalPrice={priceDetails.totalPrice}
+                                                                totalDiscount={priceDetails.totalDiscount}
+                                                                amount={priceDetails.totalAmount}
+                                                                deliveryCharge={priceDetails.deliveryCharge}
+                                                                address={selectedAddress}
+                                                                products={products}
+                                                                paymentMethod={'online'}
+                                                                checkoutId={product_Id}
+                                                                coupon={couponAvailable}
+                                                                offerDiscount={priceDetails.offerDiscount}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                    <div className='mt-3'>
+                                                        <input
+                                                            type="radio"
+                                                            id="cod"
+                                                            name="payment-method"
+                                                            value="COD"
+                                                            className='form-check-input radio-btn'
+                                                            checked={paymentMethod === 'COD'}
+                                                            onChange={() => setPaymentMethod('COD')}
+                                                        />
+                                                        <label htmlFor="cod">Cash on Delivery</label>
+                                                        {paymentMethod === 'COD' && (
+                                                            <CODPayment
+                                                                itemCount={priceDetails.itemCount}
+                                                                totalPrice={priceDetails.totalPrice}
+                                                                totalDiscount={priceDetails.totalDiscount}
+                                                                amount={priceDetails.totalAmount}
+                                                                deliveryCharge={priceDetails.deliveryCharge}
+                                                                address={selectedAddress}
+                                                                products={products}
+                                                                paymentMethod={'COD'}
+                                                                checkoutId={product_Id}
+                                                                coupon={couponAvailable}
+                                                                offerDiscount={priceDetails.offerDiscount}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <div>
                                                     <CODPayment
                                                         itemCount={priceDetails.itemCount}
                                                         totalPrice={priceDetails.totalPrice}
@@ -562,8 +582,9 @@ function Checkout() {
                                                         coupon={couponAvailable}
                                                         offerDiscount={priceDetails.offerDiscount}
                                                     />
-                                                )}
-                                            </div>
+                                                    Cash on delivery is only available for order greater than 1000
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -583,7 +604,7 @@ function Checkout() {
                                         className="form-control"
                                         placeholder="Enter coupon code"
                                         value={couponCode}
-                                        onChange={(e) =>  setCouponCode(e.target.value)}
+                                        onChange={(e) => setCouponCode(e.target.value)}
                                     />
                                     <button className="btn btn-primary" onClick={handleApplyCoupon}>Apply</button>
                                 </div>
