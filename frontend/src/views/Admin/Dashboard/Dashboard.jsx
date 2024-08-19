@@ -7,6 +7,7 @@ import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import './Dashboard.css';
 import axiosInstance from '../../../config/axiosConfig';
+import LedgerBook from './LedgerBook';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -24,6 +25,7 @@ const Dashboard = () => {
     const [filterType, setFilterType] = useState('all');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [showLedger, setShowLedger] = useState(false)
     const [chartData, setChartData] = useState({
         labels: [],
         datasets: [
@@ -198,13 +200,13 @@ const Dashboard = () => {
 
     const generatePDF = () => {
         const doc = new jsPDF();
-        let yPosition = 22; 
-    
+        let yPosition = 22;
+
         // Add Title
         doc.setFontSize(22);
         doc.text('Sales Report', 14, yPosition);
         yPosition += 18;
-    
+
         // Add Summary
         doc.setFontSize(16);
         doc.text(`Total Sales: ${totalSales} Rs`, 14, yPosition);
@@ -217,11 +219,11 @@ const Dashboard = () => {
         yPosition += 10;
         doc.text(`Return Rate: ${returnRate}%`, 14, yPosition);
         yPosition += 20;
-    
+
         // Add Sales Chart
         doc.setFontSize(16);
         doc.text('Sales Over Time', 14, yPosition);
-        yPosition += 10; 
+        yPosition += 10;
         const chartCanvas = document.querySelector('.chart-container canvas');
         if (chartCanvas) {
             const imgData = chartCanvas.toDataURL('image/png');
@@ -231,7 +233,7 @@ const Dashboard = () => {
 
 
 
-        yPosition += 20; 
+        yPosition += 20;
         doc.setFontSize(16);
         doc.text('Top Brands', 14, yPosition);
         yPosition += 10;
@@ -244,9 +246,9 @@ const Dashboard = () => {
             theme: 'grid',
         });
 
-    
+
         yPosition = doc.lastAutoTable.finalY + 60;
-    
+
         doc.setFontSize(16);
         doc.text('Top Categories', 14, yPosition);
         yPosition += 10;
@@ -258,7 +260,7 @@ const Dashboard = () => {
             margin: { top: 10, left: 14, right: 14 },
             theme: 'grid',
         });
-    
+
         yPosition = doc.lastAutoTable.finalY + 20;
         doc.setFontSize(16);
         doc.text('Top Products', 14, yPosition);
@@ -271,16 +273,75 @@ const Dashboard = () => {
             margin: { top: 10, left: 14, right: 14 },
             theme: 'grid',
         });
-    
 
-    
+        yPosition = doc.lastAutoTable ? doc.lastAutoTable.finalY + 20 : 20;
+        doc.setFontSize(16);
+        doc.text('Ledger', 14, yPosition);
+        yPosition += 10;
+
+
+        const tableData = orders.map(order => [
+            order.orderId,
+            order.customerId.name,
+            order.paymentMethod,
+            order.products[0].orderStatus,
+            new Date(order.orderDate).toLocaleDateString(),
+            order.products.map(product => (
+                `${product.productName} - ${product.selectedColor} - ${product.selectedSize} - ${product.quantity} x ${product.discountPrice}`
+            )).join(', '),
+            order.orderTotal.toFixed(2)
+        ]);
+
+        const totalAmount = orders.reduce((acc, order) => acc + order.orderTotal, 0);
+
+        // Add ledger table
+        doc.autoTable({
+            head: [['Order ID', 'Customer Name', 'Payment Method', 'Order Status', 'Date of Order', 'Product Details', 'Total Amount']],
+            body: tableData,
+            startY: yPosition,
+            margin: { top: 10, left: 14, right: 14 },
+            theme: 'grid',
+        });
+
+        // Add totals row
+        doc.autoTable({
+            body: [
+                [
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    'Total:',
+                    totalAmount.toFixed(2)
+                ]
+            ],
+            startY: doc.lastAutoTable.finalY + 10,
+            margin: { left: 14, right: 14 },
+            theme: 'grid',
+            styles: {
+                fontSize: 12,
+                cellPadding: 2,
+            },
+            columns: [
+                { width: 50 },
+                { width: 50 },
+                { width: 50 },
+                { width: 50 },
+                { width: 50 },
+                { width: 90 },
+                { width: 40 },
+            ]
+        });
+
+
         doc.save('SalesReport.pdf');
     };
-    
-    
+
+
     const generateExcel = () => {
         const wb = XLSX.utils.book_new();
-    
+
         // Summary Sheet
         const summaryWsData = [
             ['Total Sales', `₹${totalSales}`],
@@ -291,7 +352,7 @@ const Dashboard = () => {
         ];
         const summaryWs = XLSX.utils.aoa_to_sheet(summaryWsData);
         XLSX.utils.book_append_sheet(wb, summaryWs, 'Summary');
-    
+
         // Top Products Sheet
         const topProductsData = [['Product Name', 'Quantity', 'Total Revenue']];
         topProducts.forEach(product => {
@@ -299,7 +360,7 @@ const Dashboard = () => {
         });
         const topProductsWs = XLSX.utils.aoa_to_sheet(topProductsData);
         XLSX.utils.book_append_sheet(wb, topProductsWs, 'Top Products');
-    
+
         // Top Categories Sheet
         const topCategoriesData = [['Category', 'Quantity']];
         topCategories.forEach(category => {
@@ -307,7 +368,7 @@ const Dashboard = () => {
         });
         const topCategoriesWs = XLSX.utils.aoa_to_sheet(topCategoriesData);
         XLSX.utils.book_append_sheet(wb, topCategoriesWs, 'Top Categories');
-    
+
         // Top Brands Sheet
         const topBrandsData = [['Brand Name', 'Quantity']];
         topBrands.forEach(brand => {
@@ -315,7 +376,7 @@ const Dashboard = () => {
         });
         const topBrandsWs = XLSX.utils.aoa_to_sheet(topBrandsData);
         XLSX.utils.book_append_sheet(wb, topBrandsWs, 'Top Brands');
-    
+
         // Sales Over Time Sheet
         const salesData = [['Date', 'Sales']];
         chartData.labels.forEach((label, index) => {
@@ -323,11 +384,39 @@ const Dashboard = () => {
         });
         const salesWs = XLSX.utils.aoa_to_sheet(salesData);
         XLSX.utils.book_append_sheet(wb, salesWs, 'Sales Over Time');
-    
+
+
+        // Ledger Sheet
+        const ledgerData = [['Order ID', 'Customer Name', 'Payment Method', 'Order Status', 'Date of Order', 'Product Details', 'Total Amount']];
+
+        orders.forEach(order => {
+            const productDetails = order.products.map(product => (
+                `${product.productName} - ${product.selectedColor} - ${product.selectedSize} - ${product.quantity} x ₹${product.discountPrice}`
+            )).join(', ');
+
+            ledgerData.push([
+                order.orderId,
+                order.customerId.name,
+                order.paymentMethod,
+                order.products[0].orderStatus,
+                new Date(order.orderDate).toLocaleDateString(),
+                productDetails,
+                `₹${order.orderTotal.toFixed(2)}`
+            ]);
+        });
+
+        // Calculate total ledger amount
+        const totalAmount = orders.reduce((acc, order) => acc + order.orderTotal, 0);
+        ledgerData.push(['', '', '', '', '', 'Total:', `₹${totalAmount.toFixed(2)}`]);
+
+        const ledgerWs = XLSX.utils.aoa_to_sheet(ledgerData);
+        XLSX.utils.book_append_sheet(wb, ledgerWs, 'Ledger');
+
+
         // Save Excel File
         XLSX.writeFile(wb, 'SalesReport.xlsx');
     };
-    
+
     return (
         <Container fluid>
             <div className='d-flex justify-content-between align-items-center'>
@@ -523,6 +612,14 @@ const Dashboard = () => {
                         </Card.Body>
                     </Card>
                 </Col>
+            </Row>
+            <Row>
+                <div className='d-flex justify-content-end'>
+                    <button className='btn btn-info' onClick={() => setShowLedger(!showLedger)}>{showLedger ? 'Close Ledger' : 'Show Ledger'}</button>
+                </div>
+                {showLedger && (
+                    <LedgerBook orders={orders} />
+                )}
             </Row>
         </Container>
     );
