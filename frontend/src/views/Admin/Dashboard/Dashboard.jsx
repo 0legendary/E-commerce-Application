@@ -5,7 +5,6 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-
 import './Dashboard.css';
 import axiosInstance from '../../../config/axiosConfig';
 
@@ -14,16 +13,17 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 const Dashboard = () => {
     const [orders, setOrders] = useState([]);
     const [topProducts, setTopProducts] = useState([]);
+    const [topCategories, setTopCategories] = useState([])
+    const [topBrands, setTopBrands] = useState([])
     const [recentOrders, setRecentOrders] = useState([]);
     const [discountImpact, setDiscountImpact] = useState(0);
     const [returnRate, setReturnRate] = useState(0);
     const [totalSales, setTotalSales] = useState(0)
     const [totalOrders, setTotalOrders] = useState(0)
     const [averageOrderVal, setAverageOrderVal] = useState(0)
-    const [filterType, setFilterType] = useState('all'); // 'all', 'specificDay', 'weekly', 'monthly', 'yearly'
+    const [filterType, setFilterType] = useState('all');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
-
     const [chartData, setChartData] = useState({
         labels: [],
         datasets: [
@@ -45,6 +45,17 @@ const Dashboard = () => {
                     const ordersData = response.data.orders || [];
                     setOrders(ordersData);
                     updateDashboard(ordersData);
+                }
+            })
+            .catch(error => {
+                console.error('Error getting data:', error);
+            });
+
+        axiosInstance.get('/admin/top-orders-category')
+            .then(response => {
+                if (response.data.status) {
+                    setTopCategories(response.data.topCategories)
+                    setTopBrands(response.data.topBrands)
                 }
             })
             .catch(error => {
@@ -137,7 +148,6 @@ const Dashboard = () => {
             const hasReturnedProduct = order.products.some(product => product.orderStatus === 'returned');
             return total + (hasReturnedProduct ? 1 : 0);
         }, 0);
-        
         setReturnRate(((totalReturns / filteredOrders.length) * 100).toFixed(2));
 
     };
@@ -154,19 +164,19 @@ const Dashboard = () => {
                 );
             case 'weekly':
                 const startOfWeek = new Date(now);
-            startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
-            // Reset the time to midnight for startOfWeek
-            startOfWeek.setHours(0, 0, 0, 0);
+                startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+                // Reset the time to midnight for startOfWeek
+                startOfWeek.setHours(0, 0, 0, 0);
 
-            // End of week is 6 days after the start of the week
-            const endOfWeek = new Date(startOfWeek);
-            endOfWeek.setDate(startOfWeek.getDate() + 6);
-            endOfWeek.setHours(23, 59, 59, 999);
+                // End of week is 6 days after the start of the week
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+                endOfWeek.setHours(23, 59, 59, 999);
 
-            return ordersData.filter(order => {
-                const orderDate = new Date(order.orderDate);
-                return orderDate >= startOfWeek && orderDate <= endOfWeek;
-            });
+                return ordersData.filter(order => {
+                    const orderDate = new Date(order.orderDate);
+                    return orderDate >= startOfWeek && orderDate <= endOfWeek;
+                });
             case 'monthly':
                 const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
                 return ordersData.filter(order => {
@@ -188,47 +198,90 @@ const Dashboard = () => {
 
     const generatePDF = () => {
         const doc = new jsPDF();
-
+        let yPosition = 22; 
+    
         // Add Title
         doc.setFontSize(22);
-        doc.text('Sales Report', 14, 22);
-
+        doc.text('Sales Report', 14, yPosition);
+        yPosition += 18;
+    
         // Add Summary
         doc.setFontSize(16);
-        doc.text(`Total Sales: ${totalSales} Rs`, 14, 40);
-        doc.text(`Number of Orders: ${totalOrders}`, 14, 50);
-        doc.text(`Average Order Value: ${averageOrderVal} Rs`, 14, 60);
-        doc.text(`Discount Impact: ${discountImpact}%`, 14, 70);
-        doc.text(`Return Rate: ${returnRate}%`, 14, 80);
-
+        doc.text(`Total Sales: ${totalSales} Rs`, 14, yPosition);
+        yPosition += 10;
+        doc.text(`Number of Orders: ${totalOrders}`, 14, yPosition);
+        yPosition += 10;
+        doc.text(`Average Order Value: ${averageOrderVal} Rs`, 14, yPosition);
+        yPosition += 10;
+        doc.text(`Discount Impact: ${discountImpact}%`, 14, yPosition);
+        yPosition += 10;
+        doc.text(`Return Rate: ${returnRate}%`, 14, yPosition);
+        yPosition += 20;
+    
         // Add Sales Chart
-        doc.addPage();
         doc.setFontSize(16);
-        doc.text('Sales Over Time', 14, 22);
+        doc.text('Sales Over Time', 14, yPosition);
+        yPosition += 10; 
         const chartCanvas = document.querySelector('.chart-container canvas');
         if (chartCanvas) {
             const imgData = chartCanvas.toDataURL('image/png');
-            doc.addImage(imgData, 'PNG', 14, 30, 180, 100);
+            doc.addImage(imgData, 'PNG', 14, yPosition, 180, 100);
+            yPosition += 110;
         }
 
-        // Add Top Products
-        doc.addPage();
+
+
+        yPosition += 20; 
         doc.setFontSize(16);
-        doc.text('Top Products', 14, 22);
-        const topProductsTable = topProducts.map(product => [product.name, product.quantity, `$${product.totalRevenue.toFixed(2)}`]);
+        doc.text('Top Brands', 14, yPosition);
+        yPosition += 10;
+        const topBrandTable = topBrands.map(brand => [brand.brand, brand.count]);
+        doc.autoTable({
+            head: [['Brand Name', 'Quantity']],
+            body: topBrandTable,
+            startY: yPosition,
+            margin: { top: 10, left: 14, right: 14 },
+            theme: 'grid',
+        });
+
+    
+        yPosition = doc.lastAutoTable.finalY + 60;
+    
+        doc.setFontSize(16);
+        doc.text('Top Categories', 14, yPosition);
+        yPosition += 10;
+        const topCategoriesTable = topCategories.map(category => [category.category, category.count]);
+        doc.autoTable({
+            head: [['Category', 'Quantity']],
+            body: topCategoriesTable,
+            startY: yPosition,
+            margin: { top: 10, left: 14, right: 14 },
+            theme: 'grid',
+        });
+    
+        yPosition = doc.lastAutoTable.finalY + 20;
+        doc.setFontSize(16);
+        doc.text('Top Products', 14, yPosition);
+        yPosition += 10;
+        const topProductsTable = topProducts.map(product => [product.name, product.quantity, `${product.totalRevenue.toFixed(2)} Rs`]);
         doc.autoTable({
             head: [['Product Name', 'Quantity', 'Total Revenue']],
             body: topProductsTable,
-            startY: 30,
+            startY: yPosition,
+            margin: { top: 10, left: 14, right: 14 },
+            theme: 'grid',
         });
+    
 
+    
         doc.save('SalesReport.pdf');
     };
-
-
+    
+    
     const generateExcel = () => {
         const wb = XLSX.utils.book_new();
-        
+    
+        // Summary Sheet
         const summaryWsData = [
             ['Total Sales', `₹${totalSales}`],
             ['Number of Orders', totalOrders],
@@ -238,24 +291,43 @@ const Dashboard = () => {
         ];
         const summaryWs = XLSX.utils.aoa_to_sheet(summaryWsData);
         XLSX.utils.book_append_sheet(wb, summaryWs, 'Summary');
-
+    
+        // Top Products Sheet
         const topProductsData = [['Product Name', 'Quantity', 'Total Revenue']];
         topProducts.forEach(product => {
             topProductsData.push([product.name, product.quantity, `₹${product.totalRevenue.toFixed(2)}`]);
         });
         const topProductsWs = XLSX.utils.aoa_to_sheet(topProductsData);
         XLSX.utils.book_append_sheet(wb, topProductsWs, 'Top Products');
-
+    
+        // Top Categories Sheet
+        const topCategoriesData = [['Category', 'Quantity']];
+        topCategories.forEach(category => {
+            topCategoriesData.push([category.category, category.count]);
+        });
+        const topCategoriesWs = XLSX.utils.aoa_to_sheet(topCategoriesData);
+        XLSX.utils.book_append_sheet(wb, topCategoriesWs, 'Top Categories');
+    
+        // Top Brands Sheet
+        const topBrandsData = [['Brand Name', 'Quantity']];
+        topBrands.forEach(brand => {
+            topBrandsData.push([brand.brand, brand.count]);
+        });
+        const topBrandsWs = XLSX.utils.aoa_to_sheet(topBrandsData);
+        XLSX.utils.book_append_sheet(wb, topBrandsWs, 'Top Brands');
+    
+        // Sales Over Time Sheet
         const salesData = [['Date', 'Sales']];
         chartData.labels.forEach((label, index) => {
             salesData.push([label, chartData.datasets[0].data[index]]);
         });
         const salesWs = XLSX.utils.aoa_to_sheet(salesData);
         XLSX.utils.book_append_sheet(wb, salesWs, 'Sales Over Time');
-
+    
+        // Save Excel File
         XLSX.writeFile(wb, 'SalesReport.xlsx');
     };
-
+    
     return (
         <Container fluid>
             <div className='d-flex justify-content-between align-items-center'>
@@ -349,7 +421,7 @@ const Dashboard = () => {
                     <Card className="text-center my-4">
                         <Card.Body>
                             <Card.Title>Discount Impact</Card.Title>
-                            <Card.Text>{!isNaN(discountImpact)? discountImpact: 0}%</Card.Text>
+                            <Card.Text>{!isNaN(discountImpact) ? discountImpact : 0}%</Card.Text>
                         </Card.Body>
                     </Card>
                     <Card>
@@ -375,7 +447,52 @@ const Dashboard = () => {
                     </Card>
                 </Col>
             </Row>
-
+            <Row className="my-4">
+                <Col>
+                    <Card>
+                        <Card.Header>
+                            <h5>Best selling Categories</h5>
+                        </Card.Header>
+                        <Card.Body>
+                            {topCategories.length > 0 ? (
+                                <ul className="list-group">
+                                    {topCategories.map((category, index) => (
+                                        <li key={index} className="list-group-item">
+                                            {category.category} - {category.count}
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <div>
+                                    No Categories
+                                </div>
+                            )}
+                        </Card.Body>
+                    </Card>
+                </Col>
+                <Col>
+                    <Card>
+                        <Card.Header>
+                            <h5>Best selling Brands</h5>
+                        </Card.Header>
+                        <Card.Body>
+                            {topBrands.length > 0 ? (
+                                <ul className="list-group">
+                                    {topBrands.map((brand, index) => (
+                                        <li key={index} className="list-group-item">
+                                            {brand.brand} - {brand.count}
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <div>
+                                    No Brands
+                                </div>
+                            )}
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
             <Row className="my-4">
                 <Col>
                     <Card>
@@ -407,8 +524,6 @@ const Dashboard = () => {
                     </Card>
                 </Col>
             </Row>
-
-
         </Container>
     );
 };
