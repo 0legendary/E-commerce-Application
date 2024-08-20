@@ -15,12 +15,14 @@ function SingleProduct() {
   const [additionalImages, setAdditionalImages] = useState([]);
   const [selectedColor, setSelectedColor] = useState(null);
   const [cartProducts, setCartProducts] = useState([])
+  const [isProductInWishlist, setIsProductInWishlist] = useState(false)
+
   const [offers, setOffers] = useState([])
   useEffect(() => {
-    axiosInstance.get(`/user/shop-product/${id}`)
+    axiosInstance.get(`/user/shop/${id}`)
       .then(response => {
         if (response.data.status) {
-          console.log(response.data.offers);
+          setIsProductInWishlist(response.data.isProductInWishlist)
           setOffers(response.data.offers ? response.data.offers : []);
           setProduct(response.data.product);
           setSelectedVariation(response.data.product.variations[0]);
@@ -34,6 +36,7 @@ function SingleProduct() {
         console.error('Error getting data:', error);
       });
   }, [id]);
+
 
   const handleSizeClick = (variation) => {
     setSelectedVariation(variation);
@@ -85,111 +88,136 @@ function SingleProduct() {
   const addToWishlist = async (productId) => {
     console.log(productId);
     axiosInstance.post('/user/add-to-wishlist', { productId })
-        .then(response => {
-            if (response.data.status) {
-                toast.success("Added to Wishlist", {
-                    autoClose: 2000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: false,
-                    draggable: true,
-                    progress: undefined,
-                    theme: "dark",
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Error sending data:', error);
-        });
-};
+      .then(response => {
+        if (response.data.status) {
+          setIsProductInWishlist(true)
+          toast.success("Added to Wishlist", {
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error sending data:', error);
+      });
+  };
 
 
   return (
-    <div className="container" style={{ marginTop: '15rem', color: 'white' }}>
+    <div className="single-product-container container text-white" style={{ marginTop: '15rem', color: 'white' }}>
       <ToastContainer />
-      <div className="container">
+      <div className="product-details">
         {product.name ? (
-          <div className="product-details">
+          <>
+            <div className="additional-images">
+              {additionalImages.map((image, index) => (
+                <img
+                  key={index}
+                  src={image.image}
+                  alt={`Additional ${index + 1}`}
+                  onClick={() => handleImageClick(image)}
+                  className="thumbnail"
+                />
+              ))}
+            </div>
+
             <div className="product-image">
-              <div className='main-image'>
-                {mainImage && (
-                  <ReactImageMagnify
-                    {...{
-                      smallImage: {
-                        alt: product.name,
-                        isFluidWidth: true,
-                        src: mainImage.image
-                      },
-                      largeImage: {
-                        src: mainImage.image,
-                        width: 1200,
-                        height: 1800
-                      },
-                      shouldHideHintAfterFirstActivation: false
-                    }}
-                  />
+              {mainImage && (
+                <ReactImageMagnify
+                  {...{
+                    smallImage: {
+                      alt: product.name,
+                      isFluidWidth: true,
+                      src: mainImage.image,
+                    },
+                    largeImage: {
+                      src: mainImage.image,
+                      width: 1200,
+                      height: 1200,
+                    },
+                    enlargedImageContainerDimensions: {
+                      width: '100%',
+                      height: '100%',
+                    },
+                  }}
+                />
+              )}
+              <div className='wishlist-icon-container'>
+                {isProductInWishlist ? (
+                  <Link to='/wishlist'>
+                    <i className="bi bi-heart-fill text-danger"></i>
+                  </Link>
+                ) : (
+                  <i className="bi bi-heart text-danger" onClick={() => addToWishlist(product._id)}></i>
                 )}
               </div>
-              <div className="additional-images">
-                {additionalImages.map((image, index) => (
-                  <img
-                    key={index}
-                    src={image.image}
-                    alt={`Additional ${index + 1}`}
-                    onClick={() => handleImageClick(image)}
-                    className="thumbnail"
-                  />
-                ))}
+              <div className="add-to-cart-btn mt-3 justify-content-end w-100">
+                {selectedColor && selectedVariation ? (
+                  isProductInCart ? (
+                    <Link to='/cart' className='w-100'>
+                      <button className="btn btn-secondary me-2 w-100"><i class="bi bi-cart-check"></i> Go to Cart</button>
+                    </Link>
+                  ) : (
+                    <button className="btn border border-success text-white me-2 w-100" onClick={handleAddToCart}><i class="bi bi-cart"></i> Add to Cart</button>
+                  )
+                ) : (
+                  <button className="btn btn-primary w-100" disabled><i class="bi bi-cart"></i> Add to Cart</button>
+                )}
+                <Link to={`/checkout/${product._id}`} className='w-100'>
+                  <button className='btn border border-success text-white me-2 w-100'><i class="bi bi-lightning"></i> Buy Now</button>
+                </Link>
+
               </div>
             </div>
+
             <div className="product-info">
               <h1>{product.name}</h1>
-              <p>{product.description}</p>
-              <div className="category">Category: {product.categoryId.name}</div>
               <div className="brand">Brand: {product.brand}</div>
-              {product.gender && <div className="gender">Gender: {product.gender}</div>}
-              {product.season && <div className="season">Season: {product.season}</div>}
+              <div className="category">Category: {product.categoryId.name}</div>
+              <div className="price">
+                ₹{selectedVariation.discountPrice}
+                {selectedVariation.price !== selectedVariation.discountPrice && (
+                  <span className="discount-price">₹{selectedVariation.price}</span>
+                )}
+              </div>
 
-              {selectedVariation && (
-                <>
-                  <div className="price">Price: ₹{selectedVariation.discountPrice}</div>
-                  {selectedVariation.price !== selectedVariation.discountPrice && (
-                    <div className="discount-price">Original Price: ₹{selectedVariation.price}</div>
-                  )}
-                  <div className='d-flex justify-content-center'>
-                    {offers.map((offer) => (
-                      <div key={offer._id} className="offer-badge">
-                        {offer.discountPercentage
-                          ? `|| ${offer.discountPercentage}% OFF ||`
-                          : `|| Discount: ${offer.discountAmount} ||`
-                        }
-                        <p>{offer.description}</p>
-                      </div>
-                    ))}
+              <div className="offer-badges">
+                {offers.map((offer) => (
+                  <div key={offer._id} className="offer-badge">
+                    {offer.discountPercentage
+                      ? `${offer.discountPercentage}% OFF`
+                      : `Discount: ₹${offer.discountAmount}`}
+                    <p>{offer.description}</p>
                   </div>
-                  <div className="variation-details">
-                    <div className="color-options border m-3 rounded">
-                      {selectedVariation.color.map((color, index) => (
-                        <button
-                          key={index}
-                          type="button"
-                          className={`btn color-btn m-3 ${selectedColor === color ? 'active' : ''}`}
-                          style={{ border: `1px ${color} solid` }}
-                          onClick={() => handleColorClick(color)}
-                        >
-                          {color}
-                          {selectedColor === color && <i className="bi bi-check"></i>}
-                        </button>
-                      ))}
-                    </div>
-                    <div>Weight: {selectedVariation.weight}g</div>
-                    <div>Stock: {selectedVariation.stock}</div>
-                  </div>
-                </>
-              )}
+                ))}
+              </div>
 
-              <div className="sizes mt-3">
-                <h3>Available Sizes</h3>
+              <div className="variation-details">
+
+                <div>Weight: {selectedVariation.weight}g</div>
+                <div>Stock: {selectedVariation.stock}</div>
+              </div>
+
+              <div className="sizes mt-5 d-grid justify-content-center">
+                <div className="color-options border mb-3 rounded colors-container text-white">
+                  {selectedVariation.color.map((color, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      className={`btn color-btn m-3 ${selectedColor === color ? 'active text-bg-info' : 'active'}`}
+                      style={{ border: `2px ${color} groove` }}
+                      onClick={() => handleColorClick(color)}
+                    >
+                      {color}
+                      {selectedColor === color && <i className="bi bi-check"></i>}
+                    </button>
+                  ))}
+                </div>
                 <div className="btn-group" role="group" aria-label="Sizes">
                   {product.variations.map((variation, index) => (
                     <button
@@ -203,31 +231,17 @@ function SingleProduct() {
                   ))}
                 </div>
               </div>
-              <div className="add-to-cart-btn mt-3">
-                {selectedColor && selectedVariation ? (
-                  isProductInCart ? (
-                    <Link to='/cart'>
-                      <button className="btn btn-secondary me-2">Go to Cart</button>
-                    </Link>
-                  ) : (
-                    <button className="btn border border-success text-white me-2" onClick={handleAddToCart}>Add to Cart</button>
-                  )
-                ) : (
-                  <button className="btn btn-primary" disabled>Add to Cart</button>
-                )}
-                {/* <button className='btn btn-success me-2'>Buy now</button> */}
-                <Link to={`/checkout/${product._id}`}>
-                  <button className='btn border border-success text-white me-2'>Buy now</button>
-                </Link>
-                <button className='btn border border-success text-white' onClick={() => addToWishlist(product._id)}>Add to wishlist</button>
-              </div>
+
+
             </div>
-          </div>
+          </>
         ) : (
           <div>Loading...</div>
         )}
       </div>
     </div>
+
+
   );
 }
 

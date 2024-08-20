@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { authenticateToken, getUser } from '../middleware/authMiddleware.js';
-import { getHomeProducts, getProducts, singleProduct, singleProductWithoutMiddleware } from '../controllers/User/home.js';
+import { CheckAlreadyLogin, authenticateToken, getUser } from '../middleware/authMiddleware.js';
+import { getHomeProducts, getProducts, singleProduct } from '../controllers/User/home.js';
 import { editUserPassword, editUserProfile, getUserProfile, resetPassword, sendOTP, verifyOTP } from '../controllers/User/userProfile.js';
-import { addNewAddress, deleteAddress, editAddress } from '../controllers/User/Address.js';
+import { addNewAddress, deleteAddress, editAddress, getAddresses } from '../controllers/User/Address.js';
 import { addToCart, deleteCartItems, getCartUser, shopAddToCart, updateCartItems } from '../controllers/User/cart.js';
 import { checkoutProduct, payByCod, payment, pendingOrder, repayPendingOrder, userPayment, verifyPayment } from '../controllers/User/checkout.js';
 import { getAllOrders, updateOrderStatus } from '../controllers/User/order.js';
@@ -17,8 +17,7 @@ router.get('/getProducts', authenticateToken, getProducts);
 //without middle ware
 router.get('/home/getProducts', getUser, getHomeProducts);
 //without middle ware
-router.get('/shop-product/:id', singleProductWithoutMiddleware);
-router.get('/shop/:id', authenticateToken, singleProduct);
+router.get('/shop/:id',CheckAlreadyLogin, singleProduct);
 
 
 // user profile
@@ -30,7 +29,7 @@ router.post('/verify-otp', authenticateToken, verifyOTP);
 router.post('/reset-password', authenticateToken, resetPassword);
 
 //address
-router.get('/addresses', authenticateToken, );
+router.get('/addresses', authenticateToken, getAddresses);
 router.post('/add-address', authenticateToken, addNewAddress);
 router.post('/edit-address', authenticateToken, editAddress);
 router.delete('/delete-address/:id', authenticateToken, deleteAddress);

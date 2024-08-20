@@ -8,7 +8,7 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(config => {
     const token = sessionStorage.getItem('accessToken')
     console.log(token);
-    const urlPattern = /\/user\/shop-product\/([a-fA-F0-9]{24})/;
+    const urlPattern = /\/user\/shop\/([a-fA-F0-9]{24})/;
     const match = config.url.match(urlPattern);
     const id = match ? match[1] : null;
     if (!token
@@ -26,7 +26,7 @@ axiosInstance.interceptors.request.use(config => {
         && config.url !== '/admin/forgot-pass/verify-otp'
         && config.url !== '/admin/reset-password'
         && config.url !== '/user/home/getProducts'
-        && config.url !== `/user/shop-product/${id}`
+        && config.url !== `/user/shop/${id}`
     ) {
         window.location.href = '/authentication'
     }
@@ -51,6 +51,7 @@ axiosInstance.interceptors.response.use(response => {
     if (error.response && error.response.status === 401) {
         console.error('Token expired or invalid, redirecting to login');
         sessionStorage.removeItem('accessToken');
+
         window.location.href = '/authentication';
     }
     return Promise.reject(error);

@@ -30,6 +30,7 @@ function Checkout() {
     const [paymetPolicy, setPaymetPolicy] = useState(false)
     const [couponCode, setCouponCode] = useState('')
     const [couponAvailable, setCouponAvailable] = useState({})
+    const [errorMsg, setErrorMsg] = useState('')
     const [priceDetails, setPriceDetails] = useState({
         itemCount: 0,
         totalPrice: 0,
@@ -51,7 +52,7 @@ function Checkout() {
                     let data = response.data
                     setOffers(data.offers)
                     const primaryAddress = data.addresses.find(address => address.isPrimary);
-                    setSelectedAddress(primaryAddress)
+                    setSelectedAddress(primaryAddress ? primaryAddress : data.addresses[0])
                     setAddresses(data.addresses)
                     setProducts(data.products)
                 }
@@ -192,6 +193,15 @@ function Checkout() {
         try {
             await axiosInstance.put(`/user/update-cart-item/${item_id}`, { quantity: newQuantity });
         } catch (error) {
+            toast.error('Something went wrong ', {
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+            });
             console.error('Error updating cart item quantity:', error);
         }
     };
@@ -343,17 +353,51 @@ function Checkout() {
             });
     }
 
+
+    const handleAddressSave = () => {
+        if (addresses && addresses.length > 0 && !selectedAddress._id) {
+            toast.error('Please select an address', {
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+            });
+            setErrorMsg('Please select an address')
+            return
+
+        }
+        if (!addresses || addresses.length === 0 && !selectedAddress._id) {
+            toast.error("Please create a new address", {
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+            });
+            setErrorMsg("Please create a new address")
+            return;
+        }
+        setErrorMsg('')
+        setShowAddress(false);
+        setShowProduct(true)
+    }
+
     return (
         <div className='checkout'>
-            <Layout mainHeading={mainHeading} breadcrumbs={breadcrumbs} />
             <ToastContainer />
+            <Layout mainHeading={mainHeading} breadcrumbs={breadcrumbs} />
+
             <div className='container text-white'>
 
                 <div className='row'>
                     <div className='col-md-8'>
                         {showAddress ? (
                             <div >
-                                <h2>Address Management</h2>
                                 {!newAddress && (
                                     <button className="btn btn-primary my-3 address-card p-3 mb-3 border rounded position-relative" onClick={handelNewAddress}>
                                         Add New Address
@@ -394,8 +438,9 @@ function Checkout() {
                                             </div>
                                         ) : null
                                     ))}
+                                    {errorMsg && <p className='text-danger'>{errorMsg}</p>}
                                     <div className='d-flex justify-content-end p-2'>
-                                        <button className='btn btn-success' onClick={() => { setShowAddress(false); setShowProduct(true) }}>Save</button>
+                                        <button className='btn btn-success' onClick={handleAddressSave}>Save</button>
                                     </div>
                                 </div>
                             </div>
@@ -403,10 +448,13 @@ function Checkout() {
                             <div className='text-white'>
                                 {selectedAddress ? (
                                     <div key={selectedAddress._id} className={`address-card p-3 mb-3 border rounded position-relative ${selectedAddress.isPrimary ? 'border-success' : ''}`}>
-                                        <div className="dropdown position-absolute top-0 end-0 p-2">
+                                        <div className="dropdown position-absolute top-0 end-0 p-2 d-block">
                                             <button className="btn btn-secondary">
-                                                <li className="dropdown-item" onClick={() => setShowAddress(true)}>Change</li>
+                                                <li className="dropdown-item" onClick={() => { setShowAddress(true); setShowPayment(false); setShowProduct(false); setShowEditAddress(false) }}>Change</li>
                                             </button>
+                                            <div className='mt-4 d-flex justify-content-center border-2 text-success'>
+                                                <i class="bi bi-check-circle"></i>
+                                            </div>
                                         </div>
                                         <div className="address-type mb-2">
                                             <strong>{selectedAddress.addressType}</strong>
@@ -469,7 +517,8 @@ function Checkout() {
                                             )
                                         })}
                                         <div className='d-flex justify-content-end p-2'>
-                                            <button className='btn btn-success' onClick={() => { setShowAddress(false); setShowProduct(false); setShowPayment(true); updateOfferPrices() }}>Continue</button>
+                                            <button className='btn btn-success' onClick={() => { setShowAddress(false); setShowProduct(false); setShowEditAddress(false); setShowPayment(true); updateOfferPrices() }}>Continue</button>
+
                                         </div>
                                     </div>
                                 ) : (
@@ -482,15 +531,17 @@ function Checkout() {
                                 )}
                             </div>
                         ) : (
-                            <div className="address-card p-3 mb-3 border rounded position-relative">
+                            <div className="address-card p-3 mb-3 border rounded position-relative d-block">
                                 {!showAddress && !showAddress && (
                                     <div className="dropdown position-absolute top-0 end-0 p-2">
                                         <button className="btn btn-secondary">
-                                            <li className="dropdown-item" onClick={() => { setShowAddress(false); setShowProduct(true); setShowPayment(false) }}>Change</li>
+                                            <li className="dropdown-item" onClick={() => { setShowAddress(false); setShowProduct(true); setShowPayment(false); setShowEditAddress(false) }}>Change</li>
                                         </button>
+                                        <div className='mt-4 d-flex justify-content-center border-2 text-success'>
+                                            <i class="bi bi-check-circle"></i>
+                                        </div>
                                     </div>
                                 )}
-
                                 <h4>Order summary</h4>
                                 <h5>{products.length} items</h5>
                             </div>

@@ -1,6 +1,7 @@
 import Product from '../../model/product.js';
 import User from '../../model/user.js'
 import Cart from '../../model/cart.js';
+import Offer from '../../model/offer.js';
 
 
 export const addToCart = async (req, res) => {
@@ -121,7 +122,7 @@ export const addToCart = async (req, res) => {
   
       const cart = await Cart.findOne({ userId: user._id }).populate({
         path: 'products.productId',
-        select: 'name mainImage',
+        select: 'name mainImage categoryId',
         populate: {
           path: 'mainImage',
           select: 'image'
@@ -132,7 +133,7 @@ export const addToCart = async (req, res) => {
         return res.status(404).json({ status: false });
       }
   
-  
+      
       const populatedProducts = cart.products.map(product => ({
         productId: product.productId._id,
         name: product.productId.name,
@@ -143,9 +144,13 @@ export const addToCart = async (req, res) => {
         selectedColor: product.selectedColor,
         selectedSize: product.selectedSize,
         selectedStock: product.selectedStock,
+        categoryId: product.productId.categoryId,
         _id: product._id,
       }));
-      res.status(200).json({ status: true, products: populatedProducts });
+
+
+      const offers =await Offer.find({})
+      res.status(200).json({ status: true, products: populatedProducts, offers: offers ? offers : [] });
     } catch (error) {
       console.error('Error fetching cart products:', error);
       res.status(500).json({ status: false, message: 'Server error' });

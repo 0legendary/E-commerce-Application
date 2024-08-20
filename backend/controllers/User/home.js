@@ -84,14 +84,15 @@ export const getHomeProducts = async (req, res) => {
 }
 
 
-export const singleProductWithoutMiddleware = async (req, res) => {
+export const singleProduct = async (req, res) => {
   const productId = req.params.id;
-
   try {
     const product = await Product.findById(productId)
       .populate('categoryId', 'name')
       .populate('mainImage', 'image')
       .populate('additionalImages', 'image');
+
+   
     if (product) {
       const offers = await Offer.find({
         $or: [
@@ -99,25 +100,30 @@ export const singleProductWithoutMiddleware = async (req, res) => {
           { applicableTo: product.categoryId._id }
         ]
       })
-      if (req.user && req.user.email) {
-        const user = await User.findOne({ email: req.user.email });
-        if (user) {
-          const cart = await Cart.findOne({ userId: user._id }).lean();
-          if (cart) {
-            const cartProducts = cart.products.filter(p =>
-              p.productId.equals(productId)
-            );
-            res.status(200).json({
-              status: true,
-              product,
-              cartProducts: cartProducts,
-              offers
-            });
-            return;
+      let cartProducts
+      let isProductInWishlist = false;
+       if (req.user && req.user.email) {
+          const userData = await User.findOne({ email: req.user.email });
+          
+          if (userData) {
+            const cart = await Cart.findOne({ userId: userData._id }).lean();
+            //console.log(cart);
+            if (cart) {
+              cartProducts = cart.products.filter(p =>
+                p.productId.equals(productId)
+              );
+            }
+
+            const wishlist = await Wishlist.findOne({userId: userData._id})
+            if (wishlist) {
+              isProductInWishlist = wishlist.products.filter(p =>
+                p.productId.equals(productId)
+              );
+            }
           }
         }
-      }
-      res.status(200).json({ status: true, product: product, offers });
+            
+      res.status(200).json({ status: true, product, offers, isProductInWishlist: isProductInWishlist.length > 0 ? true : false, cartProducts: cartProducts ? cartProducts : []});
     } else {
       res.status(404).json({ status: false, message: 'Product not found' });
     }
@@ -126,37 +132,3 @@ export const singleProductWithoutMiddleware = async (req, res) => {
   }
 }
 
-export const singleProduct = async (req, res) => {
-  const productId = req.params.id;
-
-  try {
-    const product = await Product.findById(productId)
-      .populate('categoryId', 'name')
-      .populate('mainImage', 'image')
-      .populate('additionalImages', 'image');
-    if (product) {
-      if (req.user && req.user.email) {
-        const user = await User.findOne({ email: req.user.email });
-        if (user) {
-          const cart = await Cart.findOne({ userId: user._id }).lean();
-          if (cart) {
-            const cartProducts = cart.products.filter(p =>
-              p.productId.equals(productId)
-            );
-            res.status(200).json({
-              status: true,
-              product,
-              cartProducts: cartProducts
-            });
-            return;
-          }
-        }
-      }
-      res.status(200).json({ status: true, product: product });
-    } else {
-      res.status(404).json({ status: false, message: 'Product not found' });
-    }
-  } catch (error) {
-    res.status(500).json({ status: false, message: 'Error fetching product' });
-  }
-}
