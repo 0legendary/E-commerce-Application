@@ -1,6 +1,8 @@
 import Coupon from "../../model/coupon.js";
+import Image from "../../model/image.js";
 import Order from "../../model/order.js";
 import Product from "../../model/product.js";
+import Review from "../../model/review.js";
 import User from "../../model/user.js";
 import Wallet from "../../model/wallet.js";
 
@@ -122,3 +124,45 @@ export const updateOrderStatus = async (req, res) => {
     }
 }
 
+
+export const addNewReview = async (req, res) => {
+    const reviewData = req.body
+    try {
+
+        let savedImage = null;
+        if (reviewData.reviewImage) {
+            const newImage = new Image({ image: reviewData.reviewImage });
+            savedImage = await newImage.save();
+        }
+
+        const newReview = new Review({
+            orderId: reviewData.orderId,
+            productId: reviewData.productId,
+            customerId: reviewData.customerId,
+            rating: reviewData.rating,
+            reviewText: reviewData.reviewText,
+            imagesId: savedImage ? [savedImage._id] : []
+        })
+
+        const savedReview = await newReview.save();
+
+        await Order.findOneAndUpdate(
+            { orderId: reviewData.orderId },
+            {
+                $push: {
+                    customerReviews: {
+                        reviewId: savedReview._id,
+                        reviewText: reviewData.reviewText,
+                        rating: reviewData.rating
+                    }
+                }
+            },
+            { new: true }
+        );
+
+        res.json({ status: true, newReview });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ status: false, message: 'Error fetching user' });
+    }
+}

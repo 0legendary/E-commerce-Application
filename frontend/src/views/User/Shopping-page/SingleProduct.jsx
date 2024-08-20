@@ -5,6 +5,7 @@ import { Link, useParams } from 'react-router-dom';
 import ReactImageMagnify from 'react-image-magnify';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Reviews from './Reviews';
 
 
 function SingleProduct() {
@@ -16,12 +17,15 @@ function SingleProduct() {
   const [selectedColor, setSelectedColor] = useState(null);
   const [cartProducts, setCartProducts] = useState([])
   const [isProductInWishlist, setIsProductInWishlist] = useState(false)
+  const [reviews, setReviews] = useState([])
 
   const [offers, setOffers] = useState([])
   useEffect(() => {
     axiosInstance.get(`/user/shop/${id}`)
       .then(response => {
         if (response.data.status) {
+          console.log(response.data.reviews);
+          setReviews(response.data.reviews)
           setIsProductInWishlist(response.data.isProductInWishlist)
           setOffers(response.data.offers ? response.data.offers : []);
           setProduct(response.data.product);
@@ -231,13 +235,15 @@ function SingleProduct() {
                   ))}
                 </div>
               </div>
-
-
             </div>
+
           </>
         ) : (
           <div>Loading...</div>
         )}
+      </div>
+      <div className='review-information mt-lg-5'>
+        <Reviews reviews={reviews} />
       </div>
     </div>
 

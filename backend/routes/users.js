@@ -5,7 +5,7 @@ import { editUserPassword, editUserProfile, getUserProfile, resetPassword, sendO
 import { addNewAddress, deleteAddress, editAddress, getAddresses } from '../controllers/User/Address.js';
 import { addToCart, deleteCartItems, getCartUser, shopAddToCart, updateCartItems } from '../controllers/User/cart.js';
 import { checkoutProduct, payByCod, payment, pendingOrder, repayPendingOrder, userPayment, verifyPayment } from '../controllers/User/checkout.js';
-import { getAllOrders, updateOrderStatus } from '../controllers/User/order.js';
+import { addNewReview, getAllOrders, updateOrderStatus } from '../controllers/User/order.js';
 import { addWallet, getWallet } from '../controllers/User/wallet.js';
 import { addToWishlist, deleteWishlistProduct, getWishlistProducts } from '../controllers/User/wishlist.js';
 import { applyCoupon, getCoupons } from '../controllers/User/coupon.js';
@@ -55,6 +55,7 @@ router.post('/pay/pending-payment', repayPendingOrder);
 //orders
 router.get('/all-orders', authenticateToken, getAllOrders);
 router.post('/update-order-status', updateOrderStatus);
+router.post('/add-review', authenticateToken, addNewReview);
 
 //wallet
 router.get('/wallet', authenticateToken, getWallet);

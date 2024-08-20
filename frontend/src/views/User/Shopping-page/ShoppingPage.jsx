@@ -340,7 +340,7 @@ function ShoppingPage() {
                                 const inStock = product.variations[0].stock > 0;
 
                                 return (
-                                    <div key={index} className="product-card ">
+                                    <div key={index} className="product-card shopping-page-card">
                                         <img src={product.mainImage.image} alt={product.name} className="product-image" />
                                         <div className="product-details">
                                             <span className="product-name text-white"><span>{product.name}</span></span>

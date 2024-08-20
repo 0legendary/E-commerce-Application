@@ -4,36 +4,37 @@ import User from '../../model/user.js'
 import Cart from '../../model/cart.js';
 import Wishlist from '../../model/wishlist.js';
 import Offer from '../../model/offer.js';
+import Review from '../../model/review.js';
 
 
 export const getProducts = async (req, res) => {
-    try {
-      const products = await Product.find({})
-        .populate('categoryId', 'name')
-        .populate('mainImage', 'image')
-        .populate('additionalImages', 'image')
-        .lean();
-  
-      if (req.user && req.user.email) {
-        const user = await User.findOne({ email: req.user.email });
-        if (user) {
-          const cart = await Cart.findOne({ userId: user._id }).lean();
-          if (cart) {
-            const cartProductIds = cart.products.map(p => p.productId.toString());
-            res.status(200).json({
-              status: true,
-              products,
-              cartProducts: cartProductIds
-            });
-            return;
-          }
+  try {
+    const products = await Product.find({})
+      .populate('categoryId', 'name')
+      .populate('mainImage', 'image')
+      .populate('additionalImages', 'image')
+      .lean();
+
+    if (req.user && req.user.email) {
+      const user = await User.findOne({ email: req.user.email });
+      if (user) {
+        const cart = await Cart.findOne({ userId: user._id }).lean();
+        if (cart) {
+          const cartProductIds = cart.products.map(p => p.productId.toString());
+          res.status(200).json({
+            status: true,
+            products,
+            cartProducts: cartProductIds
+          });
+          return;
         }
       }
-      res.status(201).json({ status: true, products });
-    } catch (error) {
-      res.status(500).json({ error: 'Error fetching products' });
     }
+    res.status(201).json({ status: true, products });
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching products' });
   }
+}
 
 export const getHomeProducts = async (req, res) => {
   try {
@@ -92,7 +93,7 @@ export const singleProduct = async (req, res) => {
       .populate('mainImage', 'image')
       .populate('additionalImages', 'image');
 
-   
+
     if (product) {
       const offers = await Offer.find({
         $or: [
@@ -102,28 +103,38 @@ export const singleProduct = async (req, res) => {
       })
       let cartProducts
       let isProductInWishlist = false;
-       if (req.user && req.user.email) {
-          const userData = await User.findOne({ email: req.user.email });
-          
-          if (userData) {
-            const cart = await Cart.findOne({ userId: userData._id }).lean();
-            //console.log(cart);
-            if (cart) {
-              cartProducts = cart.products.filter(p =>
-                p.productId.equals(productId)
-              );
-            }
+      let reviews
+      if (req.user && req.user.email) {
+        const userData = await User.findOne({ email: req.user.email });
 
-            const wishlist = await Wishlist.findOne({userId: userData._id})
-            if (wishlist) {
-              isProductInWishlist = wishlist.products.filter(p =>
-                p.productId.equals(productId)
-              );
-            }
+        if (userData) {
+          const cart = await Cart.findOne({ userId: userData._id }).lean();
+          //console.log(cart);
+          if (cart) {
+            cartProducts = cart.products.filter(p =>
+              p.productId.equals(productId)
+            );
           }
+
+          const wishlist = await Wishlist.findOne({ userId: userData._id })
+          if (wishlist) {
+            isProductInWishlist = wishlist.products.filter(p =>
+              p.productId.equals(productId)
+            );
+          }
+          reviews = await Review.find({ productId: productId })
+            .populate('imagesId', 'image');
         }
-            
-      res.status(200).json({ status: true, product, offers, isProductInWishlist: isProductInWishlist.length > 0 ? true : false, cartProducts: cartProducts ? cartProducts : []});
+      }
+      res.status(200).json({
+        status: true,
+        product,
+        offers,
+        isProductInWishlist: isProductInWishlist.length > 0 ? true : false,
+        cartProducts: cartProducts ? cartProducts : [],
+        reviews: reviews.length > 0 ? reviews : []
+      });
+
     } else {
       res.status(404).json({ status: false, message: 'Product not found' });
     }

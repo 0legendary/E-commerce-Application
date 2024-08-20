@@ -100,7 +100,7 @@
     background-color: #f8f9fa;
     padding: 1rem;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .head {
@@ -151,5 +151,15 @@
     padding: 5px 10px;
     border-radius: 5px;
     font-size: 14px;
-    
+
+}
+
+.shopping-page-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    background-color: #333;
+    padding: 10px;
+    position: relative;
 }

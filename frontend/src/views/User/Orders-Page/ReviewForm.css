@@ -1,0 +1,52 @@
+.review-form-container {
+    background-color: #2c3e50;
+    padding: 20px;
+    border-radius: 8px;
+    color: white;
+}
+
+.review-form-container .rating-stars i {
+    font-size: 1.5rem;
+    color: #f1c40f;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.review-form-container .rating-stars i.bi-star-fill {
+    color: #f39c12;
+}
+
+.review-form-container .rating-stars i.bi-star {
+    color: #bdc3c7;
+}
+
+.review-form-container .form-group label {
+    font-weight: 500;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.review-form-container .form-control {
+    background-color: #34495e;
+    border: none;
+    border-radius: 4px;
+    color: white;
+}
+
+.review-form-container .form-control:focus {
+    border-color: #2980b9;
+    box-shadow: none;
+}
+
+.review-form-container .btn-primary {
+    background-color: #2980b9;
+    border: none;
+}
+
+.review-form-container .btn-primary:hover {
+    background-color: #3498db;
+}
+
+.review-form-container small.form-text {
+    color: #95a5a6;
+}

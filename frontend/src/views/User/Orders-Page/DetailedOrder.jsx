@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './DetailedOrder.css';
+import axiosInstance from '../../../config/axiosConfig';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import ReviewForm from './ReviewForm';
 
 function DetailedOrder({ product, backToOrders, openModal }) {
     const { order } = product;
-
+    const [showReviewForm, setShowReviewForm] = useState(false)
     const formatAddress = () => {
         const address = order.shippingAddress;
         return `${address.name}\n${address.address}, ${address.locality}, ${address.city} - ${address.pincode}, ${address.state}\nPhone number\n${address.mobile}`;
@@ -26,8 +30,62 @@ function DetailedOrder({ product, backToOrders, openModal }) {
                 return '0%';
         }
     };
+
+
+    const handleReviewSubmit = (reviewData) => {
+        const formData = { ...reviewData };
+
+        if (formData.reviewImage) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                formData.reviewImage = reader.result;
+                sendReviewData(formData);
+            };
+            reader.readAsDataURL(formData.reviewImage);
+        } else {
+            sendReviewData(formData); 
+        }
+    };
+
+
+    const sendReviewData = (reviewData) => {
+        console.log('Review submitted:', reviewData);
+
+        axiosInstance.post('/user/add-review', reviewData)
+            .then(response => {
+                if (response.data.status) {
+                    toast.success('Review added successfully', {
+                        autoClose: 3000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
+                    setShowReviewForm(false)
+
+                } else {
+                    toast.error('Review submission failed:', {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error while creating review data:', error);
+            });
+    };
+
+
     return (
         <div className="container mt-5">
+            <ToastContainer />
             <button className="btn btn-secondary mb-4" onClick={() => backToOrders()}>
                 Back to Orders
             </button>
@@ -93,6 +151,15 @@ function DetailedOrder({ product, backToOrders, openModal }) {
                                             </div>
                                         </div>
                                     </div>
+                                    <div className='d-flex justify-content-end mt-4'>
+                                        {product.orderStatus === 'delivered' && (
+                                            <button className='btn btn-secondary' onClick={() => setShowReviewForm(!showReviewForm)}>Add Reveiw</button>
+                                        )}
+                                    </div>
+
+                                    {product.orderStatus === 'delivered' && showReviewForm && (
+                                        <ReviewForm productId={product.productId} orderId={order.orderId} customerId={order.customerId} onSubmitReview={handleReviewSubmit} />
+                                    )}
                                 </div>
                             ))}
                         </div>
