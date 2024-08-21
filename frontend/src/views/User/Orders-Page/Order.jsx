@@ -114,13 +114,13 @@ function Order() {
                                                 .slice()
                                                 .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
                                                 .map(order => (
-                                                    <ListGroup.Item key={order._id} className='bg-dark'>
+                                                    <ListGroup.Item key={order._id} className='bg-dark' >
                                                         <div className="order-card mb-4 p-3 border rounded">
                                                             {order.products.map((product, index) => (
                                                                 <div
                                                                     key={product._id}
                                                                     className={`order-item d-flex align-items-start ${order.products.length > 1 && order.products.length - 1 !== index ? 'border-bottom' : ''
-                                                                        } pb-3 mb-3`}
+                                                                        } pb-3 mb-3`} onClick={() => handleDetailedOrder(product, order)}
                                                                 >
                                                                     <img
                                                                         src={product.productId.mainImage.image}
@@ -129,7 +129,7 @@ function Order() {
                                                                         style={{ maxWidth: '100px', maxHeight: '100px' }}
                                                                     />
                                                                     <div className="order-details flex-grow-1">
-                                                                        <h5 className="order-item-name" onClick={() => handleDetailedOrder(product, order)}>
+                                                                        <h5 className="order-item-name" >
                                                                             {product.productName}
                                                                         </h5>
                                                                         <p className="order-item-color">Color: {product.selectedColor}</p>

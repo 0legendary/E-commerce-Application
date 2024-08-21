@@ -51,7 +51,7 @@ function CODPayment({ amount, totalDiscount, deliveryCharge, address, products, 
     };
 
     try {
-      const response = await axiosInstance.post('/user/payment/od', { orderDetails, checkoutId });
+      const response = await axiosInstance.post('/user/payment/cod', { orderDetails, checkoutId });
       if (response.data.status) {
         setOrderDetailsData(response.data.order)
         setShowSuccessPage(true)

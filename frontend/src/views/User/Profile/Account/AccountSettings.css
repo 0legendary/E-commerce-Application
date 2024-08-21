@@ -3,30 +3,60 @@
     margin: 0 auto;
 }
 
-.acc-setting .account-details {
-    text-align: left;
-}
-
-.acc-setting .edit-form,
-.acc-setting .password-form {
-    text-align: left;
-}
-
-
-.password-form .forgot-pass {
-    margin-top: 2px;
-    width: 40%;
-    height: 20px;
-    display: flex;
-    float:right;
-    align-items: center;
-    justify-content: center;
-    background-color: #fff7f700;
+.acc-setting .card {
+    background-color: #343a40;
     border: none;
-    color: #ff4040;
-    padding: 5px 10px;
-    font-size: 12px;
-    font-weight: 400;
+    border-radius: 8px;
+}
+
+.acc-setting .card-body {
+    padding: 20px;
+}
+
+.acc-setting .card-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.acc-setting .form-label {
+    font-size: 1rem;
+    color: #adb5bd;
+}
+
+.acc-setting .form-control {
+    background-color: #495057;
+    color: #f8f9fa;
+    border: 1px solid #6c757d;
     border-radius: 5px;
-    cursor: pointer;
+}
+
+.acc-setting .form-control:focus {
+    background-color: #495057;
+    color: #f8f9fa;
+    border-color: #007bff;
+}
+
+.acc-setting .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.acc-setting .btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.acc-setting .btn-link {
+    color: #ff4040;
+    text-decoration: none;
+}
+
+.acc-setting .btn-link:hover {
+    color: #dc3545;
+}
+
+.btn-disabled {
+    color: #6c757d;
+    cursor: not-allowed;
 }

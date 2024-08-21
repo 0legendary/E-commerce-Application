@@ -671,7 +671,7 @@ function Checkout() {
                             </div>
                             <div className='d-flex justify-content-between'>
                                 <p>Offer discount:</p>
-                                <p>- ₹{priceDetails.offerDiscount}</p>
+                                <p>- ₹{priceDetails.offerDiscount.toFixed(2)}</p>
                             </div>
                             <div className='d-flex justify-content-between'>
                                 <p>Delivery Charge:</p>

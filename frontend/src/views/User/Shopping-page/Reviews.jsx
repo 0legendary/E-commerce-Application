@@ -11,7 +11,7 @@ function Reviews({ reviews }) {
     }));
     return (
         <div className="container m-5">
-            <div className='mt-5' style={{marginLeft:'10rem'}}>
+            <div className='mt-5' style={{ marginLeft: '10rem' }}>
                 <h3>Ratings & Reviews</h3>
 
             </div>
@@ -43,12 +43,17 @@ function Reviews({ reviews }) {
                 {reviews.map((review) => (
                     <div className="d-flex review-infor border-bottom m-5 py-3 align-items-center border" key={review._id}>
                         <div className="review-text flex-grow-1 mx-5">
-                            {review.rating >= 3 && <p className='text-success'>{review.rating} <i class="bi bi-star-fill"></i></p>}
-                            {review.rating === 2 && <p className='text-warning'>{review.rating} <i class="bi bi-star-fill"></i></p>}
-                            {review.rating === 1 && <p className='text-danger'>{review.rating} <i class="bi bi-star-fill"></i></p>}
+                            {[...Array(5)].map((_, index) => (
+                                <i
+                                    key={index}
+                                    className={`bi bi-star-fill ${index < review.rating ? 'text-warning' : 'text-white'}`}
+                                    style={{ fontSize: '1.2rem' }}
+                                ></i>
+                            ))}
+
                             <h5>{review.reviewText}</h5>
                         </div>
-                        
+
                         <div className="review-image mx-5">
                             {review.imagesId && review.imagesId.length > 0 ? (
                                 <img
@@ -59,7 +64,7 @@ function Reviews({ reviews }) {
                                 />
                             ) : (
                                 <img
-                                    src="https://www.caspianpolicy.org/no-image.png" 
+                                    src="https://www.caspianpolicy.org/no-image.png"
                                     alt="Not available"
                                     className="img-thumbnail"
                                     style={{ width: '100px', height: '100px' }}

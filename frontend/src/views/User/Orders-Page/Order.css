@@ -8,8 +8,20 @@
 .order-item {
     display: flex;
     align-items: flex-start;
+    padding: 1rem;
     padding-bottom: 10px;
     margin-bottom: 10px;
+    border: 1px solid #ccc; /* Add a default border */
+    border-radius: 8px; /* Rounded corners */
+    transition: all 0.3s ease;
+}
+
+.order-item:hover{
+    color: black;
+    border-color: #28a745;
+    border-color: #28a745; /* Change border color on hover */
+    background-color: #f8f9fa; /* Light background color on hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .order-image {

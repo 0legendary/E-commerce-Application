@@ -128,15 +128,18 @@ const Dashboard = () => {
             })).sort((a, b) => b.totalRevenue - a.totalRevenue).slice(0, 5)
         );
 
-        // Prepare recent orders data
         setRecentOrders(
-            filteredOrders.slice(0, 5).map(order => ({
-                orderId: order.orderId,
-                customer: order.customerId.name,
-                total: order.orderTotal,
-                status: order.products[0].orderStatus
-            }))
+            filteredOrders
+                .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate)) 
+                .slice(0, 5)
+                .map(order => ({
+                    orderId: order.orderId,
+                    customer: order.customerId.name,
+                    total: order.orderTotal,
+                    status: order.products[0].orderStatus
+                }))
         );
+        
 
         // Calculate discount impact
         const totalDiscount = filteredOrders.reduce((total, order) =>
@@ -601,7 +604,7 @@ const Dashboard = () => {
                                 <tbody>
                                     {recentOrders.map((order, index) => (
                                         <tr key={index}>
-                                            <td>{order.orderId}</td>
+                                            <td>{order.orderId ? order.orderId : 'Pending Payment'}</td>
                                             <td>{order.customer}</td>
                                             <td>₹ {order.total.toFixed(2)}</td>
                                             <td>{order.status}</td>

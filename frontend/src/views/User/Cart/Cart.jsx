@@ -247,7 +247,7 @@ function Cart() {
                                 </div>
                                 <div className='d-flex justify-content-between'>
                                     <p>Offer discount:</p>
-                                    <p>- ₹{totalOfferDiscount}</p>
+                                    <p>- ₹{totalOfferDiscount.toFixed(2)}</p>
                                 </div>
                                 <div className='d-flex justify-content-between'>
                                     <p>Total Amount</p>
