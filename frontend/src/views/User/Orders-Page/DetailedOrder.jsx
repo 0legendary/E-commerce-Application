@@ -33,23 +33,8 @@ function DetailedOrder({ product, backToOrders, openModal }) {
 
 
     const handleReviewSubmit = (reviewData) => {
-        const formData = { ...reviewData };
+        console.log(reviewData);
 
-        if (formData.reviewImage) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                formData.reviewImage = reader.result;
-                sendReviewData(formData);
-            };
-            reader.readAsDataURL(formData.reviewImage);
-        } else {
-            sendReviewData(formData); 
-        }
-    };
-
-
-    const sendReviewData = (reviewData) => {
-        console.log('Review submitted:', reviewData);
 
         axiosInstance.post('/user/add-review', reviewData)
             .then(response => {
@@ -83,6 +68,13 @@ function DetailedOrder({ product, backToOrders, openModal }) {
     };
 
 
+    const sendReviewData = (reviewData) => {
+        console.log('Review submitted:', reviewData);
+
+
+    };
+
+
     return (
         <div className="container mt-5">
             <ToastContainer />
@@ -110,11 +102,18 @@ function DetailedOrder({ product, backToOrders, openModal }) {
                                 <div className="card-body" key={product._id}>
                                     <div className="row">
                                         <div className="col-md-4">
-                                            <img
+                                            {/* <img
                                                 src={product.productId.mainImage.image}
                                                 alt={product.productName}
                                                 className="img-fluid"
-                                            />
+                                            /> */}
+                                            {product.productId.mainImage && (
+                                                <img
+                                                    src={product.productId.mainImage.image}
+                                                    alt={product.productName}
+                                                    className="img-fluid"
+                                                />
+                                            )}
                                         </div>
                                         <div className="col-md-8 order-products">
                                             <div>

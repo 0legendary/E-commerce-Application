@@ -32,16 +32,11 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  mainImage: {
+  images: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Image',
     required: true
   },
-  additionalImages: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Image',
-    required: true
-  }],
   gender: String,
   season: String,
   offers: [

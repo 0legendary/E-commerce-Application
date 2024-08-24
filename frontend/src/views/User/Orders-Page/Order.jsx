@@ -122,12 +122,15 @@ function Order() {
                                                                     className={`order-item d-flex align-items-start ${order.products.length > 1 && order.products.length - 1 !== index ? 'border-bottom' : ''
                                                                         } pb-3 mb-3`} onClick={() => handleDetailedOrder(product, order)}
                                                                 >
-                                                                    <img
-                                                                        src={product.productId.mainImage.image}
-                                                                        alt={product.productName}
-                                                                        className="order-image img-thumbnail me-3"
-                                                                        style={{ maxWidth: '100px', maxHeight: '100px' }}
-                                                                    />
+                                                                    {product.productId.mainImage && (
+                                                                        <img
+                                                                            src={product.productId.mainImage.image}
+                                                                            alt={product.productName}
+                                                                            className="order-image img-thumbnail me-3"
+                                                                            style={{ maxWidth: '100px', maxHeight: '100px' }}
+                                                                        />
+                                                                    )}
+
                                                                     <div className="order-details flex-grow-1">
                                                                         <h5 className="order-item-name" >
                                                                             {product.productName}
@@ -198,12 +201,14 @@ function Order() {
                                                                     className={`order-item d-flex align-items-start ${order.products.length > 1 && order.products.length - 1 !== index ? 'border-bottom' : ''
                                                                         } pb-3 mb-3`}
                                                                 >
-                                                                    <img
-                                                                        src={product.productId.mainImage.image}
-                                                                        alt={product.productName}
-                                                                        className="order-image img-thumbnail me-3"
-                                                                        style={{ maxWidth: '100px', maxHeight: '100px' }}
-                                                                    />
+                                                                    {product.productId.mainImage && (
+                                                                        <img
+                                                                            src={product.productId.mainImage.image}
+                                                                            alt={product.productName}
+                                                                            className="order-image img-thumbnail me-3"
+                                                                            style={{ maxWidth: '100px', maxHeight: '100px' }}
+                                                                        />
+                                                                    )}
                                                                     <div className="order-details flex-grow-1">
                                                                         <h5 className="order-item-name" onClick={() => handleDetailedOrder(product, order)}>
                                                                             {product.productName}
@@ -218,14 +223,14 @@ function Order() {
                                                                 </div>
                                                             ))}
                                                             <div className="order-summary ms-3">
-                                                                        <p className="order-item-total-price">Payable Amount: ₹{order.orderTotal}</p>
-                                                                        <button
-                                                                            className="btn btn-success btn-sm mt-2"
-                                                                            onClick={() => { setShowPaymentMethod(true); setPaymentMethod('Razorpay') }}
-                                                                        >
-                                                                            Continue Payment
-                                                                        </button>
-                                                                    </div>
+                                                                <p className="order-item-total-price">Payable Amount: ₹{order.orderTotal}</p>
+                                                                <button
+                                                                    className="btn btn-success btn-sm mt-2"
+                                                                    onClick={() => { setShowPaymentMethod(true); setPaymentMethod('Razorpay') }}
+                                                                >
+                                                                    Continue Payment
+                                                                </button>
+                                                            </div>
                                                             {showPaymentMethod && (
                                                                 <div>
                                                                     <div className='d-flex justify-content-between'>
@@ -268,7 +273,7 @@ function Order() {
                                                                         </>
                                                                     ) : (
                                                                         <div>
-                                                                             <PendingPayment order={order} paymentMethod={'online'} />
+                                                                            <PendingPayment order={order} paymentMethod={'online'} />
                                                                             Cash on delivery is only available for order greater than 1000
                                                                         </div>
                                                                     )}

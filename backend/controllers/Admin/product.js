@@ -22,29 +22,6 @@ export const getOneBase64Image = async (product) => {
     };
 }
 
-const getBase64Image = async (products) => {
-    return await Promise.all(products.map(async product => {
-        // Find the main image
-        const mainImage = await Image.findById(product.mainImage);
-
-        // Find additional images
-        const additionalImages = await Promise.all(
-            product.additionalImages.map(async id => {
-                const image = await Image.findById(id);
-                return image ? image.image : null;
-            })
-        );
-
-        // Filter out any null values from additional images
-        const filteredAdditionalImages = additionalImages.filter(image => image !== null);
-        return {
-            ...product,
-            mainImage: mainImage ? mainImage.image : null,
-            additionalImages: filteredAdditionalImages
-        };
-    }));
-}
-
 export const addImage = async (req, res) => {
     const { base64 } = req.body;
     try {
@@ -78,11 +55,18 @@ export const deleteImage = async (req, res) => {
 }
 
 export const addNewProduct = async (req, res) => {
+    let newProductData = req.body
     try {
+        let savedImage = null;
+        if (newProductData.images && newProductData.images.length > 0) {
+            const newImage = new Image({ images: newProductData.images });
+            savedImage = await newImage.save();
+            newProductData.images = savedImage._id;
+        }
+
         const newProduct = new Product({
-            ...req.body,
+            ...newProductData,
         });
-        console.log(newProduct);
         await newProduct.save();
         res.status(201).json({ status: true, product: newProduct });
     } catch (error) {
@@ -93,9 +77,8 @@ export const addNewProduct = async (req, res) => {
 
 export const getProducts = async (req, res) => {
     try {
-        const products = await Product.find({}).lean();
-        const populatedProducts = await getBase64Image(products)
-        res.status(201).json({ status: true, products: populatedProducts });
+        const products = await Product.find({}).lean().populate('images')
+        res.status(201).json({ status: true, products: products });
     } catch (error) {
         console.log(error);
         res.status(500).json({ error: 'Error fetching products' });
@@ -105,10 +88,9 @@ export const getProducts = async (req, res) => {
 export const editProducts = async (req, res) => {
     const productId = req.params.id;
     try {
-        const product = await Product.findById(productId);
-        const populatedProducts = await getOneBase64Image(product)
-        if (populatedProducts) {
-            res.status(200).json({ status: true, product: populatedProducts });
+        const product = await Product.findById(productId).populate('images')
+        if (product) {
+            res.status(200).json({ status: true, product: product });
         } else {
             res.status(404).json({ status: false, message: 'Product not found' });
         }
@@ -117,12 +99,36 @@ export const editProducts = async (req, res) => {
     }
 }
 
-export const updateProducts = async (req, res) => {
-    const updatedProductData = req.body;
 
+export const updateProducts = async (req, res) => {
+    const {updatedProductData, filesID} = req.body;
+    console.log(updatedProductData,filesID);
+    
     try {
-        // Fetch the product by its ID
-        const product = await Product.findById(updatedProductData._id);
+        let product = await Product.findById(updatedProductData._id);
+
+        if (updatedProductData.images && updatedProductData.images.length > 0) {
+            if (filesID) {
+                const updatedImage = await Image.findByIdAndUpdate(
+                    { _id: filesID}, 
+                    { images: updatedProductData.images }, 
+                    { new: true }
+                );
+
+                if (updatedImage) {
+                    product.images = updatedImage._id;
+                } else {
+                    return res.status(404).json({ status: false, message: 'Image not found' });
+                }
+            } else {
+                const newImage = new Image({ images: updatedProductData.images });
+                const savedImage = await newImage.save();
+                product.images = savedImage._id;
+            }
+        } else {
+            product.images = null;
+        }
+
 
         if (product) {
             // Update the product fields with the new data

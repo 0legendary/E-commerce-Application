@@ -2,20 +2,22 @@ import React, { useEffect, useState } from 'react'
 import axiosInstance from '../../../../config/axiosConfig';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { addProductformValidation } from '../../../../config/productValidation';
-import { convertFileToBase64, uploadImage } from '../../../../config/uploadImage';
 import { getCroppedImg } from '../../../../config/cropImage'; // Custom function to crop the image
 import Cropper from 'react-easy-crop';
+import UploadFIles from '../../../UploadFiles/UploadFIles';
 
 
 function EditProduct() {
   const { id } = useParams();
   const colors = ['Red', 'Grey', 'White', 'Black'];
-  const [product, setProduct] = useState({ variations: [], additionalImages: [] })
+  const [product, setProduct] = useState({ variations: []})
   const [newErrors, setNewErrors] = useState({})
   const [successMsg, setSuccessMsg] = useState('')
 
 
   const [croppedArea, setCroppedArea] = useState(null);
+  const [files, setFiles] = useState([]);
+  const [filesID, setFilesID] = useState(null)
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [showCropper, setShowCropper] = useState(false);
@@ -30,9 +32,10 @@ function EditProduct() {
     axiosInstance.get(`/admin/edit/getProduct/${id}`)
       .then(response => {
         if (response.data.status) {
-          console.log(response.data.product);
           setProduct(response.data.product)
-          console.log(product);
+          console.log(response.data.product);
+          setFiles(response.data.product?.images?.images)
+          setFilesID(response.data.product?.images?._id)
         }
       })
       .catch(error => {
@@ -104,7 +107,7 @@ function EditProduct() {
     setProduct({ ...product, variations: newVariations });
   };
 
-  const handleImageChange = (e,imageId) => {
+  const handleImageChange = (e, imageId) => {
     console.log(imageId);
     imageId && setDeleteImagesId(imageId)
     const { name, files } = e.target;
@@ -113,7 +116,7 @@ function EditProduct() {
       const fileURL = URL.createObjectURL(file);
       setImageSrc(fileURL);
       setShowCropper(true);
-  
+
       if (name === 'mainImage') {
         setIsMainImage(true);
       } else if (name === 'additionalImages') {
@@ -121,29 +124,30 @@ function EditProduct() {
       }
     }
   };
-  
+
 
   const handleCropComplete = (croppedAreaPercentage, croppedAreaPixels) => {
     setCroppedArea(croppedAreaPixels);
   };
 
+
   const handleCropSave = async () => {
     const croppedImage = await getCroppedImg(imageSrc, croppedArea);
     if (isMainImage) {
-      
+
       setProduct({ ...product, mainImage: [{ file: croppedImage, url: URL.createObjectURL(croppedImage) }] });
     } else {
       setProduct({ ...product, additionalImages: [...product.additionalImages, { file: croppedImage, url: URL.createObjectURL(croppedImage) }] });
     }
     setShowCropper(false);
   };
-  
+
 
   const handleRemoveImage = async (index) => {
     const newImages = product.additionalImages.filter((_, i) => i !== index);
     setProduct({ ...product, additionalImages: newImages });
     try {
-      const response = await axiosInstance.post('/admin/deleteImage', { _id: product.additionalImages[index]._id, product_id: product._id,isMain: false });
+      const response = await axiosInstance.post('/admin/deleteImage', { _id: product.additionalImages[index]._id, product_id: product._id, isMain: false });
       if (response.data.status) {
         console.log('image deleted');
       }
@@ -158,62 +162,18 @@ function EditProduct() {
     e.preventDefault();
     let Errors = {};
     console.log(product);
-    Errors = addProductformValidation(product)
+    Errors = addProductformValidation(product, files)
     setNewErrors(Errors)
     if (Object.keys(Errors).length === 0) {
 
-      let mainImageId;
-
-      if (product.mainImage[0].file) {
-        try {
-          const response = await axiosInstance.post('/admin/deleteImage', { _id: deleteImagesId, product_id: product._id, isMain:true });
-          if (response.data.status) {
-            setDeleteImagesId('')
-          }
-        } catch (error) {
-          console.error('Error uploading image:', error);
-          throw error;
-        }
-        const data = await convertFileToBase64(product.mainImage[0].file)
-        console.log(data);
-        mainImageId = await uploadImage({base64: data});
-      } else {
-        mainImageId = product.mainImage[0]._id
-      }
-
-      console.log(mainImageId);
-
-
-      // Convert additionalImages to Base64 and upload
-      const additionalImagesBase64 = await Promise.all(
-        product.additionalImages.map(async (image) => {
-          if (image.file) {
-            const base64 = await convertFileToBase64(image.file);
-            return { ...image, base64 };
-          } else {
-            return { ...image, _id: image._id, url: image.url };
-          }
-        })
-      );
-
-      const additionalImageIds = await Promise.all(
-        additionalImagesBase64.map(async (image) => {
-          if (image.file) {
-            return await uploadImage(image);
-          } else {
-            return image._id
-          }
-        })
-      );
-
+      
       const updatedProduct = {
         ...product,
-        mainImage: mainImageId,
-        additionalImages: additionalImageIds,
+        images: files,
       };
       console.log(updatedProduct);
 
-      axiosInstance.put('/admin/updateProduct', updatedProduct)
+      axiosInstance.put('/admin/updateProduct', {updatedProductData: updatedProduct,filesID})
         .then(response => {
           if (response.data.status) {
             setSuccessMsg('Product Updated')
@@ -236,7 +196,7 @@ function EditProduct() {
   return (
 
     <div className="add-product">
-      <h1>Add New Product</h1>
+      <h1>Edit Product</h1>
       {successMsg && <h3 className='text-success m-4'>{successMsg}</h3>}
       <form onSubmit={handleSubmit} className="form">
         <div className='d-flex w-100 gap-3'>
@@ -439,41 +399,17 @@ function EditProduct() {
         </div>
         <div className="form-group">
           <label htmlFor="mainImage">Main Image</label>
-          <input
-            type="file"
-            className="form-control-file"
-            id="mainImage"
-            name="mainImage"
-            onChange={(e) => handleImageChange(e, product.mainImage[0]?._id || '')}
-          />
-          {newErrors.mainImage && <div className="error">{newErrors.mainImage}</div>}
-          {product.mainImage && Array.isArray(product.mainImage) && product.mainImage.length > 0 && (
-            <div className="image-preview">
-              <img src={product.mainImage[0].url} alt="Main" className="img-thumbnail" />
-            </div>
-          )}
-
-        </div>
-        <div className="form-group">
-          <label htmlFor="additionalImages">Additional Images</label>
-          <input
-            type="file"
-            className="form-control-file"
-            id="additionalImages"
-            name="additionalImages"
-            multiple
-            onChange={handleImageChange}
-          />
-          {newErrors.additionalImages && <div className="error">{newErrors.additionalImages}</div>}
-          <div className="additional-images-preview">
-            {product.additionalImages.map((image, index) => (
-              <div key={index} className="image-container">
-                <img src={image.url} alt={`Additional ${index}`} className="img-thumbnail" />
-                <button type="button" className="btn btn-danger btn-sm" onClick={() => handleRemoveImage(index)}>Remove</button>
-              </div>
-            ))}
+          <div className="form-group mb-4">
+            <UploadFIles setFiles={setFiles} files={files} mainImage={true}/>
           </div>
+          {newErrors.files && <div className="error">{newErrors.files}</div>}
         </div>
+
+        <div className="form-group mb-4">
+            <label>Alternative images</label>
+            <UploadFIles setFiles={setFiles} files={files}/>
+          </div>
+          {newErrors.files && <div className="error">{newErrors.files}</div>}
         <button type="submit" className="btn btn-primary">Add Product</button>
         <Link to='/admin/products'>
           <button className="btn btn-danger m-3">Cancel</button>

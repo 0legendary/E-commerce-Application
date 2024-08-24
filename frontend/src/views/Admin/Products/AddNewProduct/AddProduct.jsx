@@ -3,15 +3,19 @@ import Cropper from 'react-easy-crop';
 import './addProduct.css';
 import { addProductformValidation } from '../../../../config/productValidation';
 import axiosInstance from '../../../../config/axiosConfig';
-import { convertFileToBase64, uploadImage } from '../../../../config/uploadImage';
 import { Link, useNavigate } from 'react-router-dom';
 import { getCroppedImg } from '../../../../config/cropImage'; // Custom function to crop the image
-
+import UploadFIles from '../../../UploadFiles/UploadFIles';
+import 'react-image-crop/dist/ReactCrop.css'
+import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
+import ImageCropper from '../../../UploadFiles/ImageCropper';
+import { uploadDirect } from '@uploadcare/upload-client';
 function AddProduct() {
+
   const colors = ['Red', 'Grey', 'White', 'Black'];
   const [newErrors, setNewErrors] = useState({});
   const [successMsg, setSuccessMsg] = useState('');
-
+  const [files, setFiles] = useState([]);
   const [product, setProduct] = useState({
     name: '',
     description: '',
@@ -19,8 +23,6 @@ function AddProduct() {
     brand: '',
     variations: [],
     material: '',
-    mainImage: null,
-    additionalImages: [],
     gender: '',
     season: '',
   });
@@ -28,12 +30,18 @@ function AddProduct() {
 
 
   const [croppedArea, setCroppedArea] = useState(null);
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  // const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [showCropper, setShowCropper] = useState(false);
-  const [imageSrc, setImageSrc] = useState(null);
+
   const [isMainImage, setIsMainImage] = useState(true);
+  const [saveImage, setSaveImage] = useState(false)
   const [categories, setCategories] = useState([]);
+
+  const [croppedImage, setCroppedImage] = useState([])
+
+  const [imageSrc, setImageSrc] = useState('');
+  const [crop, setCrop] = useState()
 
   const navigate = useNavigate();
 
@@ -100,17 +108,7 @@ function AddProduct() {
   };
 
 
-  const handleImageChange = (e) => {
-    const { name, files } = e.target;
-    const file = files[0];
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onloadend = () => {
-      setImageSrc(reader.result);
-      setIsMainImage(name === 'mainImage');
-      setShowCropper(true);
-    };
-  };
+
 
   const handleCropComplete = (croppedAreaPercentage, croppedAreaPixels) => {
     setCroppedArea(croppedAreaPixels);
@@ -127,40 +125,74 @@ function AddProduct() {
   };
 
   const handleRemoveImage = (index) => {
-    const newImages = product.additionalImages.filter((_, i) => i !== index);
-    setProduct({ ...product, additionalImages: newImages });
+    const updatedImages = croppedImage.filter((_, imgIndex) => imgIndex !== index);
+    setCroppedImage(updatedImages);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Remove duplicate images
+    const uniqueImageUrls = new Set();
+    const uniqueCroppedImages = croppedImage.filter((image) => {
+      if (!uniqueImageUrls.has(image.url)) {
+        uniqueImageUrls.add(image.url);
+        return true;
+      }
+      return false;
+    });
+
+    // Convert image URLs to Blob
+    const fetchImageAsBlob = async (url) => {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      return blob;
+    };
+
+    const convertImagesToFiles = async () => {
+      const filesPromises = uniqueCroppedImages.map(async (image, index) => {
+        const blob = await fetchImageAsBlob(image.url);
+        return new File([blob], `image${index}.jpg`, { type: blob.type });
+      });
+      return Promise.all(filesPromises);
+    };
+
+    // Upload images to Uploadcare
+    const uploadImagesToUploadcare = async (files) => {
+      const uploadPromises = files.map((file, index) =>
+        uploadDirect(file, {
+          publicKey: 'd32886e1d808b4ca34c7',
+          store: 'auto',
+        }).then(result => ({
+          uuid: result.uuid,
+          name: file.name,
+          size: file.size,
+          mimeType: file.type,
+          cdnUrl: result.cdnUrl,
+          mainImage: uniqueCroppedImages[index].mainImage,
+        }))
+      );
+      return Promise.all(uploadPromises);
+    };
+
+    console.log(uniqueCroppedImages);
+
     let Errors = {};
-    Errors = addProductformValidation(product);
+    console.log(uniqueCroppedImages);
+    Errors = addProductformValidation(product, uniqueCroppedImages)
     setNewErrors(Errors);
+    if (Errors.mainImage) setIsMainImage(true)
+    if (Errors.files) setSaveImage(true)
     if (Object.keys(Errors).length === 0) {
-      const mainImageBase64 = await convertFileToBase64(product.mainImage.file);
-      const mainImageId = await uploadImage({ base64: mainImageBase64 });
+      const files = await convertImagesToFiles();
+      const uploadResults = await uploadImagesToUploadcare(files);
 
-      const additionalImagesBase64 = await Promise.all(
-        product.additionalImages.map(async (image) => {
-          const base64 = await convertFileToBase64(image.file);
-          return { ...image, base64 };
-        })
-      );
-
-
-      const additionalImageIds = await Promise.all(
-        additionalImagesBase64.map(async (image) => {
-          return await uploadImage(image);
-        })
-      );
-      const updatedProduct = {
+      const newProduct = {
         ...product,
-        mainImage: mainImageId,
-        additionalImages: additionalImageIds,
+        images: uploadResults,
       };
-      console.log(updatedProduct);
+      console.log(newProduct);
 
-      axiosInstance.post('/admin/addProduct', updatedProduct)
+      axiosInstance.post('/admin/addProduct', newProduct)
         .then(response => {
           if (response.data.status) {
             setSuccessMsg('Product created Successfully');
@@ -178,11 +210,12 @@ function AddProduct() {
     }
   };
 
+
   return (
     <div className="add-product">
       <h1>Add New Product</h1>
       {successMsg && <h3 className='text-success m-4'>{successMsg}</h3>}
-      <form onSubmit={handleSubmit} className="form">
+      <form className="form" onSubmit={handleSubmit}>
         <div className='d-flex w-100 gap-3'>
           <div className='w-50'>
             <div className="form-group">
@@ -382,45 +415,66 @@ function AddProduct() {
               </div>
             </div>
           ))}
+          {newErrors.variations && <div className="error">{newErrors.variations}</div>}
           <button type="button" className='btn btn-success mt-2' onClick={addVariation}>Add Variation</button>
         </div>
-        <div className="form-group">
-          <label htmlFor="mainImage">Main Image</label>
-          <input
-            type="file"
-            className="form-control-file"
-            id="mainImage"
-            name="mainImage"
-            onChange={handleImageChange}
-          />
-          {newErrors.mainImage && <div className="error">{newErrors.mainImage}</div>}
-          {product.mainImage && (
-            <div className="image-preview">
-              <img src={product.mainImage.url} alt="Main" className="img-thumbnail" />
+
+        {isMainImage && (
+          <div className="form-group">
+            <label htmlFor="additionalImages">Main Image</label>
+            <div>
+              <ImageCropper croppedImageState={croppedImage} setCroppedImage={setCroppedImage} mainImage={true} />
             </div>
-          )}
-        </div>
-        <div className="form-group">
-          <label htmlFor="additionalImages">Additional Images</label>
-          <input
-            type="file"
-            className="form-control-file"
-            id="additionalImages"
-            name="additionalImages"
-            multiple
-            onChange={handleImageChange}
-          />
-          {newErrors.additionalImages && <div className="error">{newErrors.additionalImages}</div>}
-          <div className="additional-images-preview">
-            {product.additionalImages.map((image, index) => (
-              <div key={index} className="image-container">
-                <img src={image.url} alt={`Additional ${index}`} className="img-thumbnail" />
-                <button type="button" className="btn btn-danger btn-sm" onClick={() => handleRemoveImage(index)}>Remove</button>
+            {croppedImage.some(image => image.mainImage) && (
+              <button className='btn btn-success' onClick={() => { setSaveImage(true); setIsMainImage(false) }}>Save</button>
+            )}
+          </div>
+        )}
+        {newErrors.mainImage && <div className="error">{newErrors.mainImage}</div>}
+        {saveImage && (
+          <div className="form-group">
+            <label htmlFor="additionalImages">Additional Images</label>
+            <div>
+              <ImageCropper croppedImageState={croppedImage} setCroppedImage={setCroppedImage} mainImage={false} />
+            </div>
+            {croppedImage.filter(image => !image.mainImage).length >= 3 && (
+              <button className='btn btn-success' onClick={() => {setSaveImage(false); setIsMainImage(false);}}>
+                Save
+              </button>
+            )}
+          </div>
+        )}
+        {newErrors.files && <div className="error">{newErrors.files}</div>}
+
+
+
+        {croppedImage.length > 0 && !saveImage && !isMainImage && (
+          <div className="mt-3 d-flex gap-1">
+            {croppedImage.map((image, index) => (
+              <div className='d-grid ' key={index}>
+                <p>{image.mainImage ? 'Main image' : 'Alternative'}</p>
+                <img
+                  src={image.url}
+                  className='rounded rounded-1 shadow-lg'
+                  alt="Cropped Preview"
+                  style={{
+                    border: '1px solid black',
+                    objectFit: 'contain',
+                    width: 150,
+                    height: 150,
+                    marginRight: 2
+                  }}
+                />
+                <div className='d-flex justify-content-between'>
+                  <button onClick={() => handleRemoveImage(index)} className='h-50 btn btn-danger mt-2 d-flex align-items-center justify-content-center'>Remove<pre> </pre> <i class="bi bi-trash3-fill"></i></button>
+                  <button onClick={() => { image.mainImage ? setIsMainImage(true) : setSaveImage(true) }} className='h-50 btn-group btn-group-sm mt-2 btn-primary d-flex align-items-center justify-content-center'><i class="bi bi-pencil-square"></i></button>
+                </div>
               </div>
             ))}
           </div>
-        </div>
-        <button type="submit" className="btn btn-primary">Update Product</button>
+        )}
+
+        <button type="submit" className="btn btn-primary">Add Product</button>
         <Link to='/admin/products'>
           <button className="btn btn-danger m-3">Cancel</button>
         </Link>

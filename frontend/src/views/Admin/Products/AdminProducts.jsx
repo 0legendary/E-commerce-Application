@@ -131,31 +131,35 @@ function AdminProducts() {
             </tr>
           </thead>
           <tbody>
-            {currentProducts.map((product, index) => (
-              <tr key={product._id}>
-                <th scope="row">{indexOfFirstProduct + index + 1}</th>
-                <td>
-                  <div className="product-image-wrapper">
-                    <img src={product.mainImage} alt={product.name} className="product-image" style={{ width: '100px', height: '100px' }} />
-                    <img src={product.mainImage} alt={product.name} className="product-image-hover" />
-                  </div>
-                </td>
-                <td>{product.name}</td>
-                <td>{product.brand}</td>
-                <td>{product.variations[0].price}</td>
-                <td>{product.variations[0].stock}</td>
-                <td>
-                  <Link to={`/admin/editProduct/${product._id}`}>
-                    <button className="btn btn-warning btn-sm">
-                      Edit
+            {currentProducts.map((product, index) => {
+              const mainImage = product?.images?.images?.find(image => image.mainImage);
+              const displayImage = mainImage || product.images[0];
+              return (
+                <tr key={product._id}>
+                  <th scope="row">{indexOfFirstProduct + index + 1}</th>
+                  <td>
+                    <div className="product-image-wrapper">
+                      <img src={displayImage.cdnUrl} alt={product.name} className="product-image" style={{ width: '100px', height: '100px' }} />
+                      <img src={displayImage.cdnUrl} alt={product.name} className="product-image-hover" />
+                    </div>
+                  </td>
+                  <td>{product.name}</td>
+                  <td>{product.brand}</td>
+                  <td>{product.variations[0].price}</td>
+                  <td>{product.variations[0].stock}</td>
+                  <td>
+                    <Link to={`/admin/editProduct/${product._id}`}>
+                      <button className="btn btn-warning btn-sm">
+                        Edit
+                      </button>
+                    </Link>
+                    <button onClick={() => handleDelete(product._id, index)} className="btn btn-danger btn-sm">
+                      Delete
                     </button>
-                  </Link>
-                  <button onClick={() => handleDelete(product._id, index)} className="btn btn-danger btn-sm">
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
         <nav aria-label="Page navigation">

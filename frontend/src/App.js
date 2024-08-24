@@ -75,12 +75,12 @@ function App() {
           <Route index element={<Login />} />
         </Route>
         <Route path="/" element={<UserLayout />}>
-            <Route index element={<UserHomePage />} />
-          </Route>
-          <Route path="/shop" element={<UserLayout />}>
-            <Route index element={<ShoppingPage />} />
-            <Route path=":id" element={<SingleProduct />} />
-          </Route>
+          <Route index element={<UserHomePage />} />
+        </Route>
+        <Route path="/shop" element={<UserLayout />}>
+          <Route index element={<ShoppingPage />} />
+          <Route path=":id" element={<SingleProduct />} />
+        </Route>
         <Route element={<PrivateRoute />}>
           <Route path="/cart" element={<UserLayout />}>
             <Route index element={<Cart />} />

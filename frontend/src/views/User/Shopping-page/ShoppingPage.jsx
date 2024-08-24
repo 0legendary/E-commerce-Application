@@ -341,7 +341,7 @@ function ShoppingPage() {
 
                                 return (
                                     <div key={index} className="product-card shopping-page-card">
-                                        <img src={product.mainImage.image} alt={product.name} className="product-image" />
+                                        {/* <img src={product.mainImage.image} alt={product.name} className="product-image" /> */}
                                         <div className="product-details">
                                             <span className="product-name text-white"><span>{product.name}</span></span>
                                         </div>

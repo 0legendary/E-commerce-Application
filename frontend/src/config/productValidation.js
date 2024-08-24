@@ -1,6 +1,7 @@
 
-const addProductformValidation = (product) => {
-  console.log(product);
+const addProductformValidation = (product, files) => {
+  const mainImage = files.filter((file) => file.mainImage)
+  const additionalImages = files.filter((file) => !file.mainImage)
   let newErrors = {};
 
   // Name validation
@@ -35,18 +36,11 @@ const addProductformValidation = (product) => {
   if (!product.gender) {
     newErrors.gender = 'Gender is required.';
   }
-  console.log(product);
   if (!product.season) {
     newErrors.season = 'Season is required.';
   }
-
-  if (!product.mainImage) newErrors.mainImage = 'Image is required.'
-
-  if (product.additionalImages.length === 0) {
-    newErrors.additionalImages = 'Additional image is needed'
-  } else if (product.additionalImages.length < 3) {
-    newErrors.additionalImages = 'Minimum 3 images is needed'
-  }
+  if(mainImage.length === 0) newErrors.mainImage = 'Main image is required'
+  if(additionalImages.length < 3) newErrors.files = 'Minimum 3 Addition Images is required'
 
 
   if (product.variations.length === 0) {

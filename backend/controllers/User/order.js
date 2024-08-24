@@ -128,10 +128,9 @@ export const updateOrderStatus = async (req, res) => {
 export const addNewReview = async (req, res) => {
     const reviewData = req.body
     try {
-
         let savedImage = null;
-        if (reviewData.reviewImage) {
-            const newImage = new Image({ image: reviewData.reviewImage });
+        if (reviewData.reviewImages && reviewData.reviewImages.length > 0) {
+            const newImage = new Image({ images: reviewData.reviewImages });
             savedImage = await newImage.save();
         }
 
