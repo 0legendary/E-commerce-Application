@@ -102,11 +102,11 @@ export const editProducts = async (req, res) => {
 
 export const updateProducts = async (req, res) => {
     const {updatedProductData, filesID} = req.body;
-    console.log(updatedProductData,filesID);
+    //console.log(updatedProductData,filesID);
     
     try {
         let product = await Product.findById(updatedProductData._id);
-
+        
         if (updatedProductData.images && updatedProductData.images.length > 0) {
             if (filesID) {
                 const updatedImage = await Image.findByIdAndUpdate(
@@ -114,7 +114,6 @@ export const updateProducts = async (req, res) => {
                     { images: updatedProductData.images }, 
                     { new: true }
                 );
-
                 if (updatedImage) {
                     product.images = updatedImage._id;
                 } else {
@@ -133,11 +132,10 @@ export const updateProducts = async (req, res) => {
         if (product) {
             // Update the product fields with the new data
             for (const key in updatedProductData) {
-                if (updatedProductData.hasOwnProperty(key) && key !== '_id') {
+                if (updatedProductData.hasOwnProperty(key) && key !== '_id' && key !== 'images') {
                     product[key] = updatedProductData[key];
                 }
             }
-
             await product.save();
 
             res.status(200).json({ status: true });

@@ -1,21 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import Cropper from 'react-easy-crop';
 import './addProduct.css';
 import { addProductformValidation } from '../../../../config/productValidation';
 import axiosInstance from '../../../../config/axiosConfig';
 import { Link, useNavigate } from 'react-router-dom';
-import { getCroppedImg } from '../../../../config/cropImage'; // Custom function to crop the image
-import UploadFIles from '../../../UploadFiles/UploadFIles';
 import 'react-image-crop/dist/ReactCrop.css'
-import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
-import ImageCropper from '../../../UploadFiles/ImageCropper';
 import { uploadDirect } from '@uploadcare/upload-client';
 function AddProduct() {
 
   const colors = ['Red', 'Grey', 'White', 'Black'];
   const [newErrors, setNewErrors] = useState({});
   const [successMsg, setSuccessMsg] = useState('');
-  const [files, setFiles] = useState([]);
   const [product, setProduct] = useState({
     name: '',
     description: '',
@@ -26,22 +20,11 @@ function AddProduct() {
     gender: '',
     season: '',
   });
-
-
-
-  const [croppedArea, setCroppedArea] = useState(null);
-  // const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [showCropper, setShowCropper] = useState(false);
-
+  const [currentPage, setCurrentPage] = useState(0);
   const [isMainImage, setIsMainImage] = useState(true);
   const [saveImage, setSaveImage] = useState(false)
   const [categories, setCategories] = useState([]);
-
   const [croppedImage, setCroppedImage] = useState([])
-
-  const [imageSrc, setImageSrc] = useState('');
-  const [crop, setCrop] = useState()
 
   const navigate = useNavigate();
 
@@ -100,28 +83,15 @@ function AddProduct() {
       ...product,
       variations: [...product.variations, { size: 0, stock: 0, color: [], price: 0, discountPrice: 0, weight: 0 }]
     });
+    setCurrentPage(product.variations.length)
   };
 
   const removeVariation = (index) => {
     const newVariations = product.variations.filter((_, i) => i !== index);
     setProduct({ ...product, variations: newVariations });
-  };
-
-
-
-
-  const handleCropComplete = (croppedAreaPercentage, croppedAreaPixels) => {
-    setCroppedArea(croppedAreaPixels);
-  };
-
-  const handleCropSave = async () => {
-    const croppedImage = await getCroppedImg(imageSrc, croppedArea);
-    if (isMainImage) {
-      setProduct({ ...product, mainImage: { file: croppedImage, url: URL.createObjectURL(croppedImage) } });
-    } else {
-      setProduct({ ...product, additionalImages: [...product.additionalImages, { file: croppedImage, url: URL.createObjectURL(croppedImage) }] });
+    if (currentPage >= newVariations.length) {
+      setCurrentPage(Math.max(0, newVariations.length - 1));
     }
-    setShowCropper(false);
   };
 
   const handleRemoveImage = (index) => {
@@ -174,10 +144,7 @@ function AddProduct() {
       return Promise.all(uploadPromises);
     };
 
-    console.log(uniqueCroppedImages);
-
     let Errors = {};
-    console.log(uniqueCroppedImages);
     Errors = addProductformValidation(product, uniqueCroppedImages)
     setNewErrors(Errors);
     if (Errors.mainImage) setIsMainImage(true)
@@ -210,7 +177,13 @@ function AddProduct() {
     }
   };
 
+  const goToPreviousPage = () => {
+    setCurrentPage((prevPage) => Math.max(prevPage - 1, 0));
+  };
 
+  const goToNextPage = () => {
+    setCurrentPage((prevPage) => Math.min(prevPage + 1, product.variations.length - 1));
+  };
   return (
     <div className="add-product">
       <h1>Add New Product</h1>
@@ -325,105 +298,151 @@ function AddProduct() {
             </div>
           </div>
         </div>
-        <div className="form-group">
+        <div className="form-group align-items-center justify-content-center">
           <label htmlFor="variations">Variations</label>
-          {product.variations.map((variation, index) => (
-            <div key={index} className="variation w-100 d-flex border gap-3 border-secondary">
-              <div className='w-50 m-2'>
-                <div className='form-group '>
-                  <label htmlFor="size">Size</label>
-                  <input
-                    type="number"
-                    name="size"
-                    className="form-control"
-                    value={variation.size}
-                    onChange={(e) => handleVariationChange(index, e)}
-                    placeholder="Size"
-                  />
-                  {newErrors[`variations[${index}].size`] && <div className="error">{newErrors[`variations[${index}].size`]}</div>}
-                </div>
-                <div className='form-group'>
-                  <label htmlFor="size">Color</label>
-                  <div>
-                    {colors.map(color => (
-                      <div key={color}>
-                        <input
-                          type="checkbox"
-                          name="color"
-                          value={color}
-                          checked={variation.color.includes(color)}
-                          onChange={(e) => handleColorChange(index, e)}
-                        />
-                        <label>{color}</label>
-                      </div>
-                    ))}
+          <div className="d-flex">
+            {product.variations.length > 0 && (
+              <div className="variation w-100 d-flex border gap-3 border-secondary">
+                <div className="w-50 m-2">
+                  <div className="form-group">
+                    <label htmlFor="size">Size</label>
+                    <input
+                      type="number"
+                      name="size"
+                      className="form-control"
+                      value={product.variations[currentPage].size}
+                      onChange={(e) => handleVariationChange(currentPage, e)}
+                      placeholder="Size"
+                    />
+                    {newErrors[`variations[${currentPage}].size`] && (
+                      <div className="error">{newErrors[`variations[${currentPage}].size`]}</div>
+                    )}
                   </div>
-                  {newErrors[`variations[${index}].color`] && <div className="error">{newErrors[`variations[${index}].color`]}</div>}
+                  <div className="form-group">
+                    <label htmlFor="color">Color</label>
+                    <div>
+                      {colors.map((color) => (
+                        <div key={color}>
+                          <input
+                            type="checkbox"
+                            name="color"
+                            value={color}
+                            checked={product.variations[currentPage].color.includes(color)}
+                            onChange={(e) => handleColorChange(currentPage, e)}
+                          />
+                          <label>{color}</label>
+                        </div>
+                      ))}
+                    </div>
+                    {newErrors[`variations[${currentPage}].color`] && (
+                      <div className="error">{newErrors[`variations[${currentPage}].color`]}</div>
+                    )}
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="price">Price</label>
+                    <input
+                      className="form-control"
+                      type="number"
+                      name="price"
+                      value={product.variations[currentPage].price}
+                      onChange={(e) => handleVariationChange(currentPage, e)}
+                      placeholder="Price"
+                    />
+                    {newErrors[`variations[${currentPage}].price`] && (
+                      <div className="error">{newErrors[`variations[${currentPage}].price`]}</div>
+                    )}
+                  </div>
                 </div>
-                <div className='form-group'>
-                  <label htmlFor="price">Price</label>
-                  <input
-                    className="form-control"
-                    type="number"
-                    name="price"
-                    value={variation.price}
-                    onChange={(e) => handleVariationChange(index, e)}
-                    placeholder="Price"
-                  />
-                  {newErrors[`variations[${index}].price`] && <div className="error">{newErrors[`variations[${index}].price`]}</div>}
+                <div className="w-50 m-2">
+                  <div className="form-group">
+                    <label htmlFor="stock">Stock</label>
+                    <input
+                      type="number"
+                      name="stock"
+                      className="form-control"
+                      value={product.variations[currentPage].stock}
+                      onChange={(e) => handleVariationChange(currentPage, e)}
+                      placeholder="Stock"
+                    />
+                    {newErrors[`variations[${currentPage}].stock`] && (
+                      <div className="error">{newErrors[`variations[${currentPage}].stock`]}</div>
+                    )}
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="weight">Weight</label>
+                    <input
+                      className="form-control"
+                      type="number"
+                      name="weight"
+                      value={product.variations[currentPage].weight}
+                      onChange={(e) => handleVariationChange(currentPage, e)}
+                      placeholder="Weight"
+                    />
+                    {newErrors[`variations[${currentPage}].weight`] && (
+                      <div className="error">{newErrors[`variations[${currentPage}].weight`]}</div>
+                    )}
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="discountPrice">Discount Price</label>
+                    <input
+                      className="form-control"
+                      type="number"
+                      name="discountPrice"
+                      value={product.variations[currentPage].discountPrice}
+                      onChange={(e) => handleVariationChange(currentPage, e)}
+                      placeholder="Discount Price"
+                    />
+                    {newErrors[`variations[${currentPage}].discountPrice`] && (
+                      <div className="error">{newErrors[`variations[${currentPage}].discountPrice`]}</div>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-danger btn-remove"
+                    onClick={() => removeVariation(currentPage)}
+                  >
+                    Remove
+                  </button>
                 </div>
               </div>
+            )}
+          </div>
+          <div className='d-flex justify-content-between'>
+            <button type="button" className="btn btn-success mt-2" onClick={addVariation}>
+              Add Variation
+            </button>
+            {product.variations.length > 0 && (
+              <div className="pagination-controls mt-3">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={goToPreviousPage}
+                  disabled={currentPage === 0}
+                >
+                  Previous
+                </button>
+                <span className="mx-2">
+                  {currentPage + 1} of {product.variations.length}
+                </span>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={goToNextPage}
+                  disabled={currentPage >= product.variations.length - 1}
+                >
+                  Next
+                </button>
+              </div>
+            )}
 
-              <div className='w-50  m-2'>
-                <div className='form-group'>
-                  <label htmlFor="stock">Stock</label>
-                  <input
-                    type="number"
-                    name="stock"
-                    className="form-control"
-                    value={variation.stock}
-                    onChange={(e) => handleVariationChange(index, e)}
-                    placeholder="Stock"
-                  />
-                  {newErrors[`variations[${index}].stock`] && <div className="error">{newErrors[`variations[${index}].stock`]}</div>}
-                </div>
-                <div className='form-group'>
-                  <label htmlFor="weight">Weight</label>
-                  <input
-                    className="form-control"
-                    type="number"
-                    name="weight"
-                    value={variation.weight}
-                    onChange={(e) => handleVariationChange(index, e)}
-                    placeholder="Weight"
-                  />
-                  {newErrors[`variations[${index}].weight`] && <div className="error">{newErrors[`variations[${index}].weight`]}</div>}
-                </div>
-                <div className='form-group'>
-                  <label htmlFor="discountePrice">Discount Price</label>
-                  <input
-                    className="form-control"
-                    type="number"
-                    name="discountPrice"
-                    value={variation.discountPrice}
-                    onChange={(e) => handleVariationChange(index, e)}
-                    placeholder="Discount Price"
-                  />
-                  {newErrors[`variations[${index}].discountPrice`] && <div className="error">{newErrors[`variations[${index}].discountPrice`]}</div>}
-                </div>
-                <button type="button" className='btn btn-danger btn-remove' onClick={() => removeVariation(index)}>Remove</button>
-              </div>
-            </div>
-          ))}
-          {newErrors.variations && <div className="error">{newErrors.variations}</div>}
-          <button type="button" className='btn btn-success mt-2' onClick={addVariation}>Add Variation</button>
+          </div>
         </div>
 
         {isMainImage && (
           <div className="form-group">
             <label htmlFor="additionalImages">Main Image</label>
             <div>
-              <ImageCropper croppedImageState={croppedImage} setCroppedImage={setCroppedImage} mainImage={true} />
+              <ImageCropper croppedImageState={croppedImage} setCroppedImage={setCroppedImage} setNewErrors={setNewErrors} newErrors={newErrors} mainImage={true} />
             </div>
             {croppedImage.some(image => image.mainImage) && (
               <button className='btn btn-success' onClick={() => { setSaveImage(true); setIsMainImage(false) }}>Save</button>
@@ -435,10 +454,10 @@ function AddProduct() {
           <div className="form-group">
             <label htmlFor="additionalImages">Additional Images</label>
             <div>
-              <ImageCropper croppedImageState={croppedImage} setCroppedImage={setCroppedImage} mainImage={false} />
+              <ImageCropper croppedImageState={croppedImage} setCroppedImage={setCroppedImage} setNewErrors={setNewErrors} newErrors={newErrors} mainImage={false} />
             </div>
             {croppedImage.filter(image => !image.mainImage).length >= 3 && (
-              <button className='btn btn-success' onClick={() => {setSaveImage(false); setIsMainImage(false);}}>
+              <button className='btn btn-success' onClick={() => { setSaveImage(false); setIsMainImage(false); }}>
                 Save
               </button>
             )}
@@ -479,34 +498,6 @@ function AddProduct() {
           <button className="btn btn-danger m-3">Cancel</button>
         </Link>
       </form>
-
-      {showCropper && (
-        <div
-          className="cropper-modal"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              handleCropSave();
-            } else if (e.key === 'Backspace') {
-              setShowCropper(false);
-            }
-          }}
-          tabIndex={0}
-        >
-          <div className="cropper-container">
-            <Cropper
-              image={imageSrc}
-              crop={crop}
-              zoom={zoom}
-              aspect={1}
-              onCropChange={setCrop}
-              onZoomChange={setZoom}
-              onCropComplete={handleCropComplete}
-            />
-            <button className="btn btn-success" onClick={handleCropSave}>Save</button>
-            <button className="btn btn-danger" onClick={() => setShowCropper(false)}>Cancel</button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

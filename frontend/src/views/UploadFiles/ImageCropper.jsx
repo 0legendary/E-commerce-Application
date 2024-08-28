@@ -1,10 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { getCroppedImg } from '../../config/cropImage';
 import "./imageCropper.css"
 
-function ImageCropper({ croppedImageState, setCroppedImage, ascpectRatio = 1, minWidth = 150, mainImage = false }) {
+function ImageCropper({ croppedImageState, setCroppedImage, ascpectRatio = 1, minWidth = 150, mainImage = false , setNewErrors = {}, newErrors = {}}) {
   const [crop, setCrop] = useState(null);
   const [croppedImageUrl, setCroppedImageUrl] = useState([]);
   const [imageSrc, setImageSrc] = useState('');
@@ -52,7 +52,8 @@ function ImageCropper({ croppedImageState, setCroppedImage, ascpectRatio = 1, mi
   };
 
   const handleCropImage = async () => {
-    console.log(mainImage);
+    if(mainImage)setNewErrors({...newErrors, mainImage: ''}) 
+    else setNewErrors({...newErrors, files: ''})
     if (crop && imageRef.current) {
       try {
         const croppedImage = await getCroppedImg(imageRef.current, crop);
@@ -75,8 +76,7 @@ function ImageCropper({ croppedImageState, setCroppedImage, ascpectRatio = 1, mi
     const updatedImages = croppedImageUrl.filter((_, imgIndex) => imgIndex !== index);
     setCroppedImageUrl(updatedImages);
     setCroppedImage(updatedImages);
-  };
-
+  };  
   const displayedFiles = croppedImageState.filter((file) => file.mainImage === mainImage);
   return (
     <div className='image-cropper'>
@@ -138,7 +138,7 @@ function ImageCropper({ croppedImageState, setCroppedImage, ascpectRatio = 1, mi
           {displayedFiles.map((image, index) => (
             <div className='d-grid ' key={index}>
               <img
-                src={image.url}
+                src={image.url || image.cdnUrl}
                 className='rounded rounded-1 shadow-lg'
                 alt="Cropped Preview"
                 style={{

@@ -35,7 +35,6 @@ const productSchema = new mongoose.Schema({
   images: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Image',
-    required: true
   },
   gender: String,
   season: String,
