@@ -1,22 +1,47 @@
 import mongoose from 'mongoose';
-
+const variationSchema = new mongoose.Schema({
+  size: { type: Number, required: true },
+  stock: { type: Number, required: true },
+  color: { type: [String], required: true },
+  price: { type: Number, required: true },
+  discountPrice: { type: Number, required: true },
+  weight: { type: Number, required: true }
+});
 const trashedProductSchema = new mongoose.Schema({
-  name: { type: String, require: true },
-  description: { type: String, require: true },
-  category: { type: String, require: true },
-  brand: { type: String, require: true },
-  price: { type: String, require: true },
-  discountPrice: { type: Number, require: true },
-  stock: { type: String },
-  sizeOptions: { type: [String] },
-  colorOptions: { type: [String] },
-  material: { type: String },
-  mainImage: { type: String, require: true },
-  additionalImages: { type: [String], require: true },
-  weight: String,
+  name: {
+    type: String,
+    required: true
+  },
+  description: {
+    type: String,
+    required: true
+  },
+  categoryId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    required: true
+  },
+  brand: {
+    type: String,
+    required: true
+  },
+  variations: [variationSchema],
+  material: {
+    type: String,
+    required: true
+  },
+  images: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Image',
+  },
   gender: String,
   season: String,
-  deletedAt: { type: Date, default: Date.now }
+  offers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Offer'
+    }
+  ]
 }, { timestamps: true });
 
 const TrashedProduct = mongoose.model('TrashedProduct', trashedProductSchema);

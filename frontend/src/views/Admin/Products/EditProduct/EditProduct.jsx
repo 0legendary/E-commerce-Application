@@ -10,7 +10,9 @@ import { uploadDirect } from '@uploadcare/upload-client';
 
 function EditProduct() {
   const { id } = useParams();
-  const colors = ['Red', 'Grey', 'White', 'Black'];
+  const [searchTerm, setSearchTerm] = useState('');
+  const [allColors, setAllColors] = useState([]);
+  const [filteredColors, setFilteredColors] = useState([]);
   const [product, setProduct] = useState({ variations: [] })
   const [newErrors, setNewErrors] = useState({})
 
@@ -60,6 +62,15 @@ function EditProduct() {
       });
   }, []);
 
+  useEffect(() => {
+    const commonColors = [
+      'red', 'green', 'blue', 'black', 'white', 'gray', 'yellow', 'purple',
+      'pink', 'orange', 'brown', 'teal', 'olive', 'maroon', 'navy', 'lime'
+    ];
+    setAllColors(commonColors);
+    setFilteredColors(commonColors); // Initialize with all colors
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setProduct({ ...product, [name]: value });
@@ -74,11 +85,22 @@ function EditProduct() {
     newVariations[index][name] = value;
     setProduct({ ...product, variations: newVariations });
 
-
     const variationErrorKey = `variations[${index}].${name}`;
     const updatedErrors = { ...newErrors };
     delete updatedErrors[variationErrorKey];
     setNewErrors(updatedErrors);
+  };
+
+  const handleSearchChange = (e) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+    if (term === '') {
+      setFilteredColors(allColors); // Reset to all colors if search term is empty
+    } else {
+      // Filter colors based on search term
+      const filtered = allColors.filter(color => color.toLowerCase().includes(term.toLowerCase()));
+      setFilteredColors(filtered);
+    }
   };
 
   const handleColorChange = (index, e) => {
@@ -97,7 +119,6 @@ function EditProduct() {
     delete updatedErrors[variationErrorKey];
     setNewErrors(updatedErrors);
   };
-
 
   const addVariation = () => {
     setProduct({
@@ -443,25 +464,38 @@ function EditProduct() {
                       <div className="error">{newErrors[`variations[${currentPage}].size`]}</div>
                     )}
                   </div>
-                  <div className="form-group">
-                    <label htmlFor="color">Color</label>
-                    <div>
-                      {colors.map((color) => (
-                        <div key={color}>
-                          <input
-                            type="checkbox"
-                            name="color"
-                            value={color}
-                            checked={product.variations[currentPage].color.includes(color)}
-                            onChange={(e) => handleColorChange(currentPage, e)}
-                          />
-                          <label>{color}</label>
-                        </div>
-                      ))}
+                  <div>
+                    <div className="form-group">
+                      <label htmlFor="search">Search Color</label>
+                      <input
+                        type="text"
+                        id="search"
+                        className="form-control"
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        placeholder="Search color..."
+                      />
                     </div>
-                    {newErrors[`variations[${currentPage}].color`] && (
-                      <div className="error">{newErrors[`variations[${currentPage}].color`]}</div>
-                    )}
+
+                    <div className="form-group">
+                      <div className='d-flex  overflow-x-scroll'>
+                        {filteredColors.map((color) => (
+                          <div key={color} className='d-flex me-2 p-2 border border-4'>
+                            <input
+                              type="checkbox"
+                              name="color"
+                              value={color}
+                              checked={product.variations[currentPage].color.includes(color)}
+                              onChange={(e) => handleColorChange(currentPage, e)}
+                            />
+                            <label className='mx-2'>{color.charAt(0).toUpperCase() + color.slice(1)}</label>
+                          </div>
+                        ))}
+                      </div>
+                      {newErrors[`variations[${currentPage}].color`] && (
+                        <div className="error">{newErrors[`variations[${currentPage}].color`]}</div>
+                      )}
+                    </div>
                   </div>
                   <div className="form-group">
                     <label htmlFor="price">Price</label>
@@ -592,11 +626,10 @@ function EditProduct() {
         {croppedImage.length > 0 && !saveImage && !isMainImage && (
           <div className="mt-3 d-flex gap-1">
             {croppedImage.map((image, index) => (
-              <div className='d-grid ' key={index}>
-                <p>{image.mainImage ? 'Main image' : 'Alternative'}</p>
+              <div className="d-grid" key={index}>
                 <img
                   src={image.cdnUrl || image.url}
-                  className='rounded rounded-1 shadow-lg'
+                  className={`rounded rounded-1 shadow-lg border border-2 ${image.mainImage ? 'border-success' : 'border-primary'}`}
                   alt="Cropped Preview"
                   style={{
                     border: '1px solid black',

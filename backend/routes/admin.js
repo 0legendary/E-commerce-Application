@@ -18,7 +18,7 @@ router.get('/getProducts', authenticateTokenAdmin, getProducts);
 router.get('/edit/getProduct/:id', authenticateTokenAdmin, editProducts);
 router.put('/updateProduct', authenticateTokenAdmin, updateProducts);
 router.post('/moveToTrash', authenticateTokenAdmin, moveToTrashProduct);
-router.post('/deletePermenent', authenticateTokenAdmin, deletePermenantly);
+router.post('/deletePermanently', authenticateTokenAdmin, deletePermenantly);
 
 
 //user management

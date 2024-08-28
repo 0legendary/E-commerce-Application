@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import './adminProduct.css';
 import { Link } from 'react-router-dom';
 import axiosInstance from '../../../config/axiosConfig';
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -49,9 +50,26 @@ function AdminProducts() {
       .then((response) => {
         if (response.data.status) {
           setProducts(prevProducts => prevProducts.filter(product => product._id !== _id));
+          toast.error("Product moved to trash", {
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
           setDeleteProduct(false);
         } else {
-          console.log('Failed to move to trash');
+          toast.error("Failed to move to trash", {
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
         }
       })
       .catch(() => {
@@ -64,9 +82,26 @@ function AdminProducts() {
       .then((response) => {
         if (response.data.status) {
           setProducts(prevProducts => prevProducts.filter(product => product._id !== _id));
+          toast.error("Product deleted", {
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
           setDeleteProduct(false);
         } else {
-          console.log('Failed to delete permanently');
+          toast.error("Failed to delete permanently", {
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
           setDeleteProduct(false);
         }
       })
@@ -89,6 +124,7 @@ function AdminProducts() {
   return (
     <>
       <div className="admin-products">
+      <ToastContainer />
         <div className="header">
           <h1>Products</h1>
           <Link to='/admin/addProduct'>

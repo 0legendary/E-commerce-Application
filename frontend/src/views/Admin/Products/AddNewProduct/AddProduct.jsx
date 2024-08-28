@@ -5,9 +5,14 @@ import axiosInstance from '../../../../config/axiosConfig';
 import { Link, useNavigate } from 'react-router-dom';
 import 'react-image-crop/dist/ReactCrop.css'
 import { uploadDirect } from '@uploadcare/upload-client';
-function AddProduct() {
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import ImageCropper from '../../../UploadFiles/ImageCropper';
 
-  const colors = ['Red', 'Grey', 'White', 'Black'];
+function AddProduct() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [allColors, setAllColors] = useState([]);
+  const [filteredColors, setFilteredColors] = useState([]);
   const [newErrors, setNewErrors] = useState({});
   const [successMsg, setSuccessMsg] = useState('');
   const [product, setProduct] = useState({
@@ -33,13 +38,21 @@ function AddProduct() {
     axiosInstance.get('/admin/getAllCategories')
       .then(response => {
         if (response.data.status) {
-          console.log(response.data.categories);
           setCategories(response.data.categories);
         }
       })
       .catch(error => {
         console.error('Error fetching categories:', error);
       });
+  }, []);
+
+  useEffect(() => {
+    const commonColors = [
+      'red', 'green', 'blue', 'black', 'white', 'gray', 'yellow', 'purple',
+      'pink', 'orange', 'brown', 'teal', 'olive', 'maroon', 'navy', 'lime'
+    ];
+    setAllColors(commonColors);
+    setFilteredColors(commonColors);
   }, []);
 
   const handleInputChange = (e) => {
@@ -77,6 +90,17 @@ function AddProduct() {
     setNewErrors(updatedErrors);
   };
 
+  const handleSearchChange = (e) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+    if (term === '') {
+      setFilteredColors(allColors); // Reset to all colors if search term is empty
+    } else {
+      // Filter colors based on search term
+      const filtered = allColors.filter(color => color.toLowerCase().includes(term.toLowerCase()));
+      setFilteredColors(filtered);
+    }
+  };
 
   const addVariation = () => {
     setProduct({
@@ -162,11 +186,19 @@ function AddProduct() {
       axiosInstance.post('/admin/addProduct', newProduct)
         .then(response => {
           if (response.data.status) {
-            setSuccessMsg('Product created Successfully');
+            toast.success("Product created Successfully", {
+              autoClose: 2000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: false,
+              draggable: true,
+              progress: undefined,
+              theme: "dark",
+            });
             setTimeout(() => {
               setSuccessMsg('');
               navigate('/admin/products');
-            }, 1000);
+            }, 2000);
           } else {
             // Handle error
           }
@@ -186,6 +218,7 @@ function AddProduct() {
   };
   return (
     <div className="add-product">
+      <ToastContainer />
       <h1>Add New Product</h1>
       {successMsg && <h3 className='text-success m-4'>{successMsg}</h3>}
       <form className="form" onSubmit={handleSubmit}>
@@ -318,25 +351,38 @@ function AddProduct() {
                       <div className="error">{newErrors[`variations[${currentPage}].size`]}</div>
                     )}
                   </div>
-                  <div className="form-group">
-                    <label htmlFor="color">Color</label>
-                    <div>
-                      {colors.map((color) => (
-                        <div key={color}>
-                          <input
-                            type="checkbox"
-                            name="color"
-                            value={color}
-                            checked={product.variations[currentPage].color.includes(color)}
-                            onChange={(e) => handleColorChange(currentPage, e)}
-                          />
-                          <label>{color}</label>
-                        </div>
-                      ))}
+                  <div>
+                    <div className="form-group">
+                      <label htmlFor="search">Search Color</label>
+                      <input
+                        type="text"
+                        id="search"
+                        className="form-control"
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        placeholder="Search color..."
+                      />
                     </div>
-                    {newErrors[`variations[${currentPage}].color`] && (
-                      <div className="error">{newErrors[`variations[${currentPage}].color`]}</div>
-                    )}
+
+                    <div className="form-group">
+                      <div className='d-flex  overflow-x-scroll'>
+                        {filteredColors.map((color) => (
+                          <div key={color} className='d-flex me-2 p-2 border border-4'>
+                            <input
+                              type="checkbox"
+                              name="color"
+                              value={color} 
+                              checked={product.variations[currentPage].color.includes(color)}
+                              onChange={(e) => handleColorChange(currentPage, e)}
+                            />
+                            <label className='mx-2'>{color.charAt(0).toUpperCase() + color.slice(1)}</label>
+                          </div>
+                        ))}
+                      </div>
+                      {newErrors[`variations[${currentPage}].color`] && (
+                        <div className="error">{newErrors[`variations[${currentPage}].color`]}</div>
+                      )}
+                    </div>
                   </div>
                   <div className="form-group">
                     <label htmlFor="price">Price</label>
@@ -474,7 +520,7 @@ function AddProduct() {
                 <p>{image.mainImage ? 'Main image' : 'Alternative'}</p>
                 <img
                   src={image.url}
-                  className='rounded rounded-1 shadow-lg'
+                  className={`rounded rounded-1 shadow-lg border border-2 ${image.mainImage ? 'border-success' : 'border-primary'}`}
                   alt="Cropped Preview"
                   style={{
                     border: '1px solid black',

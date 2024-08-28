@@ -4,9 +4,8 @@ import 'react-image-crop/dist/ReactCrop.css';
 import { getCroppedImg } from '../../config/cropImage';
 import "./imageCropper.css"
 
-function ImageCropper({ croppedImageState, setCroppedImage, ascpectRatio = 1, minWidth = 150, mainImage = false , setNewErrors = {}, newErrors = {}}) {
+function ImageCropper({ croppedImageState, setCroppedImage, ascpectRatio = 1, minWidth = 250, mainImage = false, setNewErrors = {}, newErrors = {} }) {
   const [crop, setCrop] = useState(null);
-  const [croppedImageUrl, setCroppedImageUrl] = useState([]);
   const [imageSrc, setImageSrc] = useState('');
   const [currentImageSrc, setCurrentImageSrc] = useState('');
   const [showCropper, setShowCropper] = useState(false)
@@ -28,7 +27,6 @@ function ImageCropper({ croppedImageState, setCroppedImage, ascpectRatio = 1, mi
     reader.onloadend = () => {
       setShowCropper(true)
       const imageUrl = reader.result;
-      console.log(imageUrl);
       setImageSrc(imageUrl);
       setCurrentImageSrc(imageUrl);
     };
@@ -52,8 +50,8 @@ function ImageCropper({ croppedImageState, setCroppedImage, ascpectRatio = 1, mi
   };
 
   const handleCropImage = async () => {
-    if(mainImage)setNewErrors({...newErrors, mainImage: ''}) 
-    else setNewErrors({...newErrors, files: ''})
+    if (mainImage) setNewErrors({ ...newErrors, mainImage: '' })
+    else setNewErrors({ ...newErrors, files: '' })
     if (crop && imageRef.current) {
       try {
         const croppedImage = await getCroppedImg(imageRef.current, crop);
@@ -73,10 +71,9 @@ function ImageCropper({ croppedImageState, setCroppedImage, ascpectRatio = 1, mi
 
 
   const handleRemoveImage = (index) => {
-    const updatedImages = croppedImageUrl.filter((_, imgIndex) => imgIndex !== index);
-    setCroppedImageUrl(updatedImages);
+    const updatedImages = croppedImageState.filter((_, imgIndex) => imgIndex !== index);
     setCroppedImage(updatedImages);
-  };  
+  };
   const displayedFiles = croppedImageState.filter((file) => file.mainImage === mainImage);
   return (
     <div className='image-cropper'>

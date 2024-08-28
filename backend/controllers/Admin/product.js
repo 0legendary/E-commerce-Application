@@ -180,14 +180,8 @@ export const deletePermenantly  = async (req, res) => {
         if (!product) {
             return res.status(404).json({ status: false, message: 'Product not found' });
         }
-
-        // Extract image IDs
-        const { mainImage, additionalImages } = product;
-        const imageIds = [mainImage, ...additionalImages];
-
         await Product.findByIdAndDelete(product_id);
-
-        await Image.deleteMany({ _id: { $in: imageIds } });
+        await Image.findByIdAndDelete(product.images);
 
         res.status(200).json({ status: true, message: 'Product and associated images deleted successfully' });
     } catch (error) {
