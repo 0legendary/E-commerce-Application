@@ -69,7 +69,6 @@ function Checkout() {
     }, [products]);
 
     const updateOfferPrices = () => {
-        console.log(couponAvailable);
         const updatedProducts = products.map(item => {
             const offerPrice = getApplicableOffer(item.productId, item.categoryId, item.discountedPrice);
             return {
@@ -189,21 +188,23 @@ function Checkout() {
             return item;
         }));
 
-
-        try {
-            await axiosInstance.put(`/user/update-cart-item/${item_id}`, { quantity: newQuantity });
-        } catch (error) {
-            toast.error('Something went wrong ', {
-                autoClose: 2000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: true,
-                progress: undefined,
-                theme: "dark",
-            });
-            console.error('Error updating cart item quantity:', error);
+        if (!product_Id) {
+            try {
+                await axiosInstance.put(`/user/update-cart-item/${item_id}`, { quantity: newQuantity });
+            } catch (error) {
+                toast.error('Something went wrong ', {
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "dark",
+                });
+                console.error('Error updating cart item quantity:', error);
+            }
         }
+
     };
     const handleRemoveFromCart = async (item_id) => {
         axiosInstance.delete(`/user/delete-cart-items/${item_id}`)
@@ -369,7 +370,7 @@ function Checkout() {
             return
 
         }
-        if (!addresses || addresses.length === 0 && !selectedAddress._id) {
+        if ((!addresses || addresses.length === 0) && !selectedAddress._id) {
             toast.error("Please create a new address", {
                 autoClose: 2000,
                 hideProgressBar: false,
@@ -479,7 +480,7 @@ function Checkout() {
                                         {products.map(item => {
                                             const offerPrice = getApplicableOffer(item.productId, item.categoryId, item.discountedPrice)
                                             const finalPrice = item.discountedPrice - offerPrice;
-                                            let mainImage = item.image.filter((img) => img.mainImage)
+                                            let mainImage = item.images.filter((img) => img.mainImage)
                                             return (
                                                 <div key={item._id} className="cart-item d-flex align-items-center mb-3 border rounded p-3">
                                                     <div className="cart-item-image me-3">

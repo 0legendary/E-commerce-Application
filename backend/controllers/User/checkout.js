@@ -35,7 +35,7 @@ export const checkoutProduct = async (req, res) => {
                 populatedProducts = cart.products.map(product => ({
                     productId: product.productId._id,
                     name: product.productId.name,
-                    image: product.productId.images.images,
+                    images: product.productId.images.images,
                     quantity: product.quantity,
                     price: product.price,
                     discountedPrice: product.discountedPrice,
