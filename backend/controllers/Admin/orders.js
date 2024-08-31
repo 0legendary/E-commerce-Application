@@ -6,9 +6,9 @@ export const getAllOrders = async (req, res) => {
         const orders = await Order.find({})
             .populate({
                 path: 'products.productId',
-                select: 'mainImage',
+                select: 'images',
                 populate: {
-                    path: 'mainImage',
+                    path: 'images',
                     select: 'image'
                 }
             })

@@ -18,6 +18,7 @@ function Products() {
             .then(response => {
                 if (response.data.status) {
                     setOffers(response.data.offers ? response.data.offers : []);
+                    console.log(response.data.offers);
                     setCartProducts(response.data.cartProducts ? response.data.cartProducts : []);
                     setWishlistProducts(response.data.wishlistProducts ? response.data.wishlistProducts : []);
                     const sortedProducts = response.data.products.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -85,19 +86,21 @@ function Products() {
 
 
     return (
-        <div className="container products-container" style={{ 'margin-top': '202rem' }}>
+        <div className="container products-container" style={{ 'margin-top': '207rem' }}>
             <ToastContainer />
             <div className="offers-section mb-4 text-success">
                 {offers && offers.length > 0 ? (
-                    offers.map((offer) => (
-                        <div key={offer._id} className="offer-card">
-                            <img src={offer.imageID.image} alt={offer.description} className="offer-image" />
-                            <div className="offer-details">
-                                <p className="offer-description">{offer.description}</p>
-                                <span className="offer-discount">Save {offer.discountPercentage}%</span>
+                    offers.map((offer) => {
+                        return (
+                            <div key={offer._id} className="offer-card">
+                                <img src={offer.imageID.images[0].cdnUrl} alt={offer.description} className="offer-image" />
+                                <div className="offer-details">
+                                    <p className="offer-description">{offer.description}</p>
+                                    <span className="offer-discount">Save {offer.discountPercentage}%</span>
+                                </div>
                             </div>
-                        </div>
-                    ))
+                        )
+                    })
                 ) : (
                     <p>No current offers.</p>
                 )}
@@ -112,9 +115,10 @@ function Products() {
                     const applicableOffer = getApplicableOffer(product._id);
                     const applicableCategoryOffer = getApplicableOffer(product.categoryId._id.toString());
                     const inStock = product.variations[0].stock > 0;
+                    const mainImage = product.images.images.find(img => img.mainImage === true);
                     return (
                         <div key={index} className="product-card bg-white">
-                            <img src={product.mainImage.image} alt={product.name} className="product-image" />
+                            <img src={mainImage.cdnUrl} alt={product.name} className="product-image" />
                             <div className="product-details">
                                 <span className="product-name"><span>{product.name}</span></span>
                             </div>

@@ -1,15 +1,33 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { FileUploaderRegular } from '@uploadcare/react-uploader';
 import '@uploadcare/react-uploader/core.css';
+import {
+  deleteFile,
+  UploadcareSimpleAuthSchema,
+} from '@uploadcare/rest-client';
 
 function UploadFIles({ setFiles, files, mainImage }) {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const ctxProviderRef = useRef(null);
 
+  const uploadcareSimpleAuthSchema = new UploadcareSimpleAuthSchema({
+    publicKey: 'd32886e1d808b4ca34c7',
+    secretKey: '6e1d0d6e98cb0062962e',
+  });
+
   const handleRemoveClick = useCallback(
-    (uuid) => setFiles(files.filter((f) => f.uuid !== uuid)),
+    (uuid) => {
+      setFiles(files.filter((f) => f.uuid !== uuid));
+        if (uuid) {
+        deleteFile(
+          { uuid: uuid },
+          { authSchema: uploadcareSimpleAuthSchema }
+        );
+      }
+    },
     [files, setFiles]
   );
+  
 
   const resetUploaderState = () => ctxProviderRef.current?.uploadCollection.clearAll();
 
@@ -51,7 +69,7 @@ function UploadFIles({ setFiles, files, mainImage }) {
       />
       <div className="uploaded-images-previews">
         {displayedFiles && displayedFiles.length > 0 && (
-          <div className='mt-3 me-3'>
+          <div className='mt-3 me-3 d-flex'>
             {displayedFiles.map((file) => (
               <div key={file.uuid} className="uploaded-file-preview d-flex">
                 <img src={file.cdnUrl} alt={file.name} width="100" />

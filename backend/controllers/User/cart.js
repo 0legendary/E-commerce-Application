@@ -122,10 +122,10 @@ export const addToCart = async (req, res) => {
   
       const cart = await Cart.findOne({ userId: user._id }).populate({
         path: 'products.productId',
-        select: 'name mainImage categoryId',
+        select: 'name images categoryId',
         populate: {
-          path: 'mainImage',
-          select: 'image'
+          path: 'images',
+          select: 'images'
         }
       });
   
@@ -133,11 +133,11 @@ export const addToCart = async (req, res) => {
         return res.status(404).json({ status: false });
       }
   
-      
+      console.log(cart.products[0].productId);
       const populatedProducts = cart.products.map(product => ({
         productId: product.productId._id,
         name: product.productId.name,
-        mainImage: product.productId.mainImage.image,
+        images: product.productId.images.images,
         quantity: product.quantity,
         price: product.price,
         discountedPrice: product.discountedPrice,

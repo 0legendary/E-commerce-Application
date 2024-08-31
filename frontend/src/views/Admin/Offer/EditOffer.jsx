@@ -2,24 +2,20 @@ import React, { useState } from 'react';
 import { Form, Button } from 'react-bootstrap';
 import { offerValidate } from '../../../config/offerValidation';
 import axiosInstance from '../../../config/axiosConfig';
+import UploadFIles from '../../UploadFiles/UploadFIles';
 
-function EditOffer({ completeEditCoupon, offer, products, categories }) {
+function EditOffer({ completeEditOffer, offer, products, categories }) {
   const [errors, setErrors] = useState({})
   const [formData, setFormData] = useState(offer);
+  const [files, setFiles] = useState(offer.imageID ? offer.imageID.images : []);
 
   const handleChange = (e) => {
-    const { name, value, type } = e.target;
-    if (type === 'file') {
-      setFormData(prev => ({
-        ...prev,
-        [name]: e.target.files[0]
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
+    const { name, value } = e.target;
+
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
 
     setErrors(prev => ({
       ...prev,
@@ -29,36 +25,32 @@ function EditOffer({ completeEditCoupon, offer, products, categories }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    let validate = offerValidate(formData)
+    const editedData = { ...formData, images: files }
+    let validate = offerValidate(editedData)
     setErrors(validate)
     if (Object.keys(validate).length === 0) {
-      let editedData
-      if (formData.image) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64Image = reader.result;
-          const formDataWithBase64 = { ...formData, imageID: base64Image };
-          console.log(formDataWithBase64);
-          editedData = formDataWithBase64
-        };
-        reader.readAsDataURL(formData.imageID);
-      } else {
-        // Handle case when no image is selected
-        editedData = formData
-      }
-      axiosInstance.post('/admin/edit-offer', editedData)
-          .then(response => {
-            if (response.data.status) {
-              completeEditCoupon(formData)
-            } else {
-              console.log('something went wrong while editing');
-            }
-          })
-          .catch(error => {
-            console.error('Error sending data:', error);
-          });
+      axiosInstance.post('/admin/edit-offer', { editedData, imageID: offer?.imageID?._id })
+        .then(response => {
+          if (response.data.status) {
+            const createdOffer = {
+              ...editedData,
+              imageID: {
+                images: files, // Ensure that 'images' is the array of files
+                _id: offer?.imageID?._id // Use the existing imageID._id if available
+              }
+            }; 
+            completeEditOffer(createdOffer)
+          } else {
+            console.log('something went wrong while editing');
+          }
+        })
+        .catch(error => {
+          console.error('Error sending data:', error);
+        });
     }
   };
+
+
 
   const handleTypeChange = (e) => {
     setFormData(prev => ({
@@ -102,19 +94,15 @@ function EditOffer({ completeEditCoupon, offer, products, categories }) {
               </Form.Control>
               {errors.type && <p className='text-danger pt-2'>{errors.type}</p>}
             </Form.Group>
-            <div className='w-100 d-flex gap-2 mt-3'>
-              <Form.Group className='w-50' controlId="formDescription">
-                <Form.Label>Description</Form.Label>
-                <Form.Control type="text" name="description" value={formData.description} onChange={handleChange} />
-                {errors.description && <p className='text-danger pt-2'>{errors.description}</p>}
-              </Form.Group>
-
-              <Form.Group className='w-50' controlId="formImage">
-                <Form.Label>Image</Form.Label>
-                <Form.Control type="file" name="image" onChange={handleChange} />
-                {errors.imageID && <p className='text-danger pt-2'>{errors.imageID}</p>}
-              </Form.Group>
-            </div>
+            <Form.Group className='w-100 mt-3' controlId="formDescription">
+              <Form.Label>Description</Form.Label>
+              <Form.Control type="text" name="description" value={formData.description} onChange={handleChange} />
+              {errors.description && <p className='text-danger pt-2'>{errors.description}</p>}
+            </Form.Group>
+            <Form.Group className='mt-4' controlId="formImage">
+              <UploadFIles setFiles={setFiles} files={files} />
+              {errors.images && <p className='text-danger pt-2'>{errors.images}</p>}
+            </Form.Group>
             {formData.type === 'referral' && (
               <>
                 <Form.Group controlId="formReferralCode" className='mt-3'>
@@ -162,7 +150,6 @@ function EditOffer({ completeEditCoupon, offer, products, categories }) {
                 </Form.Group>
               </>
             )}
-            {formData.imageID && <img src={formData.imageID} alt={formData.type}></img>}
           </div>
         </div>
 
@@ -170,43 +157,46 @@ function EditOffer({ completeEditCoupon, offer, products, categories }) {
           <Form.Group controlId="formApplicableTo" className='mt-5 mb-5'>
             <Form.Label>Applicable Products</Form.Label>
             <div style={{ overflowX: 'auto', whiteSpace: 'nowrap' }}>
-              {products.map(product => (
-                <div
-                  key={product._id}
-                  style={{
-                    width: '200px',
-                    display: 'inline-flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    margin: '10px',
-                    textAlign: 'center',
-                    cursor: 'pointer',
-                    border: formData.applicableTo.includes(product._id) ? '2px solid green' : '2px solid transparent',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                  }}
+              {products.map(product => {
+                const mainImage = product.images.images.filter((img) => img.mainImage)
+                return (
+                  <div
+                    key={product._id}
+                    style={{
+                      width: '200px',
+                      display: 'inline-flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      margin: '10px',
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      border: formData.applicableTo.includes(product._id) ? '2px solid green' : '2px solid transparent',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                    }}
 
-                  onClick={() => handleItemClick(product._id)}
-                >
-                  <img
-                    src={product.mainImage}
-                    alt={product._id}
-                    style={{ width: '100px', borderRadius: '8px' }}
-                    className='mt-2'
-                  />
-                  <p style={{
-                    textAlign: 'center',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    margin: '0',
-                    padding: '5px 0',
-                    width: '90%'
-                  }}>
-                    {product.name}
-                  </p>
-                </div>
-              ))}
+                    onClick={() => handleItemClick(product._id)}
+                  >
+                    <img
+                      src={mainImage[0].cdnUrl}
+                      alt={product._id}
+                      style={{ width: '100px', borderRadius: '8px' }}
+                      className='mt-2'
+                    />
+                    <p style={{
+                      textAlign: 'center',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      margin: '0',
+                      padding: '5px 0',
+                      width: '90%'
+                    }}>
+                      {product.name}
+                    </p>
+                  </div>
+                )
+              })}
               {errors.applicableTo && <p className='text-danger pt-2'>{errors.applicableTo}</p>}
             </div>
           </Form.Group>
@@ -255,7 +245,7 @@ function EditOffer({ completeEditCoupon, offer, products, categories }) {
         <Button variant="primary" type="submit" className='me-3 mt-4'>
           Update
         </Button>
-        <Button variant="secondary" onClick={completeEditCoupon} className="ml-2 mt-4">
+        <Button variant="secondary" onClick={completeEditOffer} className="ml-2 mt-4">
           Cancel
         </Button>
       </Form>

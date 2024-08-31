@@ -5,7 +5,7 @@ import { getAllUser, toggleBlockUser } from '../controllers/Admin/user.js';
 import { createNewCategory, deleteCategory, editCategory, getAllCategories, toggleCategory } from '../controllers/Admin/category.js';
 import { getAllOrders } from '../controllers/Admin/orders.js';
 import { createNewCoupon, editCoupon, getAllCoupons } from '../controllers/Admin/coupons.js';
-import { createNewOfferAdmin, editOfferAdmin, getOffersAdmin, toggleOffersAdmin } from '../controllers/Admin/offer.js';
+import { createNewOfferAdmin, deleteOffer, editOfferAdmin, getOffersAdmin, toggleOffersAdmin } from '../controllers/Admin/offer.js';
 import { topOrderCategory } from '../controllers/Admin/dashboard.js';
 
 const router = Router();
@@ -48,6 +48,7 @@ router.post('/edit-coupon', authenticateTokenAdmin, editCoupon);
 
 //offers
 router.get('/get-offers', authenticateTokenAdmin, getOffersAdmin);
+router.post('/delete-offer', authenticateTokenAdmin, deleteOffer);
 router.post('/add-offer', authenticateTokenAdmin, createNewOfferAdmin);
 router.post('/edit-offer', authenticateTokenAdmin, editOfferAdmin);
 router.put('/toggle-offers', authenticateTokenAdmin, toggleOffersAdmin);

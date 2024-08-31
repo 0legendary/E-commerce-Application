@@ -62,47 +62,50 @@ function Wishlist() {
             })
             .catch(error => {
                 console.error('Error sending data:', error);
-                
+
             });
     };
 
     return (
         <div>
-            <ToastContainer/>
+            <ToastContainer />
             <Layout mainHeading={mainHeading} breadcrumbs={breadcrumbs} />
             <div className="container text-white p-3 mb-4 ">
                 {wishlistItems.length > 0 ? (
                     <div className="row">
                         <div className='col-md-12'>
                             <div>
-                                {wishlistItems.map(item => (
-                                    <div key={item._id} className="cart-item d-flex align-items-center mb-3 border rounded p-3">
-                                        <div className="cart-item-image me-3">
-                                            <img src={item.mainImage} alt={item.name} className="img-thumbnail" />
-                                        </div>
-                                        <div className="cart-item-details d-flex flex-column">
-                                            <div className='d-flex justify-content-end'>
-                                                <i class="bi bi-trash-fill" onClick={() => handleRemove(item.productId)}></i>
+                                {wishlistItems.map(item => {
+                                    let mainImage = item.images.filter((img) => img.mainImage)
+                                    return (
+                                        <div key={item._id} className="cart-item d-flex align-items-center mb-3 border rounded p-3">
+                                            <div className="cart-item-image me-3">
+                                                <img src={mainImage[0].cdnUrl} alt={item.name} className="img-thumbnail" />
                                             </div>
-                                            <div className=" align-items-center mb-2">
-                                                <h5 className="me-3">{item.name}</h5>
-                                                <span className="text-white">{item.brand}</span>
-                                            </div>
+                                            <div className="cart-item-details d-flex flex-column">
+                                                <div className='d-flex justify-content-end'>
+                                                    <i class="bi bi-trash-fill" onClick={() => handleRemove(item.productId)}></i>
+                                                </div>
+                                                <div className=" align-items-center mb-2">
+                                                    <h5 className="me-3">{item.name}</h5>
+                                                    <span className="text-white">{item.brand}</span>
+                                                </div>
 
-                                            <div className="mb-2">
-                                                <span className="me-2">${item.discountPrice}</span>
-                                                {item.discountPrice !== item.price && (
-                                                    <span className="text-danger"><del>${item.price}</del></span>
-                                                )}
-                                            </div>
-                                            <div className='d-flex justify-content-end'>
-                                                <button className='btn btn-success' onClick={() => handleAddToCart(item.productId)}>
-                                                    <i class="bi bi-cart4">Add to cart</i>
-                                                </button>
+                                                <div className="mb-2">
+                                                    <span className="me-2">${item.discountPrice}</span>
+                                                    {item.discountPrice !== item.price && (
+                                                        <span className="text-danger"><del>${item.price}</del></span>
+                                                    )}
+                                                </div>
+                                                <div className='d-flex justify-content-end'>
+                                                    <button className='btn btn-success' onClick={() => handleAddToCart(item.productId)}>
+                                                        <i class="bi bi-cart4">Add to cart</i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    )
+                                })}
                                 {/* {message && <p className='text-success'>{message}</p>} */}
                             </div>
                         </div>

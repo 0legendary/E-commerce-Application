@@ -23,18 +23,13 @@ export const checkoutProduct = async (req, res) => {
         if (product_id === 'null') {
             const cart = await Cart.findOne({ userId: user._id }).populate({
                 path: 'products.productId',
-                select: 'name mainImage',
-                populate: {
-                    path: 'mainImage',
-                    select: 'image'
-                }
             });
 
             if (cart && cart.products.length > -1) {
                 populatedProducts = cart.products.map(product => ({
                     productId: product.productId._id,
                     name: product.productId.name,
-                    mainImage: product.productId.mainImage.image,
+                    image: product.images.images,
                     quantity: product.quantity,
                     price: product.price,
                     discountedPrice: product.discountedPrice,
@@ -49,14 +44,14 @@ export const checkoutProduct = async (req, res) => {
             }
         } else {
             const product = await Product.findOne({ _id: product_id }).populate({
-                path: 'mainImage',
-                select: 'image'
+                path: 'images',
+                select: 'images'
             });
             let Variations = product.variations[0]
             populatedProducts = [{
                 productId: product._id,
                 name: product.name,
-                mainImage: product.mainImage.image,
+                images: product.images.images,
                 quantity: 1,
                 price: Variations.price,
                 discountedPrice: Variations.discountPrice,

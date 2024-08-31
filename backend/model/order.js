@@ -11,7 +11,7 @@ const orderSchema = new mongoose.Schema({
     },
     customerId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'User',    
         required: true
     },
     shippingAddress: {

@@ -1,15 +1,17 @@
-
 import React, { useState } from 'react';
 import { Form, Button } from 'react-bootstrap';
 import { offerValidate } from '../../../config/offerValidation';
 import axiosInstance from '../../../config/axiosConfig';
-
+import UploadFIles from '../../UploadFiles/UploadFIles';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 function NewOffer({ cancelCreate, products, categories }) {
     const [errors, setErrors] = useState({})
+    const [files, setFiles] = useState([]);
     const [formData, setFormData] = useState({
         type: '',
         description: '',
-        imageID: null,
+        images: null,
         discountPercentage: '',
         discountAmount: '',
         startDate: '',
@@ -21,18 +23,11 @@ function NewOffer({ cancelCreate, products, categories }) {
 
 
     const handleChange = (e) => {
-        const { name, value, type } = e.target;
-        if (type === 'file') {
-            setFormData(prev => ({
-                ...prev,
-                [name]: e.target.files[0]
-            }));
-        } else {
-            setFormData(prev => ({
-                ...prev,
-                [name]: value
-            }));
-        }
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
 
         setErrors(prev => ({
             ...prev,
@@ -42,33 +37,30 @@ function NewOffer({ cancelCreate, products, categories }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        let validate = offerValidate(formData)
+        const newOfferData = { ...formData, images: files }
+        let validate = offerValidate(newOfferData)
         setErrors(validate)
         if (Object.keys(validate).length === 0) {
-            if (formData.imageID) {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    const base64Image = reader.result;
-                    const formDataWithBase64 = { ...formData, imageID: base64Image };
-                    console.log(formDataWithBase64);
-            
-                    axiosInstance.post('/admin/add-offer', formDataWithBase64)
-                        .then(response => {
-                            if (response.data.status) {
-                               cancelCreate(formDataWithBase64)
-                            } else {
-                                // Handle error
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error sending data:', error);
+            axiosInstance.post('/admin/add-offer', newOfferData)
+                .then(response => {
+                    if (response.data.status) {
+                        cancelCreate(newOfferData)
+                    } else {
+                        toast.error("unable to create new offer", {
+                            autoClose: 2000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: false,
+                            draggable: true,
+                            progress: undefined,
+                            theme: "dark",
                         });
-                };
-                reader.readAsDataURL(formData.imageID);
-            } else {
-                // Handle case when no image is selected
-                console.log(formData);
-            }
+
+                    }
+                })
+                .catch(error => {
+                    console.error('Error sending data:', error);
+                });
         }
     };
 
@@ -100,6 +92,7 @@ function NewOffer({ cancelCreate, products, categories }) {
     return (
         <div className="container mt-4">
             <h2>Create New Offer</h2>
+            <ToastContainer />
             <Form onSubmit={handleSubmit}>
                 <div className='w-100 d-flex gap-2'>
                     <div className='w-50'>
@@ -113,19 +106,11 @@ function NewOffer({ cancelCreate, products, categories }) {
                             </Form.Control>
                             {errors.type && <p className='text-danger pt-2'>{errors.type}</p>}
                         </Form.Group>
-                        <div className='w-100 d-flex gap-2 mt-3'>
-                            <Form.Group className='w-50' controlId="formDescription">
-                                <Form.Label>Description</Form.Label>
-                                <Form.Control type="text" name="description" value={formData.description} onChange={handleChange} />
-                                {errors.description && <p className='text-danger pt-2'>{errors.description}</p>}
-                            </Form.Group>
-
-                            <Form.Group className='w-50' controlId="formImage">
-                                <Form.Label>Image</Form.Label>
-                                <Form.Control type="file" name="imageID" onChange={handleChange} />
-                                {errors.imageID && <p className='text-danger pt-2'>{errors.imageID}</p>}
-                            </Form.Group>
-                        </div>
+                        <Form.Group className='w-100 mt-3' controlId="formDescription">
+                            <Form.Label>Description</Form.Label>
+                            <Form.Control type="text" name="description" value={formData.description} onChange={handleChange} />
+                            {errors.description && <p className='text-danger pt-2'>{errors.description}</p>}
+                        </Form.Group>
                         {formData.type === 'referral' && (
                             <>
                                 <Form.Group controlId="formReferralCode" className='mt-3'>
@@ -135,6 +120,10 @@ function NewOffer({ cancelCreate, products, categories }) {
                                 </Form.Group>
                             </>
                         )}
+                        <Form.Group className='mt-4' controlId="formImage">
+                            <UploadFIles setFiles={setFiles} files={files} />
+                            {errors.images && <p className='text-danger pt-2'>{errors.images}</p>}
+                        </Form.Group>
                     </div>
 
                     <div className='w-50'>
@@ -180,43 +169,46 @@ function NewOffer({ cancelCreate, products, categories }) {
                     <Form.Group controlId="formApplicableTo" className='mt-5 mb-5'>
                         <Form.Label>Applicable Products</Form.Label>
                         <div style={{ overflowX: 'auto', whiteSpace: 'nowrap' }}>
-                            {products.map(product => (
-                                <div
-                                    key={product._id}
-                                    style={{
-                                        width: '200px',
-                                        display: 'inline-flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        margin: '10px',
-                                        textAlign: 'center',
-                                        cursor: 'pointer',
-                                        border: formData.applicableTo.includes(product._id) ? '2px solid green' : '2px solid transparent',
-                                        borderRadius: '8px',
-                                        overflow: 'hidden',
-                                    }}
+                            {products.map(product => {
+                                let mainImage = product.images.images.filter((img) => img.mainImage)
+                                return (
+                                    <div
+                                        key={product._id}
+                                        style={{
+                                            width: '200px',
+                                            display: 'inline-flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            margin: '10px',
+                                            textAlign: 'center',
+                                            cursor: 'pointer',
+                                            border: formData.applicableTo.includes(product._id) ? '2px solid green' : '2px solid transparent',
+                                            borderRadius: '8px',
+                                            overflow: 'hidden',
+                                        }}
 
-                                    onClick={() => handleItemClick(product._id)}
-                                >
-                                    <img
-                                        src={product.mainImage}
-                                        alt={product._id}
-                                        style={{ width: '100px', borderRadius: '8px' }}
-                                        className='mt-2'
-                                    />
-                                    <p style={{
-                                        textAlign: 'center',
-                                        whiteSpace: 'nowrap',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        margin: '0',
-                                        padding: '5px 0',
-                                        width: '90%'
-                                    }}>
-                                        {product.name}
-                                    </p>
-                                </div>
-                            ))}
+                                        onClick={() => handleItemClick(product._id)}
+                                    >
+                                        <img
+                                            src={mainImage[0].cdnUrl}
+                                            alt={product._id}
+                                            style={{ width: '100px', borderRadius: '8px' }}
+                                            className='mt-2'
+                                        />
+                                        <p style={{
+                                            textAlign: 'center',
+                                            whiteSpace: 'nowrap',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            margin: '0',
+                                            padding: '5px 0',
+                                            width: '90%'
+                                        }}>
+                                            {product.name}
+                                        </p>
+                                    </div>
+                                )
+                            })}
                             {errors.applicableTo && <p className='text-danger pt-2'>{errors.applicableTo}</p>}
                         </div>
                     </Form.Group>

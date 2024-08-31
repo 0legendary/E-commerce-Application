@@ -40,20 +40,20 @@ export const addToWishlist =async (req, res) => {
   
       const wishlist = await Wishlist.findOne({ userId: user._id }).populate({
         path: 'products.productId',
-        select: 'name brand variations mainImage',
+        select: 'name brand variations images',
         populate: {
-          path: 'mainImage',
-          select: 'image'
+          path: 'images',
+          select: 'images'
         }
       });
       if (!wishlist) {
         return res.status(404).json({ status: false });
       }
   
-  
+      console.log(wishlist.products[0].productId);
       const populatedProducts = wishlist.products.map(product => ({
         productId: product.productId._id,
-        mainImage: product.productId.mainImage.image,
+        images: product.productId.images.images,
         name: product.productId.name,
         price: product.productId.variations[0].price,
         discountPrice: product.productId.variations[0].discountPrice,

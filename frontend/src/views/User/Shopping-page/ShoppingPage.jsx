@@ -338,10 +338,11 @@ function ShoppingPage() {
                                 const applicableOffer = getApplicableOffer(product._id);
                                 const applicableCategoryOffer = getApplicableOffer(product.categoryId._id.toString());
                                 const inStock = product.variations[0].stock > 0;
+                                const mainImage = product.images.images.find(img => img.mainImage === true);
 
                                 return (
                                     <div key={index} className="product-card shopping-page-card">
-                                        {/* <img src={product.mainImage.image} alt={product.name} className="product-image" /> */}
+                                        <img src={mainImage.cdnUrl} alt={product.name} className="product-image" />
                                         <div className="product-details">
                                             <span className="product-name text-white"><span>{product.name}</span></span>
                                         </div>

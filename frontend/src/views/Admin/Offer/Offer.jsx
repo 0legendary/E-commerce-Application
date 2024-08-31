@@ -4,7 +4,8 @@ import axiosInstance from '../../../config/axiosConfig';
 import moment from 'moment';
 import NewOffer from './NewOffer';
 import EditOffer from './EditOffer';
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function Offer() {
     const [search, setSearch] = useState('');
@@ -39,12 +40,19 @@ function Offer() {
 
 
     const filteredOffers = offers.filter(offer => {
+        if (!offer) return false;
+    
+        const type = offer.type ? offer.type.toLowerCase() : '';
+        const startDate = offer.startDate ? moment(offer.startDate).format('MMMM D, YYYY') : '';
+        const endDate = offer.endDate ? moment(offer.endDate).format('MMMM D, YYYY') : '';
+    
         return (
-            offer.type.toLowerCase().includes(search.toLowerCase()) ||
-            moment(offer.startDate).format('MMMM D, YYYY').includes(search) ||
-            moment(offer.endDate).format('MMMM D, YYYY').includes(search)
+            type.includes(search.toLowerCase()) ||
+            startDate.includes(search) ||
+            endDate.includes(search)
         );
     });
+    
 
     const handleCreateOffer = (newOffer) => {
         newOffer.type !== 'click' && setOffers([...offers, newOffer])
@@ -74,10 +82,55 @@ function Offer() {
                             offer._id === offer_id ? { ...offer, isActive: !offer.isActive } : offer
                         )
                     );
+                    toast.success("Status changed successfully", {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
                 }
             })
             .catch(error => {
                 console.error('Error fetching categories:', error);
+            });
+    }
+
+    const handleDeleteOffer = (offer_id) => {
+        console.log(offer_id);
+        axiosInstance.post('/admin/delete-offer', {offer_id})
+            .then(response => {
+                if (response.data.status) {
+                    setOffers(prevOffers =>
+                        prevOffers.filter(offer =>
+                            offer._id !== offer_id
+                        )
+                    );
+                    toast.error("Offer deleted", {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
+                } else {
+                    toast.error("something went wrong while deleting", {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error sending data:', error);
             });
     }
 
@@ -89,6 +142,7 @@ function Offer() {
 
     return (
         <div className="container mt-5 text-white font-monospace">
+            <ToastContainer />
             <h2 className="mb-4">Manage Offers</h2>
             {showForm && (
                 <div>
@@ -97,7 +151,7 @@ function Offer() {
             )}
             {showEditForm && (
                 <div>
-                    <EditOffer completeEditCoupon={completeEditOffer} offer={editData} products={products} categories={categories} />
+                    <EditOffer completeEditOffer={completeEditOffer} offer={editData} products={products} categories={categories} />
                 </div>
             )}
             {!showForm && !showEditForm && (
@@ -125,6 +179,7 @@ function Offer() {
                                 <th>Valid Until</th>
                                 <th>Discount amount</th>
                                 <th>Change</th>
+                                <th>Delete</th>
                                 <th>Block/Unblock</th>
                             </tr>
                         </thead>
@@ -138,10 +193,15 @@ function Offer() {
                                         <td>{moment(offer.startDate).format('MMMM D, YYYY')}</td>
                                         <td>{moment(offer.endDate).format('MMMM D, YYYY')}</td>
                                         <td>{offer.discountAmount ? offer.discountAmount : 0}</td>
-                                        <td><Button onClick={() => handleEditOffer(offer)}>Edit</Button></td>
+                                        <td>
+                                            <Button onClick={() => handleEditOffer(offer)}>Edit</Button>
+                                        </td>
+                                        <td>
+                                            <Button variant='danger' onClick={() => handleDeleteOffer(offer._id)}>Delete</Button>
+                                        </td>
                                         <td>
                                             <Button
-                                                variant={offer.isActive ? 'danger' : 'secondary'}
+                                                variant={offer.isActive ? 'warning' : 'secondary'}
                                                 onClick={() => handleToggle(offer._id)}
                                             >
                                                 {offer.isActive ? 'Block' : 'Unblock'}

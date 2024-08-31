@@ -98,69 +98,67 @@ function DetailedOrder({ product, backToOrders, openModal }) {
                 <div className='row'>
                     <div className="col-md-4">
                         <div className="card mb-4">
-                            {order.products.map((product) => (
-                                <div className="card-body" key={product._id}>
-                                    <div className="row">
-                                        <div className="col-md-4">
-                                            {/* <img
-                                                src={product.productId.mainImage.image}
-                                                alt={product.productName}
-                                                className="img-fluid"
-                                            /> */}
-                                            {product.productId.mainImage && (
-                                                <img
-                                                    src={product.productId.mainImage.image}
-                                                    alt={product.productName}
-                                                    className="img-fluid"
-                                                />
-                                            )}
-                                        </div>
-                                        <div className="col-md-8 order-products">
-                                            <div>
-                                                <h5 className="card-title">{product.productName}</h5>
+                            {order.products.map((product) => {
+                                let mainImage = product.productId.images.images.filter((img) => img.mainImage)
+                                return (
+                                    <div className="card-body" key={product._id}>
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                {mainImage && mainImage[0].cdnUrl && (
+                                                    <img
+                                                        src={mainImage[0].cdnUrl}
+                                                        alt={product.productName}
+                                                        className="img-fluid"
+                                                    />
+                                                )}
                                             </div>
-                                            <p>color: {product.selectedColor}</p>
-                                            <p>size: {product.selectedSize}</p>
-                                            {product.quantity > 1 && (
-                                                <p className='mb-2'>quantity: {product.quantity}</p>
-                                            )}
+                                            <div className="col-md-8 order-products">
+                                                <div>
+                                                    <h5 className="card-title">{product.productName}</h5>
+                                                </div>
+                                                <p>color: {product.selectedColor}</p>
+                                                <p>size: {product.selectedSize}</p>
+                                                {product.quantity > 1 && (
+                                                    <p className='mb-2'>quantity: {product.quantity}</p>
+                                                )}
 
-                                            <div className='d-flex justify-content-between align-items-center'>
-                                                <div>
-                                                    <p><strong>₹{product.price}</strong></p>
-                                                </div>
-                                                <div>
-                                                    {product.orderStatus !== 'delivered' && product.orderStatus !== 'canceled' && product.orderStatus !== 'returned' && (
-                                                        <button
-                                                            className="btn btn-danger btn-sm mt-2"
-                                                            onClick={() => openModal(order.orderId, product._id, 'canceled')}
-                                                        >
-                                                            Cancel Order
-                                                        </button>
-                                                    )}
-                                                    {product.orderStatus === 'delivered' && (
-                                                        <button
-                                                            className="btn btn-primary btn-sm mt-2"
-                                                            onClick={() => openModal(order.orderId, product._id, 'returned')}
-                                                        >
-                                                            Return
-                                                        </button>
-                                                    )}
+                                                <div className='d-flex justify-content-between align-items-center'>
+                                                    <div>
+                                                        <p><strong>₹{product.price}</strong></p>
+                                                    </div>
+                                                    <div>
+                                                        {product.orderStatus !== 'delivered' && product.orderStatus !== 'canceled' && product.orderStatus !== 'returned' && (
+                                                            <button
+                                                                className="btn btn-danger btn-sm mt-2"
+                                                                onClick={() => openModal(order.orderId, product._id, 'canceled')}
+                                                            >
+                                                                Cancel Order
+                                                            </button>
+                                                        )}
+                                                        {product.orderStatus === 'delivered' && (
+                                                            <button
+                                                                className="btn btn-primary btn-sm mt-2"
+                                                                onClick={() => openModal(order.orderId, product._id, 'returned')}
+                                                            >
+                                                                Return
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div className='d-flex justify-content-end mt-4'>
-                                        {product.orderStatus === 'delivered' && (
-                                            <button className='btn btn-secondary' onClick={() => setShowReviewForm(!showReviewForm)}>Add Reveiw</button>
+                                        <div className='d-flex justify-content-end mt-4'>
+                                            {product.orderStatus === 'delivered' && (
+                                                <button className='btn btn-secondary' onClick={() => setShowReviewForm(!showReviewForm)}>Add Reveiw</button>
+                                            )}
+                                        </div>
+
+                                        {product.orderStatus === 'delivered' && showReviewForm && (
+                                            <ReviewForm productId={product.productId} orderId={order.orderId} customerId={order.customerId} onSubmitReview={handleReviewSubmit} />
                                         )}
                                     </div>
-
-                                    {product.orderStatus === 'delivered' && showReviewForm && (
-                                        <ReviewForm productId={product.productId} orderId={order.orderId} customerId={order.customerId} onSubmitReview={handleReviewSubmit} />
-                                    )}
-                                </div>
-                            ))}
+                                )
+                            })}
                         </div>
                     </div>
 

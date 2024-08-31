@@ -33,10 +33,10 @@ export const getAllOrders = async (req, res) => {
         const orders = await Order.find({ customerId: user._id })
             .populate({
                 path: 'products.productId',
-                select: 'mainImage',
+                select: 'images',
                 populate: {
-                    path: 'mainImage',
-                    select: 'image'
+                    path: 'images',
+                    select: 'images.cdnUrl images.mainImage'
                 }
             });
         res.json({ status: true, orders });

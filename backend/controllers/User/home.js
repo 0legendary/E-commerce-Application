@@ -41,10 +41,9 @@ export const getHomeProducts = async (req, res) => {
     // Fetch products and offers
     const products = await Product.find({})
       .populate('categoryId', 'name')
-      .populate('mainImage', 'image')
-      .populate('additionalImages', 'image')
+      .populate('images','images')
       .lean();
-    const offers = await Offer.find({}).populate('imageID', 'image');
+    const offers = await Offer.find({}).populate('imageID', 'images');
 
     // Initialize cart and wishlist product IDs as empty arrays
     let cartProductIds = [];

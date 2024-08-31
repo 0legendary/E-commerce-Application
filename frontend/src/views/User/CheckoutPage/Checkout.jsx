@@ -480,11 +480,12 @@ function Checkout() {
                                             console.log(item);
                                             const offerPrice = getApplicableOffer(item.productId, item.categoryId, item.discountedPrice)
 
-                                            const finalPrice = item.discountedPrice - offerPrice
+                                            const finalPrice = item.discountedPrice - offerPrice;
+                                            let mainImage = item.images.filter((img) => img.mainImage)
                                             return (
                                                 <div key={item._id} className="cart-item d-flex align-items-center mb-3 border rounded p-3">
                                                     <div className="cart-item-image me-3">
-                                                        <img src={item.mainImage} alt={item.name} className="img-thumbnail" />
+                                                        <img src={mainImage[0].cdnUrl} alt={item.name} className="img-thumbnail" />
                                                     </div>
                                                     <div className="cart-item-details d-flex flex-column">
                                                         <div className="d-flex align-items-center mb-2">
