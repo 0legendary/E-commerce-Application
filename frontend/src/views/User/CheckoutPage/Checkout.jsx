@@ -477,11 +477,9 @@ function Checkout() {
                                 {products.length > 0 ? (
                                     <div>
                                         {products.map(item => {
-                                            console.log(item);
                                             const offerPrice = getApplicableOffer(item.productId, item.categoryId, item.discountedPrice)
-
                                             const finalPrice = item.discountedPrice - offerPrice;
-                                            let mainImage = item.images.filter((img) => img.mainImage)
+                                            let mainImage = item.image.filter((img) => img.mainImage)
                                             return (
                                                 <div key={item._id} className="cart-item d-flex align-items-center mb-3 border rounded p-3">
                                                     <div className="cart-item-image me-3">

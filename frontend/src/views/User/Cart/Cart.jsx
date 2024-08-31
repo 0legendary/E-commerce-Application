@@ -254,7 +254,7 @@ function Cart() {
                                 </div>
                                 <div className='d-flex justify-content-end'>
                                     <Link to='/checkout/null'>
-                                        <button className='btn btn-success '>Proceed to Checkout</button>
+                                        <button className='btn btn-success'>Proceed to Checkout</button>
                                     </Link>
                                 </div>
                             </div>

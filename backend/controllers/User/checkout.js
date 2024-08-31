@@ -23,13 +23,19 @@ export const checkoutProduct = async (req, res) => {
         if (product_id === 'null') {
             const cart = await Cart.findOne({ userId: user._id }).populate({
                 path: 'products.productId',
+                populate: {
+                    path: 'images',
+                    select: 'images'
+                }
             });
+            
+            console.log('jkhbhj',cart.products[0].productId.images);
 
             if (cart && cart.products.length > -1) {
                 populatedProducts = cart.products.map(product => ({
                     productId: product.productId._id,
                     name: product.productId.name,
-                    image: product.images.images,
+                    image: product.productId.images.images,
                     quantity: product.quantity,
                     price: product.price,
                     discountedPrice: product.discountedPrice,

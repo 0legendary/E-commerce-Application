@@ -9,14 +9,13 @@ export const getAllOrders = async (req, res) => {
                 select: 'images',
                 populate: {
                     path: 'images',
-                    select: 'image'
+                    select: 'images'
                 }
             })
             .populate({
                 path: 'customerId',
                 select: 'name email mobile'
             });
-
         res.json({ status: true, orders });
     } catch (error) {
         console.error(error);
