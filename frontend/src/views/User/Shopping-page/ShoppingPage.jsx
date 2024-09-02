@@ -14,7 +14,7 @@ function ShoppingPage() {
     const [sortOption, setSortOption] = useState('default');
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [selectedColor, setSelectedColor] = useState(null);
-    const [priceRange, setPriceRange] = useState([0, 1000000]);
+    const [priceRange, setPriceRange] = useState([0, Infinity]);
     const [searchTerm, setSearchTerm] = useState('');
     const [offers, setOffers] = useState([])
     const [currentPage, setCurrentPage] = useState(1);
@@ -30,9 +30,7 @@ function ShoppingPage() {
         axiosInstance.get('/user/home/getProducts')
             .then(response => {
                 if (response.data.status) {
-                    console.log(response.data.offers);
                     setOffers(response.data.offers ? response.data.offers : []);
-                    console.log(response.data.wishlistProducts);
                     setCartProducts(response.data.cartProducts ? response.data.cartProducts : []);
                     setWishlistProducts(response.data.wishlistProducts ? response.data.wishlistProducts : []);
                     setProducts(response.data.products);
@@ -72,7 +70,7 @@ function ShoppingPage() {
             )
         );
         if (priceRange[0] > priceRange[1]) {
-            setPriceRange([0, 1000000])
+            setPriceRange([0, Infinity])
         }
 
         if (searchTerm) {
@@ -124,7 +122,9 @@ function ShoppingPage() {
 
     const handlePriceRangeChange = (event) => {
         const { name, value } = event.target;
-        const newValue = Math.max(0, Number(value));
+        const sanitizedValue = value.replace(/[^0-9]/g, '').replace(/^0+/, '');
+
+        const newValue = Math.max(0, Number(sanitizedValue));
 
         if (name === 'min') {
             setPriceRange(prev => [newValue, prev[1]]);
@@ -132,7 +132,6 @@ function ShoppingPage() {
             setPriceRange(prev => [prev[0], newValue]);
         }
     };
-
 
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value);
@@ -201,7 +200,7 @@ function ShoppingPage() {
     const resetFilters = () => {
         setSelectedCategory(null);
         setSelectedColor(null);
-        setPriceRange([0, 1000000]);
+        setPriceRange([0, Infinity]);
         setSearchTerm('');
         setSortOption('default');
         setCurrentPage(1);
@@ -219,6 +218,12 @@ function ShoppingPage() {
         }
     };
 
+    const capitalizeFirstLetter = (str) => {
+        if (!str || typeof str !== 'string') return ''; // Check if str is valid
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    };
+
+
     return (
         <div>
             <Layout mainHeading={mainHeading} breadcrumbs={breadcrumbs} />
@@ -227,14 +232,56 @@ function ShoppingPage() {
                 <div className="mt-3 col-md-3 ">
                     <div className="row pe-5">
                         <div className="sidebar-categories">
+                            <div className="head">Filter by Price</div>
+                            <div className="price-filter">
+                                <div className="price-input">
+                                    <label htmlFor="minPrice">Minimum Price</label>
+                                    <input
+                                        id="minPrice"
+                                        type="number"
+                                        name="min"
+                                        value={priceRange[0]}
+                                        onChange={handlePriceRangeChange}
+                                        placeholder="0"
+                                        step="1"
+                                        inputMode="numeric"
+                                    />
+                                </div>
+                                <div className="price-input">
+                                    <label htmlFor="maxPrice">Maximum Price</label>
+                                    <input
+                                        id="maxPrice"
+                                        type="number"
+                                        name="max"
+                                        value={priceRange[1]}
+                                        onChange={handlePriceRangeChange}
+                                        placeholder="0"
+                                        step="1"
+                                        inputMode="numeric"
+                                    />
+                                </div>
+                            </div>
+                            <div className="price-suggestions">
+                                <div className={`suggestion ${priceRange && priceRange[0] === 0 && priceRange[1] === 500 ? 'selected-filter' : ''}`} onClick={() => setPriceRange([0, 500])}>Under $500</div>
+                                <div className={`suggestion ${priceRange && priceRange[0] === 500 && priceRange[1] === 1000 ? 'selected-filter' : ''}`} onClick={() => setPriceRange([500, 1000])}>$500 - $1000</div>
+                                <div className={`suggestion ${priceRange && priceRange[0] === 1000 && priceRange[1] === 2000 ? 'selected-filter' : ''}`} onClick={() => setPriceRange([1000, 2000])}>$1000 - $2000</div>
+                                <div className={`suggestion ${priceRange && priceRange[0] === 2000 && priceRange[1] === Infinity ? 'selected-filter' : ''}`} onClick={() => setPriceRange([2000, Infinity])}>Above $2000</div>
+                            </div>
+                        </div>
+
+                        <div className="sidebar-categories">
                             <div className="head">Browse Categories</div>
                             <ul className="main-categories">
                                 {uniqueCategories.map((category, index) => {
                                     const applicableOffer = getApplicableOffer(category._id);
+                                    const isSelected = selectedCategory === category._id;
                                     return (
                                         <li key={index} className="main-nav-list">
                                             {/* eslint-disable-next-line */}
-                                            <a onClick={() => handleCategoryClick(category._id)} className="link-button d-flex justify-content-between">
+                                            <a
+                                                onClick={() => handleCategoryClick(category._id)}
+                                                className={`link-button d-flex justify-content-between ${isSelected ? 'selected-filter' : ''}`} // Apply selected class
+                                            >
                                                 <div className='d-flex'>
                                                     <span className="lnr lnr-arrow-right"></span>{category.name}
                                                     {applicableOffer && (
@@ -248,55 +295,32 @@ function ShoppingPage() {
 
                                                 <div className="">
                                                     <span className="number">({products.filter(product => product.categoryId._id === category._id).length})</span>
-
                                                 </div>
                                             </a>
                                         </li>
-                                    )
+                                    );
                                 })}
                             </ul>
                         </div>
                         <div className="sidebar-categories">
                             <div className="head">Browse Colors</div>
                             <ul className="main-categories">
-                                {uniqueColors.map((color, index) => (
-                                    <li key={index} className="main-nav-list">
-                                        {/* eslint-disable-next-line */}
-                                        <a onClick={() => handleColorClick(color)} style={{ justifyContent: 'start' }}>
-                                            <span className="lnr lnr-arrow-right"></span>{color}
-                                        </a>
-                                    </li>
-                                ))}
+                                {uniqueColors.map((color, index) => {
+                                    const isSelected = selectedColor === color;
+                                    return (
+                                        <li key={index} className="main-nav-list">
+                                            {/* eslint-disable-next-line */}
+                                            <a
+                                                onClick={() => handleColorClick(color)}
+                                                className={isSelected ? 'selected-filter' : ''}
+                                                style={{ justifyContent: 'start' }}
+                                            >
+                                                <span className="lnr lnr-arrow-right"></span>{capitalizeFirstLetter(color)}
+                                            </a>
+                                        </li>
+                                    );
+                                })}
                             </ul>
-                        </div>
-                        <div className="sidebar-categories">
-                            <div className="head">Filter by Price</div>
-                            <div className="price-filter">
-                                <div className="price-input">
-                                    <label htmlFor="minPrice">Minimum Price</label>
-                                    <input
-                                        id="minPrice"
-                                        type="number"
-                                        name="min"
-                                        value={priceRange[0]}
-                                        onChange={handlePriceRangeChange}
-                                        placeholder="Min Price"
-                                        min="0"
-                                    />
-                                </div>
-                                <div className="price-input">
-                                    <label htmlFor="maxPrice">Maximum Price</label>
-                                    <input
-                                        id="maxPrice"
-                                        type="number"
-                                        name="max"
-                                        value={priceRange[1]}
-                                        onChange={handlePriceRangeChange}
-                                        placeholder="Max Price"
-                                        min="0"
-                                    />
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
