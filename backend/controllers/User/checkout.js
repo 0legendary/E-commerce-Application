@@ -68,8 +68,9 @@ export const checkoutProduct = async (req, res) => {
                 _id: product._id,
             }]
         }
+        const referralOffer = user.referralRewards.find(reward => reward.status === 'pending');        
         const offers = await Offer.find({})
-        res.status(200).json({ status: true, addresses, products: populatedProducts, offers });
+        res.status(200).json({ status: true, addresses, products: populatedProducts, offers, referralOffer });
     } catch (error) {
         console.error('Error updating address:', error);
         res.status(500).json({ status: false, message: 'Server error' });
@@ -182,6 +183,21 @@ export const verifyPayment = async (req, res) => {
             }
         }
 
+        const user = await User.findById({_id: orderDetails.customerId})
+        if (user) {
+            const pendingRewards = user.referralRewards.filter(reward => reward.status === 'pending');
+
+            if (pendingRewards.length > 0) {
+                user.referralRewards = user.referralRewards.map(reward => {
+                    if (reward.status === 'pending') {
+                        reward.status = 'claimed';
+                    }
+                    return reward;
+                });
+                await user.save();
+            }
+        }
+
         res.status(200).json({ status: true, order: newOrder })
 
     } catch (error) {
@@ -239,6 +255,21 @@ export const payByCod = async (req, res) => {
             }
         }
 
+        const user = await User.findById({_id: orderDetails.customerId})
+        if (user) {
+            const pendingRewards = user.referralRewards.filter(reward => reward.status === 'pending');
+
+            if (pendingRewards.length > 0) {
+                user.referralRewards = user.referralRewards.map(reward => {
+                    if (reward.status === 'pending') {
+                        reward.status = 'claimed';
+                    }
+                    return reward;
+                });
+                await user.save();
+            }
+        }
+
         res.status(200).json({ status: true, order: newOrder })
 
     } catch (error) {
@@ -269,7 +300,21 @@ export const pendingOrder = async (req, res) => {
         if (req.body.checkoutId == 'null') {
             await Cart.deleteOne({ userId: orderDetails.customerId });
         }
-        console.log('order saved');
+
+        const user = await User.findById({_id: orderDetails.customerId})
+        if (user) {
+            const pendingRewards = user.referralRewards.filter(reward => reward.status === 'pending');
+
+            if (pendingRewards.length > 0) {
+                user.referralRewards = user.referralRewards.map(reward => {
+                    if (reward.status === 'pending') {
+                        reward.status = 'claimed';
+                    }
+                    return reward;
+                });
+                await user.save();
+            }
+        }
         res.status(200).json({ status: true, order: newOrder })
 
     } catch (error) {

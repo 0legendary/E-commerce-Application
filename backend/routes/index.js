@@ -6,7 +6,6 @@ import { generateOTP, sendOTPEmail } from '../utils/sendEmail.js'
 import bcrypt from 'bcrypt';
 import axios from 'axios';
 import { authenticateToken, authenticateTokenAdmin, generateAccessToken, CheckAlreadyLogin } from '../middleware/authMiddleware.js';
-import Offer from '../model/offer.js';
 
 const router = Router();
 
@@ -30,22 +29,30 @@ const generateReferralCode = () => {
 
 
 const registerUser = async (userData, referralCode) => {
+  const referralOffer = {
+    referrerReward: 50,
+    refereeReward: 50
+  };
+
   const referrer = await User.findOne({ referralCode });
   const newUser = new User({
-      ...userData,
-      referralCode: generateReferralCode(),
-      referredBy: referrer ? referrer._id : null
+    ...userData,
+    referralCode: generateReferralCode(),
+    referredBy: referrer ? referrer._id : null,
+    referralRewards: [{
+      rewardAmount: referralOffer.refereeReward,
+      status: 'pending'
+    }]
   });
   await newUser.save();
 
-  // if (referrer) {
-  //     // Add referral reward to the referrer
-  //     referrer.referralRewards.push({
-  //         offerId: referralOffer._id, 
-  //         rewardAmount: referralOffer.reward
-  //     });
-  //     await referrer.save();
-  // }
+  if (referrer) {
+    referrer.referralRewards.push({
+      rewardAmount: referralOffer.referrerReward,
+      status: 'pending'
+    });
+    await referrer.save();
+  }
 };
 
 const createAdmin = async () => {
@@ -167,12 +174,12 @@ router.post('/forgot-pass/send-otp', async (req, res) => {
     const otp = generateOTP()
     console.log(otp);
     const returnedUser = await User.findOne({ email });
-    if(returnedUser){
-      const findUserOTP = await OTP.findOne({email})
-      if(findUserOTP){
+    if (returnedUser) {
+      const findUserOTP = await OTP.findOne({ email })
+      if (findUserOTP) {
         findUserOTP.otp = otp
         await findUserOTP.save()
-      }else{
+      } else {
         const newOTP = new OTP({
           email,
           otp
@@ -180,9 +187,9 @@ router.post('/forgot-pass/send-otp', async (req, res) => {
         await newOTP.save();
       }
       await sendOTPEmail(email, otp);
-      res.status(200).json({ status: true});
-    }else{
-      res.status(200).json({ status: false});
+      res.status(200).json({ status: true });
+    } else {
+      res.status(200).json({ status: false });
     }
   } catch (error) {
     res.status(500).json({ status: false, message: 'Server error' });
@@ -194,13 +201,13 @@ router.post('/forgot-pass/reset-password', async (req, res) => {
   const { email, password } = req.body;
   try {
     const returnedUser = await User.findOne({ email });
-    if(returnedUser){
+    if (returnedUser) {
       const hashedPassword = await bcrypt.hash(password, 10);
       returnedUser.password = hashedPassword;
       returnedUser.save();
-      res.status(200).json({ status: true});
-    }else{
-      res.status(200).json({ status: false});
+      res.status(200).json({ status: true });
+    } else {
+      res.status(200).json({ status: false });
     }
   } catch (error) {
     res.status(500).json({ status: false, message: 'Server error' });
@@ -213,11 +220,11 @@ router.post('/forgot-pass/verify-otp', async (req, res) => {
   const { email, otp } = req.body;
   try {
     const findUser = await OTP.findOne({ email });
-    if(findUser.otp === otp){
+    if (findUser.otp === otp) {
       await OTP.deleteOne({ email });
-      res.status(200).json({ status: true});
-    }else{
-      res.status(200).json({ status: false});
+      res.status(200).json({ status: true });
+    } else {
+      res.status(200).json({ status: false });
     }
   } catch (error) {
     res.status(500).json({ status: false, message: 'Server error' });
@@ -334,7 +341,7 @@ router.post('/admin/google/login', async (req, res) => {
 
 router.post('/admin/login', async (req, res) => {
   const { email, password } = req.body
-  console.log(email,password);
+  console.log(email, password);
   try {
     const user = await Admin.findOne({ email });
     if (!user) {
@@ -362,12 +369,12 @@ router.post('/admin/forgot-pass/send-otp', async (req, res) => {
     const otp = generateOTP()
     console.log(otp);
     const returnedAdmin = await Admin.findOne({ email });
-    if(returnedAdmin){
-      const findAdminOTP = await OTP.findOne({email})
-      if(findAdminOTP){
+    if (returnedAdmin) {
+      const findAdminOTP = await OTP.findOne({ email })
+      if (findAdminOTP) {
         findAdminOTP.otp = otp
         await findAdminOTP.save()
-      }else{
+      } else {
         const newOTP = new OTP({
           email,
           otp
@@ -375,9 +382,9 @@ router.post('/admin/forgot-pass/send-otp', async (req, res) => {
         await newOTP.save();
       }
       await sendOTPEmail(email, otp);
-      res.status(200).json({ status: true});
-    }else{
-      res.status(200).json({ status: false});
+      res.status(200).json({ status: true });
+    } else {
+      res.status(200).json({ status: false });
     }
   } catch (error) {
     res.status(500).json({ status: false, message: 'Server error' });
@@ -390,11 +397,11 @@ router.post('/admin/forgot-pass/verify-otp', async (req, res) => {
   const { email, otp } = req.body;
   try {
     const findAdmin = await OTP.findOne({ email });
-    if(findAdmin.otp === otp){
+    if (findAdmin.otp === otp) {
       await OTP.deleteOne({ email });
-      res.status(200).json({ status: true});
-    }else{
-      res.status(200).json({ status: false});
+      res.status(200).json({ status: true });
+    } else {
+      res.status(200).json({ status: false });
     }
   } catch (error) {
     res.status(500).json({ status: false, message: 'Server error' });
@@ -409,13 +416,13 @@ router.post('/admin/reset-password', async (req, res) => {
   const { email, password } = req.body;
   try {
     const returnedAdmin = await Admin.findOne({ email });
-    if(returnedAdmin){
+    if (returnedAdmin) {
       const hashedPassword = await bcrypt.hash(password, 10);
       returnedAdmin.password = hashedPassword;
       returnedAdmin.save();
-      res.status(200).json({ status: true});
-    }else{
-      res.status(200).json({ status: false});
+      res.status(200).json({ status: true });
+    } else {
+      res.status(200).json({ status: false });
     }
   } catch (error) {
     res.status(500).json({ status: false, message: 'Server error' });

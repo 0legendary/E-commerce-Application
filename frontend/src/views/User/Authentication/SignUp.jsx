@@ -17,13 +17,15 @@ function SignUp({ handleLoginClick, handleSignUpClick }) {
   const [showGooglePass, setShowGooglePass] = useState(false)
   const [showOtpPage, setShowOtpPage] = useState(false)
   const [googleData, setGoogleData] = useState({})
-  const [buttonEnabled, setButtonEnabled] = useState(false); // State to control button enablement
+  const [buttonEnabled, setButtonEnabled] = useState(false);
+  const [addReferral, setAddReferral] = useState(false);
   const [formData, setFormData] = useState({
     username: 'alenmm',
     email: 'alenmullassery123@gmail.com',
     password: 'a1234567',
     confirmPassword: 'a1234567',
-    otp: ''
+    otp: '',
+    referralCode: ''
   });
 
   const navigate = useNavigate()
@@ -118,7 +120,8 @@ function SignUp({ handleLoginClick, handleSignUpClick }) {
         password: formData.password,
         googleId: googleData.googleId,
         profileImg: googleData.profileImg,
-        otp: formData.otp
+        otp: formData.otp,
+        referralCode: formData.referralCode
       };
       axiosInstance.post('/google/signup', signupData)
         .then(response => {
@@ -152,7 +155,8 @@ function SignUp({ handleLoginClick, handleSignUpClick }) {
         username: formData.username,
         email: formData.email,
         password: formData.password,
-        otp: formData.otp
+        otp: formData.otp,
+        referralCode: formData.referralCode,
       };
       axiosInstance.post('/signup', signupData)
         .then(response => {
@@ -233,6 +237,26 @@ function SignUp({ handleLoginClick, handleSignUpClick }) {
                 onChange={handleChange}
               ></input>
               {errors.confirmPassword && <div className="error">{errors.confirmPassword}</div>}
+
+              {addReferral ? (
+                <div>
+                  <label htmlFor="confirmPassword">Referral</label>
+                  <input
+                    type="text"
+                    id="referralCode"
+                    value={formData.referralCode}
+                    onChange={handleChange}
+                  ></input>
+                  <div className='d-flex justify-content-end p-1'>
+                    <small className="text-white" style={{cursor: 'pointer'}} onClick={() => setAddReferral(false)}>Close referral</small>
+                  </div>
+                </div>
+              ) : (
+                <div className='d-flex justify-content-end p-1'>
+                  <small className="text-white" style={{cursor: 'pointer'}} onClick={() => setAddReferral(true)}>Add referral code</small>
+                </div>
+              )}
+
 
               {errors.unAuthorised && <p className='successMsg text-danger'>{errors.unAuthorised}</p>}
               <div className='d-flex justify-content-start mt-3'>

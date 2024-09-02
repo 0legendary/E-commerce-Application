@@ -36,10 +36,6 @@ const userSchema = new mongoose.Schema({
   },
   referralRewards: [
     {
-      offerId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Offer'
-      },
       rewardAmount: Number,
       status: {
         type: String,

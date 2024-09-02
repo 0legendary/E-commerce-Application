@@ -18,6 +18,7 @@ function Checkout() {
     const [addresses, setAddresses] = useState([])
     const [products, setProducts] = useState([])
     const [offers, setOffers] = useState([])
+    const [referralOffer, setReferralOffer] = useState({})
     const [showAddress, setShowAddress] = useState(true)
     const [showProduct, setShowProduct] = useState(false)
     const [showPayment, setShowPayment] = useState(false)
@@ -37,7 +38,8 @@ function Checkout() {
         totalDiscount: 0,
         totalAmount: 0,
         deliveryCharge: 0,
-        offerDiscount: 0
+        offerDiscount: 0,
+        referralOfferDiscount: 0
     });
 
     const mainHeading = "Checkout";
@@ -50,6 +52,8 @@ function Checkout() {
             .then(response => {
                 if (response.data.status) {
                     let data = response.data
+                    console.log(data.referralOffer ? data.referralOffer : {});
+                    setReferralOffer(data.referralOffer ? data.referralOffer : {})
                     setOffers(data.offers)
                     const primaryAddress = data.addresses.find(address => address.isPrimary);
                     setSelectedAddress(primaryAddress ? primaryAddress : data.addresses[0])
@@ -189,6 +193,15 @@ function Checkout() {
         }));
 
         if (!product_Id) {
+            toast.success(`You've changed QUANTITY to ${newQuantity}`, {
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+            });
             try {
                 await axiosInstance.put(`/user/update-cart-item/${item_id}`, { quantity: newQuantity });
             } catch (error) {
@@ -233,6 +246,7 @@ function Checkout() {
         let totalPrice = 0;
         let totalDiscount = 0;
         let offerDiscount = 0;
+        let referralOfferDiscount = 0;
 
         cartItems.forEach(item => {
             const itemTotalPrice = item.quantity * item.price;
@@ -243,7 +257,9 @@ function Checkout() {
 
             offerDiscount += getApplicableOffer(item.productId, item.categoryId, item.discountedPrice);
         });
+        console.log(referralOffer);
 
+        if (referralOffer.rewardAmount) referralOfferDiscount = referralOffer.rewardAmount
 
         let totalAmount = totalPrice - totalDiscount;
 
@@ -251,14 +267,15 @@ function Checkout() {
         if (deliveryCharge > 0) totalAmount += 50
 
         totalAmount -= offerDiscount
-
+        totalAmount -= referralOfferDiscount
         setPriceDetails({
             itemCount: cartItems.reduce((total, item) => total + item.quantity, 0),
             totalPrice,
             totalDiscount,
             totalAmount,
             deliveryCharge,
-            offerDiscount
+            offerDiscount,
+            referralOfferDiscount,
         });
 
         getCouponDetails(couponAvailable.couponCode, totalAmount)
@@ -356,7 +373,8 @@ function Checkout() {
 
 
     const handleAddressSave = () => {
-        if (addresses && addresses.length > 0 && !selectedAddress._id) {
+        // Check if addresses exist and if no address is selected
+        if (addresses && addresses.length > 0 && (!selectedAddress || !selectedAddress._id)) {
             toast.error('Please select an address', {
                 autoClose: 2000,
                 hideProgressBar: false,
@@ -366,11 +384,11 @@ function Checkout() {
                 progress: undefined,
                 theme: "dark",
             });
-            setErrorMsg('Please select an address')
-            return
-
+            return;
         }
-        if ((!addresses || addresses.length === 0) && !selectedAddress._id) {
+
+        // Check if no addresses are available and no new address is created
+        if ((!addresses || addresses.length === 0) && (!selectedAddress || !selectedAddress._id)) {
             toast.error("Please create a new address", {
                 autoClose: 2000,
                 hideProgressBar: false,
@@ -380,9 +398,9 @@ function Checkout() {
                 progress: undefined,
                 theme: "dark",
             });
-            setErrorMsg("Please create a new address")
             return;
         }
+
         setErrorMsg('')
         setShowAddress(false);
         setShowProduct(true)
@@ -398,7 +416,7 @@ function Checkout() {
                 <div className='row'>
                     <div className='col-md-8'>
                         {showAddress ? (
-                            <div >
+                            <div>
                                 {!newAddress && (
                                     <button className="btn btn-primary my-3 address-card p-3 mb-3 border rounded position-relative" onClick={handelNewAddress}>
                                         Add New Address
@@ -663,28 +681,33 @@ function Checkout() {
                             <h3 className='mb-3 d-flex justify-content-center'>Price Details</h3>
                             <div className='d-flex justify-content-between'>
                                 <p>Price ({priceDetails.itemCount} items):</p>
-                                <p>₹{priceDetails.totalPrice}</p>
+                                <p>₹{priceDetails.totalPrice.toFixed(2)}</p>
                             </div>
                             <div className='d-flex justify-content-between'>
                                 <p>Discount:</p>
-                                <p>- ₹{priceDetails.totalDiscount}</p>
+                                <p>- ₹{priceDetails.totalDiscount.toFixed(2)}</p>
                             </div>
                             <div className='d-flex justify-content-between'>
                                 <p>Offer discount:</p>
                                 <p>- ₹{priceDetails.offerDiscount.toFixed(2)}</p>
                             </div>
+                            {priceDetails.referralOfferDiscount > 0 && (
+                                <div className='d-flex justify-content-between'>
+                                    <p>Referral Offer discount:</p>
+                                    <p>- ₹{priceDetails.referralOfferDiscount.toFixed(2)}</p>
+                                </div>
+                            )}
                             <div className='d-flex justify-content-between'>
                                 <p>Delivery Charge:</p>
-                                <p>- ₹{priceDetails.deliveryCharge}</p>
+                                <p>- ₹{priceDetails.deliveryCharge.toFixed(2)}</p>
                             </div>
                             <div className='d-flex justify-content-between'>
                                 <p>Coupons applied: {couponAvailable.couponCode}</p>
-                                <p>{couponAvailable.couponCode ? `- ₹${couponAvailable.discount}` : `₹0`}</p>
-                                {/* <p>{getCouponDetails(couponAvailable, priceDetails.totalAmount)}</p> */}
+                                <p>{couponAvailable.couponCode ? `- ₹${couponAvailable.discount.toFixed(2)}` : `₹0`}</p>
                             </div>
                             <div className='d-flex justify-content-between'>
                                 <p>Total Amount:</p>
-                                <p> ₹{couponAvailable.discount ? priceDetails.totalAmount - couponAvailable.discount : priceDetails.totalAmount}</p>
+                                <p> ₹{couponAvailable.discount ? priceDetails.totalAmount - couponAvailable.discount : priceDetails.totalAmount.toFixed(2)}</p>
                             </div>
                         </div>
                     </div>
