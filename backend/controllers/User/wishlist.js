@@ -49,9 +49,7 @@ export const addToWishlist =async (req, res) => {
       if (!wishlist) {
         return res.status(404).json({ status: false });
       }
-  
-      console.log(wishlist.products[0].productId);
-      const populatedProducts = wishlist.products.map(product => ({
+        const populatedProducts = wishlist.products.map(product => ({
         productId: product.productId._id,
         images: product.productId.images.images,
         name: product.productId.name,

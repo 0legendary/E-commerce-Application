@@ -5,8 +5,10 @@ import axiosInstance from '../../../config/axiosConfig';
 import { Link } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useCartWishlist } from '../Header/CartWishlistContext';
 
 function ShoppingPage() {
+    const { updateWishlistLength, updateCartLength } = useCartWishlist();
     const [products, setProducts] = useState([]);
     const [cartProducts, setCartProducts] = useState([]);
     const [wishlistProducts, setWishlistProducts] = useState([])
@@ -141,6 +143,7 @@ function ShoppingPage() {
         axiosInstance.post('/user/add-to-cart', { productId })
             .then(response => {
                 if (response.data.status) {
+                    updateCartLength(1);
                     toast.success("Added to Cart", {
                         autoClose: 2000,
                         hideProgressBar: false,
@@ -162,6 +165,7 @@ function ShoppingPage() {
         axiosInstance.post('/user/add-to-wishlist', { productId })
             .then(response => {
                 if (response.data.status) {
+                    updateWishlistLength(1)
                     toast.success("Added to Wishlist", {
                         autoClose: 2000,
                         hideProgressBar: false,

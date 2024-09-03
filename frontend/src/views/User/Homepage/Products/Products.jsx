@@ -5,9 +5,10 @@ import { Link } from 'react-router-dom';
 import axiosInstance from '../../../../config/axiosConfig';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import { useCartWishlist } from '../../Header/CartWishlistContext';
 
 function Products() {
+    const { updateWishlistLength, updateCartLength } = useCartWishlist();
     const [cartProducts, setCartProducts] = useState([])
     const [products, setProducts] = useState([])
     const [wishlistProducts, setWishlistProducts] = useState([])
@@ -18,7 +19,6 @@ function Products() {
             .then(response => {
                 if (response.data.status) {
                     setOffers(response.data.offers ? response.data.offers : []);
-                    console.log(response.data.offers);
                     setCartProducts(response.data.cartProducts ? response.data.cartProducts : []);
                     setWishlistProducts(response.data.wishlistProducts ? response.data.wishlistProducts : []);
                     const sortedProducts = response.data.products.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -35,6 +35,7 @@ function Products() {
         axiosInstance.post('/user/add-to-cart', { productId })
             .then(response => {
                 if (response.data.status) {
+                    updateCartLength(1)
                     toast.success("Added to Cart", {
                         autoClose: 2000,
                         hideProgressBar: false,
@@ -55,6 +56,7 @@ function Products() {
     const addToWishlist = async (productId) => {
         axiosInstance.post('/user/add-to-wishlist', { productId })
             .then(response => {
+                updateWishlistLength(1)
                 if (response.data.status) {
                     toast.success("Added to Wishlist", {
                         autoClose: 2000,

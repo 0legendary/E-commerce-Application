@@ -1,11 +1,12 @@
 import React from 'react';
 import './header.css';
 import { Link, useLocation } from 'react-router-dom';
+import { useCartWishlist } from './CartWishlistContext';
 
 function Header() {
     const location = useLocation();
+    const { userDetails } = useCartWishlist();
     
-    // Determine the active route
     const getRouteClass = (route) => {
         return location.pathname === route ? 'active-route' : '';
     };
@@ -13,20 +14,35 @@ function Header() {
     const getIconRouteClass = (route) => {
         return location.pathname === route ? '-fill' : '';
     };
+
+
     return (
         <div>
             <div className="home-header-nav">
                 <div className="nav-container">
-                    <div className="logo">
-                        <span className="logo-text"><span>O'legendary</span></span>
-                    </div>
+                    {userDetails.name === null ? (
+                        <div className="logo">
+                            <span className="logo-text"><span>O'legendary</span></span>
+                        </div>
+                    ) : (
+                        <div className="logo">
+                            <span className="logo-text"><span>Hello, {userDetails.name}</span></span>
+                        </div>
+                    )}
                     <div className="head-routes">
                         <Link to="/">
                             <span className={`home-route ${getRouteClass('/')}`}><span>HOME</span></span>
                         </Link>
-                        <Link to="/login">
-                            <span className={`login-route ${getRouteClass('/login')}`}><span>LOGIN</span></span>
-                        </Link>
+                        {userDetails.name !== null ? (
+                            <Link to="/authentication" onClick={() => sessionStorage.removeItem('accessToken')}>
+                                <span className={`logout-route ${getRouteClass('/authentication')}`}><span>LOGOUT</span></span>
+                            </Link>
+                        ) : (
+                            <Link to="/authentication">
+                                <span className={`login-route ${getRouteClass('/authentication')}`}><span>LOGIN</span></span>
+                            </Link>
+                        )}
+
                         <Link to="/shop">
                             <span className={`shop-route ${getRouteClass('/shop')}`}><span>SHOP</span></span>
                         </Link>
@@ -39,12 +55,14 @@ function Header() {
                     </div>
                     <div className="header-icons">
                         <div className="cart-div">
-                            <Link to='/cart'>
+                            <Link to='/cart' style={{ textDecoration: 'none' }}>
+                                {userDetails.cartLength !== null && <p className='cart-quantity'>{userDetails.cartLength}</p>}
                                 <i className={`bi bi-cart${getIconRouteClass('/cart')} cart-icon`}></i>
                             </Link>
                         </div>
                         <div className="wishlist-div">
-                            <Link to='/wishlist'>
+                            <Link to='/wishlist' style={{ textDecoration: 'none' }}>
+                                {userDetails.wishListLength !== null && <p className='wishlist-quantity'>{userDetails.wishListLength}</p>}
                                 <i className={`bi bi-heart${getIconRouteClass('/wishlist')} wishlist-icon`}></i>
                             </Link>
                         </div>
@@ -52,24 +70,6 @@ function Header() {
                             <Link to='/account/settings'>
                                 <i className={`bi bi-person${getIconRouteClass('/account')} acc-icon`}></i>
                             </Link>
-                        </div>
-                    </div>
-                    <div className="home-searchbar">
-                        <div className="home-statelayer">
-                            <div className="home-content">
-                                <span className="home-text024 M3bodylarge">
-                                    <span>search products</span>
-                                </span>
-                            </div>
-                            <div className="home-trailing-elements">
-                                <div className="home-frame1sttrailingicon">
-                                    <div className="home-container05">
-                                        <div className="home-statelayer1">
-                                            <i className="bi bi-search home-icon03"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>

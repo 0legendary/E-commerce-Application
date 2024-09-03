@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback,useMemo, useRef, useState } from 'react';
 import { FileUploaderRegular } from '@uploadcare/react-uploader';
 import '@uploadcare/react-uploader/core.css';
 import {
@@ -10,11 +10,13 @@ function UploadFIles({ setFiles, files, mainImage }) {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const ctxProviderRef = useRef(null);
 
-  const uploadcareSimpleAuthSchema = new UploadcareSimpleAuthSchema({
-    publicKey: 'd32886e1d808b4ca34c7',
-    secretKey: '6e1d0d6e98cb0062962e',
-  });
-
+  const uploadcareSimpleAuthSchema = useMemo(() => {
+    return new UploadcareSimpleAuthSchema({
+      publicKey: 'd32886e1d808b4ca34c7',
+      secretKey: '6e1d0d6e98cb0062962e',
+    });
+  }, []);
+  
   const handleRemoveClick = useCallback(
     (uuid) => {
       setFiles(files.filter((f) => f.uuid !== uuid));
@@ -25,7 +27,7 @@ function UploadFIles({ setFiles, files, mainImage }) {
         );
       }
     },
-    [files, setFiles]
+    [files, setFiles, uploadcareSimpleAuthSchema]
   );
   
 

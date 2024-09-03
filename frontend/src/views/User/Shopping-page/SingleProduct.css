@@ -16,6 +16,8 @@
   margin-right: 1rem;
 }
 
+
+
 .single-product-container .additional-images img {
   width: 125px;
   height: 125px;
@@ -35,6 +37,7 @@
   text-align: center;
   z-index: 10;
 }
+
 
 .single-product-container .main-image {
   max-width: 100%;

@@ -18,21 +18,26 @@ function SingleProduct() {
   const [cartProducts, setCartProducts] = useState([])
   const [isProductInWishlist, setIsProductInWishlist] = useState(false)
   const [reviews, setReviews] = useState([])
+  const [relatedProdcts, setRelatedProdcts] = useState([])
 
   const [offers, setOffers] = useState([])
   useEffect(() => {
     axiosInstance.get(`/user/shop/${id}`)
       .then(response => {
         if (response.data.status) {
-          console.log(response.data.reviews);
+          const product = response.data.product;
+          const images = product.images.images;
+          const mainImage = images.find(image => image.mainImage);
+          const additionalImages = images.filter(image => !image.mainImage);
+          setMainImage(mainImage);
+          setAdditionalImages(additionalImages);
           setReviews(response.data.reviews)
+          setRelatedProdcts(response.data.relatedProducts)
           setIsProductInWishlist(response.data.isProductInWishlist)
           setOffers(response.data.offers ? response.data.offers : []);
-          setProduct(response.data.product);
-          setSelectedVariation(response.data.product.variations[0]);
-          setMainImage(response.data.product.mainImage);
-          setAdditionalImages(response.data.product.additionalImages);
-          setSelectedColor(response.data.product.variations[0].color[0]);
+          setProduct(product);
+          setSelectedVariation(product.variations[0]);
+          setSelectedColor(product.variations[0].color[0]);
           setCartProducts(response.data.cartProducts ? response.data.cartProducts : [])
         }
       })
@@ -122,7 +127,7 @@ function SingleProduct() {
               {additionalImages.map((image, index) => (
                 <img
                   key={index}
-                  src={image.image}
+                  src={image.cdnUrl}
                   alt={`Additional ${index + 1}`}
                   onClick={() => handleImageClick(image)}
                   className="thumbnail"
@@ -137,10 +142,10 @@ function SingleProduct() {
                     smallImage: {
                       alt: product.name,
                       isFluidWidth: true,
-                      src: mainImage.image,
+                      src: mainImage.cdnUrl,
                     },
                     largeImage: {
-                      src: mainImage.image,
+                      src: mainImage.cdnUrl,
                       width: 1200,
                       height: 1200,
                     },
@@ -204,7 +209,6 @@ function SingleProduct() {
               <div className="variation-details">
 
                 <div>Weight: {selectedVariation.weight}g</div>
-                <div>Stock: {selectedVariation.stock}</div>
               </div>
 
               <div className="sizes mt-5 d-grid justify-content-center">
@@ -243,8 +247,56 @@ function SingleProduct() {
         )}
       </div>
       <div className='review-information mt-lg-5'>
-        <Reviews reviews={reviews} />
+        {reviews && reviews.length > 0 ? (
+          <Reviews reviews={reviews} />
+        ) : (
+          <div className='m-5'>
+            <h3>No reviews or Rating</h3>
+          </div>
+        )}
       </div>
+      <div className='h-50 mt-4'>
+        {relatedProdcts && relatedProdcts.length > 0 && <h3 className='font-monospace m-2'>Related Products</h3>}
+        <div className="products-grid mt-4" style={{ 'grid-template-columns': 'repeat(4, 1fr)', height: '5px' }}>
+          {relatedProdcts.map((product, index) => {
+            const inStock = product.variations[0].stock > 0;
+            const mainImage = product.images.images.find(img => img.mainImage === true);
+
+            return (
+              <div key={index} className="product-card shopping-page-card border border-success">
+                <img src={mainImage.cdnUrl} alt={product.name} className="product-image" style={{flex: '0 0 300px'}} />
+                <div className="product-details">
+                  <span className="product-name text-white"><span>{product.name}</span></span>
+                </div>
+                <div className='d-flex gap-3 text-white'>
+                  <span className="product-current-price text-white"><span>{product.variations[0].price}</span></span>
+                  <span className="product-original-price text-white"><span>{product.variations[0].discountPrice}</span></span>
+                </div>
+
+                {inStock ? (
+                  <div className="product-actions w-100 text-white justify-content-between">
+                    <div className='d-flex gap-1'>
+                      <Link to={`/shop/${product._id}`}>
+                        <div className="product-background">
+                          <i className="bi bi-search"></i>
+                        </div>
+                      </Link>
+                    </div>
+                    <div>
+                      <Link to={`/checkout/${product._id}`}>
+                        <button className='btn border border-success text-white'>Buy</button>
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <h5 className='text-danger'>Out of Stock</h5>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
     </div>
 
 

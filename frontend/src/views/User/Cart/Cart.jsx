@@ -6,8 +6,10 @@ import './Cart.css'
 import { Link } from 'react-router-dom'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useCartWishlist } from '../Header/CartWishlistContext';
 
 function Cart() {
+    const { updateCartLength } = useCartWishlist();
     const mainHeading = "Cart";
     const breadcrumbs = [
         { name: "Home", path: "/" },
@@ -35,6 +37,7 @@ function Cart() {
         axiosInstance.delete(`/user/delete-cart-items/${item_id}`)
             .then(response => {
                 if (response.data.status) {
+                    updateCartLength(-1);
                     toast.error("Removed from cart", {
                         autoClose: 1000,
                         hideProgressBar: false,
@@ -185,11 +188,10 @@ function Cart() {
                 {cartItems.length > 0 ? (
                     <div className="row">
                         <div className='col-md-8'>
-
                             <div>
                                 {cartItems.map(item => {
                                     const offerPrice = getApplicableOffer(item.productId, item.categoryId, item.discountedPrice)
-                                    const finalPrice = item.discountedPrice - offerPrice
+                                    // const finalPrice = item.discountedPrice - offerPrice
                                     let mainImage = item.images.filter((img) => img.mainImage)
                                     return (
                                         <div key={item._id} className="cart-item d-flex align-items-center mb-3 border rounded p-3">

@@ -7,6 +7,31 @@ import Offer from '../../model/offer.js';
 import Review from '../../model/review.js';
 
 
+export const getUserDetails = async (req, res) => {
+  try {
+    let userName = null;
+    let cartLength = 0
+    let wishListLength = 0;
+    if (req.user && req.user.email) {
+      const user = await User.findOne({ email: req.user.email }).select('name _id');
+      if (user) {
+        userName = user.name
+        const cart = await Cart.findOne({ userId: user._id }).lean();
+        if (cart && cart.products.length > 0) {
+          cartLength = cart.products.length
+        }
+        const wishlist = await Wishlist.findOne({ userId: user._id }).lean();
+        if (wishlist && wishlist.products.length > 0) {
+          wishListLength = wishlist.products.length
+        }
+      }
+    }
+    res.status(201).json({ status: true, userName, cartLength, wishListLength });
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching products' });
+  }
+}
+
 export const getProducts = async (req, res) => {
   try {
     const products = await Product.find({})
@@ -89,9 +114,7 @@ export const singleProduct = async (req, res) => {
   try {
     const product = await Product.findById(productId)
       .populate('categoryId', 'name')
-      .populate('mainImage', 'image')
-      .populate('additionalImages', 'image');
-
+      .populate('images','images')
 
     if (product) {
       const offers = await Offer.find({
@@ -108,7 +131,6 @@ export const singleProduct = async (req, res) => {
 
         if (userData) {
           const cart = await Cart.findOne({ userId: userData._id }).lean();
-          //console.log(cart);
           if (cart) {
             cartProducts = cart.products.filter(p =>
               p.productId.equals(productId)
@@ -122,16 +144,22 @@ export const singleProduct = async (req, res) => {
             );
           }
           reviews = await Review.find({ productId: productId })
-            .populate('imagesId', 'image');
+          .populate('imagesId');
         }
       }
+      const relatedProducts = await Product.find({
+        categoryId: product.categoryId._id,
+        _id: { $ne: productId }
+      }).populate('images', 'images').limit(4);
+
       res.status(200).json({
         status: true,
         product,
         offers,
         isProductInWishlist: isProductInWishlist.length > 0 ? true : false,
         cartProducts: cartProducts ? cartProducts : [],
-        reviews: reviews.length > 0 ? reviews : []
+        reviews: reviews.length > 0 ? reviews : [],
+        relatedProducts
       });
 
     } else {

@@ -40,13 +40,16 @@ import Coupon from './views/Admin/Coupon/Coupon';
 import Offer from './views/Admin/Offer/Offer';
 import Dashboard from './views/Admin/Dashboard/Dashboard';
 import Coupons from './views/User/Coupons/Coupons';
+import { CartWishlistProvider } from './views/User/Header/CartWishlistContext';
 
 
 const UserLayout = () => {
   return (
     <div>
-      <UserHeader />
-      <Outlet />
+      <CartWishlistProvider>
+        <UserHeader />
+        <Outlet />
+      </CartWishlistProvider>
     </div>
   );
 };
@@ -124,7 +127,7 @@ function App() {
       </Route>
     )
   );
-  
+
 
   return (
     <div>

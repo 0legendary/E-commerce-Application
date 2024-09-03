@@ -68,13 +68,6 @@ function DetailedOrder({ product, backToOrders, openModal }) {
     };
 
 
-    const sendReviewData = (reviewData) => {
-        console.log('Review submitted:', reviewData);
-
-
-    };
-
-
     return (
         <div className="container mt-5">
             <ToastContainer />

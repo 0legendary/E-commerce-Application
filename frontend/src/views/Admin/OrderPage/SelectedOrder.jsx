@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../../../config/axiosConfig';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function SelectedOrder({ order, handleCloseModal, updateOrderStatus }) {
     const [productStatuses, setProductStatuses] = useState(
@@ -41,6 +43,15 @@ function SelectedOrder({ order, handleCloseModal, updateOrderStatus }) {
             .then(response => {
                 if (response.data.status) {
                     updateOrderStatus(orderId, productId, newStatus);
+                    toast.success(`Changed the status to ${newStatus}`, {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
                 }
             })
             .catch(error => {
@@ -52,6 +63,7 @@ function SelectedOrder({ order, handleCloseModal, updateOrderStatus }) {
 
     return (
         <div className="mt-5 text-white">
+            <ToastContainer />
             <button className="btn btn-secondary mb-4" onClick={() => handleCloseModal()}>
                 Back to Orders
             </button>
@@ -125,12 +137,6 @@ function SelectedOrder({ order, handleCloseModal, updateOrderStatus }) {
                                                         <option value="canceled">Canceled</option>
                                                         <option value="returned">Returned</option>
                                                     </select>
-                                                    <button
-                                                        className="btn btn-primary btn-sm mt-2"
-                                                        onClick={() => handleStatusChange(product._id, productStatuses[product._id] || product.orderStatus)}
-                                                    >
-                                                        Update Status
-                                                    </button>
                                                 </div>
                                             </div>
                                         </div>

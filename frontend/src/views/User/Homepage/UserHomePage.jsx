@@ -20,16 +20,9 @@ function UserHomePage() {
           </div>
           <span class="home-text004">
             <span>
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed
-              do
+            The Nike Reax 8 TR combines lightweight containment with responsive cushioning for premium performance while training.
             </span>
             <br />
-            <span>
-              eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-              enim
-            </span>
-            <br />
-            <span>ad minim veniam, quis nostrud exercitation.</span>
           </span>
           <div className="home-bannerimgpng" style={{ backgroundImage: `url(${productBanner})` }}></div>
         </div>

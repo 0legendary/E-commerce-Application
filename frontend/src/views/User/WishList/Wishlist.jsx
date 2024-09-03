@@ -4,8 +4,11 @@ import axiosInstance from '../../../config/axiosConfig'
 import Layout from '../Header/Layout'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useCartWishlist } from '../Header/CartWishlistContext';
+
 
 function Wishlist() {
+    const { updateWishlistLength, updateCartLength } = useCartWishlist();
     const [wishlistItems, setWishlistItems] = useState([])
     const mainHeading = "Wishlist";
     const breadcrumbs = [
@@ -27,6 +30,7 @@ function Wishlist() {
         axiosInstance.delete(`/user/delete-wishlist-item/${product_id}`)
             .then(response => {
                 if (response.data.status) {
+                    updateWishlistLength(-1);
                     toast.error("Removed from wishlist", {
                         autoClose: 2000,
                         hideProgressBar: false,
@@ -48,6 +52,8 @@ function Wishlist() {
         axiosInstance.post('/user/add-to-cart', { productId })
             .then(response => {
                 if (response.data.status) {
+                    updateCartLength(1);
+                    updateWishlistLength(-1)
                     toast.success("Added to Cart", {
                         autoClose: 2000,
                         hideProgressBar: false,

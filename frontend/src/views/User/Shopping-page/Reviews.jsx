@@ -1,6 +1,7 @@
 import React from 'react';
 
 function Reviews({ reviews }) {
+    console.log(reviews);
     const totalReviews = reviews.length;
     const totalRating = reviews.reduce((acc, review) => acc + review.rating, 0);
     const averageRating = (totalRating / totalReviews).toFixed(1);
@@ -17,7 +18,7 @@ function Reviews({ reviews }) {
             </div>
             <div className="d-flex align-items-center my-3">
                 <div className="average-rating me-3 d-flex" style={{ fontSize: '2rem', fontWeight: 'bold' }}>
-                    <pre>{averageRating} <i class="bi bi-star-fill"></i></pre>
+                    <pre>{!isNaN(averageRating) ? averageRating : 0} <i class="bi bi-star-fill"></i></pre>
                 </div>
                 <div className="progress-container w-100 ml-3">
                     {ratingDistribution.map(({ star, count }) => (
@@ -33,7 +34,7 @@ function Reviews({ reviews }) {
                                     aria-valuemax={totalReviews}
                                 ></div>
                             </div>
-                            <pre> <span className="ml-2">{count}</span></pre>
+                            <pre> {count > 0 && <span className="ml-2">{count}</span>}</pre>
                         </div>
                     ))}
                 </div>
@@ -56,12 +57,15 @@ function Reviews({ reviews }) {
 
                         <div className="review-image mx-5">
                             {review.imagesId && review.imagesId.length > 0 ? (
-                                <img
-                                    src={review.imagesId[0].image}
-                                    className="img-thumbnail"
-                                    alt="Product Review"
-                                    style={{ width: '100px', height: '100px' }}
-                                />
+                                review.imagesId.map((image) => (
+                                    <img
+                                        key={image._id}
+                                        src={image.images[0].cdnUrl}
+                                        className="img-thumbnail"
+                                        alt="Product Review"
+                                        style={{ width: 'auto', height: '100px' }}
+                                    />
+                                ))
                             ) : (
                                 <img
                                     src="https://www.caspianpolicy.org/no-image.png"
