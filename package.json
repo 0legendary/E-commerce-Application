@@ -8,7 +8,8 @@
     "start:frontend": "cd frontend && npm start"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "dotenv": "^16.4.5"
   },
   "dependencies": {
     "@uploadcare/blocks": "^0.50.4"
