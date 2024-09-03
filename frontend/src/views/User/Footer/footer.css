@@ -1,0 +1,24 @@
+.footer {
+    background-color: #212529;
+    color: #ffffff;
+}
+
+.footer-title {
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.footer-link {
+    color: #ffffff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-link:hover {
+    color: #f8f9fa;
+}
+
+.list-unstyled {
+    padding-left: 0;
+    list-style: none;
+}

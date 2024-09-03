@@ -88,7 +88,7 @@ function Products() {
 
 
     return (
-        <div className="container products-container" style={{ 'margin-top': '207rem' }}>
+        <div className="container products-container">
             <ToastContainer />
             <div className="offers-section mb-4 text-success">
                 {offers && offers.length > 0 ? (

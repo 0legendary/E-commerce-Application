@@ -41,6 +41,7 @@ import Offer from './views/Admin/Offer/Offer';
 import Dashboard from './views/Admin/Dashboard/Dashboard';
 import Coupons from './views/User/Coupons/Coupons';
 import { CartWishlistProvider } from './views/User/Header/CartWishlistContext';
+import Footer from './views/User/Footer/Footer';
 
 
 const UserLayout = () => {
@@ -49,6 +50,7 @@ const UserLayout = () => {
       <CartWishlistProvider>
         <UserHeader />
         <Outlet />
+        <Footer/>
       </CartWishlistProvider>
     </div>
   );
@@ -75,7 +77,7 @@ function App() {
           <Route path="/authentication" element={<Authentication />}></Route>
         </Route>
         <Route path='/admin/auth'>
-          <Route index element={<Login />} />
+          <Route index element={<Login/>} />
         </Route>
         <Route path="/" element={<UserLayout />}>
           <Route index element={<UserHomePage />} />

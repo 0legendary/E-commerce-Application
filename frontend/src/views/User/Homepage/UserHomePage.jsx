@@ -1,43 +1,30 @@
-import React from 'react'
-import './userdesign.css'
-import bgImage from '../../../Assests/bgimage12046-5l2i-2000w.png'
-import productBanner from '../../../Assests/tq_rnlvg4glbc-mj8-1500h.png'
-import StaticPage from './StaticPage'
-import Products from './Products/Products'
+import React from 'react';
+import './userdesign.css';
+import bgImage from '../../../Assests/bgimage12046-5l2i-2000w.png';
+import productBanner from '../../../Assests/tq_rnlvg4glbc-mj8-1500h.png';
+// import StaticPage from './StaticPage';
+import Products from './Products/Products';
 
 function UserHomePage() {
   return (
-    <div className='user-home-page'>
-      <div class="home-section">
-        <img src={bgImage} alt="bgimage12046" class="home-bgimage1" />
-        <div class="home-container01">
-          <div class="home-heading1">
-            <span class="home-text">
-              <span>Nike New</span>
-              <br />
-              <span>Collection!</span>
-            </span>
+    <div>
+      <div className="user-home-page" style={{ backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', width: '100%' }}>
+        <div className="container d-flex align-items-center justify-content-between home-content">
+          <div className="home-heading">
+            <h1>Nike New Collection!</h1>
+            <p>The Nike Reax 8 TR combines lightweight containment with responsive cushioning for premium performance while training.</p>
           </div>
-          <span class="home-text004">
-            <span>
-            The Nike Reax 8 TR combines lightweight containment with responsive cushioning for premium performance while training.
-            </span>
-            <br />
-          </span>
-          <div className="home-bannerimgpng" style={{ backgroundImage: `url(${productBanner})` }}></div>
+          <div className="home-banner">
+            <img src={productBanner} alt="Product Banner" className="img-fluid" />
+          </div>
         </div>
-        <div class="home-container02">
-          <div class="home-prevpng"></div>
-        </div>
-        <div class="home-container03">
-          <div class="home-nextpng"></div>
-        </div>
+
       </div>
-      <StaticPage/>
-      <Products/>
+      {/* <StaticPage /> */}
+      <Products />
     </div>
-  )
+
+  );
 }
 
-
-export default UserHomePage
+export default UserHomePage;
