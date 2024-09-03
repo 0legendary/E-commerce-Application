@@ -90,7 +90,7 @@ export const editProducts = async (req, res) => {
     try {
         const product = await Product.findById(productId).populate('images')
         if (product) {
-            res.status(200).json({ status: true, product: product });
+            res.status(200).json({ status: true, product: product, uploadCareSecretKey: process.env.UPLOADCARE_SECRET_KEY,  uploadCarePublicKey: process.env.UPLOADCARE_PUBLIC_KEY });
         } else {
             res.status(404).json({ status: false, message: 'Product not found' });
         }

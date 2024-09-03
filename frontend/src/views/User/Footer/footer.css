@@ -1,6 +1,7 @@
 .footer {
     background-color: #212529;
     color: #ffffff;
+    position: relative;
 }
 
 .footer-title {
@@ -21,4 +22,34 @@
 .list-unstyled {
     padding-left: 0;
     list-style: none;
+}
+
+.scroll-to-top {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background-color: #212529;
+    color: #ffffff;
+    border: none;
+    border-radius: 50%;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 24px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 1000;
+}
+
+.scroll-to-top:hover {
+    background-color: #343a40;
+}
+
+.scroll-to-top:focus {
+    outline: none;
+}
+
+.scroll-to-top i {
+    font-size: 24px;
 }

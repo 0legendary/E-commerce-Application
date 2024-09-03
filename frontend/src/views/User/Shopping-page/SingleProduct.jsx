@@ -67,7 +67,6 @@ function SingleProduct() {
 
 
   const handleAddToCart = () => {
-    console.log(selectedVariation);
     axiosInstance.post('/user/shop/add-to-cart', {
       productId: product._id,
       price: selectedVariation.price,
@@ -90,7 +89,7 @@ function SingleProduct() {
 
   const isProductInCart = cartProducts.some(cartProduct =>
     cartProduct.selectedColor === selectedColor &&
-    cartProduct.selectedSize == selectedVariation?.size
+    cartProduct.selectedSize.toString() === selectedVariation?.size.toString()
   );
 
 
@@ -255,9 +254,9 @@ function SingleProduct() {
           </div>
         )}
       </div>
-      <div className='h-50 mt-4'>
+      <div className='mt-4'>
         {relatedProdcts && relatedProdcts.length > 0 && <h3 className='font-monospace m-2'>Related Products</h3>}
-        <div className="products-grid mt-4" style={{ 'grid-template-columns': 'repeat(4, 1fr)', height: '5px' }}>
+        <div className="products-grid mt-4" style={{ 'grid-template-columns': 'repeat(4, 1fr)'}}>
           {relatedProdcts.map((product, index) => {
             const inStock = product.variations[0].stock > 0;
             const mainImage = product.images.images.find(img => img.mainImage === true);

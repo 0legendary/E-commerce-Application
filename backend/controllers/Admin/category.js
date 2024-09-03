@@ -3,7 +3,7 @@ import Category from "../../model/category.js";
 export const getAllCategories = async (req, res) => {
     try {
         const categories = await Category.find({})
-        res.status(201).json({ status: true, categories: categories });
+        res.status(201).json({ status: true, categories: categories, publicKey: process.env.UPLOADCARE_PUBLIC_KEY });
     } catch (error) {
         res.status(500).json({ error: 'Error fetching products' });
     }

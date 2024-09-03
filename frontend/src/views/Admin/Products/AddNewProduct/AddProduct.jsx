@@ -30,6 +30,7 @@ function AddProduct() {
   const [saveImage, setSaveImage] = useState(false)
   const [categories, setCategories] = useState([]);
   const [croppedImage, setCroppedImage] = useState([])
+  const [publicKey, setPublicKey] = useState(null)
 
   const navigate = useNavigate();
 
@@ -39,6 +40,7 @@ function AddProduct() {
       .then(response => {
         if (response.data.status) {
           setCategories(response.data.categories);
+          setPublicKey(response.data.publicKey)
         }
       })
       .catch(error => {
@@ -154,7 +156,7 @@ function AddProduct() {
     const uploadImagesToUploadcare = async (files) => {
       const uploadPromises = files.map((file, index) =>
         uploadDirect(file, {
-          publicKey: 'd32886e1d808b4ca34c7',
+          publicKey: publicKey,
           store: 'auto',
         }).then(result => ({
           uuid: result.uuid,

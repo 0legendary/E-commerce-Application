@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './header.css';
 import { Link, useLocation } from 'react-router-dom';
 import { useCartWishlist } from './CartWishlistContext';
@@ -15,6 +15,24 @@ function Header() {
         return location.pathname === route ? '-fill' : '';
     };
 
+    useEffect(() => {
+        const handleScroll = () => {
+            const header = document.querySelector('.home-header-nav');
+            const stickyPoint = header.offsetTop;
+
+            if (window.pageYOffset > stickyPoint) {
+                header.classList.add('sticky-header');
+            } else {
+                header.classList.remove('sticky-header');
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
 
     return (
         <div>
@@ -46,7 +64,7 @@ function Header() {
                         <Link to="/shop">
                             <span className={`shop-route ${getRouteClass('/shop')}`}><span>SHOP</span></span>
                         </Link>
-                        <Link to="/orders" >
+                        <Link to="/orders">
                             <span className={`order-route ${getRouteClass('/orders')}`}><span>ORDERS</span></span>
                         </Link>
                         <Link to="/wallet">

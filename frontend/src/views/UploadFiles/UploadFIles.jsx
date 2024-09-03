@@ -1,20 +1,37 @@
-import React, { useCallback,useMemo, useRef, useState } from 'react';
+import React, { useCallback,useEffect,useMemo, useRef, useState } from 'react';
 import { FileUploaderRegular } from '@uploadcare/react-uploader';
 import '@uploadcare/react-uploader/core.css';
 import {
   deleteFile,
   UploadcareSimpleAuthSchema,
 } from '@uploadcare/rest-client';
+import axiosInstance from '../../config/axiosConfig';
 
 function UploadFIles({ setFiles, files, mainImage }) {
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [uploadCareKey, setUploadCareKey] = useState({publicKey: '', secretKey: ''})
+
   const ctxProviderRef = useRef(null);
+
+  useEffect(() => {
+    axiosInstance.get('/admin/getUploadCare/publicKey')
+    .then(response => {
+      if (response.data.status) {
+        setUploadCareKey({publicKey: response.data.uploadCarePublicKey, secretKey: response.data.uploadCareSecretKey})
+      }
+    })
+    .catch(error => {
+      console.error('Error getting data:', error);
+    });
+  }, [])
+  
 
   const uploadcareSimpleAuthSchema = useMemo(() => {
     return new UploadcareSimpleAuthSchema({
-      publicKey: 'd32886e1d808b4ca34c7',
-      secretKey: '6e1d0d6e98cb0062962e',
+      publicKey: uploadCareKey?.publicKey,
+      secretKey: uploadCareKey?.secretKey,
     });
+    // eslint-disable-next-line
   }, []);
   
   const handleRemoveClick = useCallback(
@@ -61,7 +78,7 @@ function UploadFIles({ setFiles, files, mainImage }) {
       <FileUploaderRegular
         onChange={handleChangeEvent}
         onModalClose={handleModalCloseEvent}
-        pubkey="d32886e1d808b4ca34c7"
+        pubkey={uploadCareKey?.publicKey}
         apiRef={ctxProviderRef}
         imgOnly={true}
         multiple

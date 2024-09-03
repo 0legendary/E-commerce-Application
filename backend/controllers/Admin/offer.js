@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import Category from '../../model/category.js';
 import Image from '../../model/image.js';
 import Offer from '../../model/offer.js';

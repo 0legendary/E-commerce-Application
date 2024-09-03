@@ -25,13 +25,10 @@ function EditProduct() {
   const [currentPage, setCurrentPage] = useState(0);
 
   const [categories, setCategories] = useState([]);
+  const [uploadCareKey, setUploadCareKey] = useState({publicKey: '', secretKey: ''})
 
   const navigate = useNavigate()
 
-  const uploadcareSimpleAuthSchema = new UploadcareSimpleAuthSchema({
-    publicKey: 'd32886e1d808b4ca34c7',
-    secretKey: '6e1d0d6e98cb0062962e',
-  });
 
 
 
@@ -40,15 +37,23 @@ function EditProduct() {
       .then(response => {
         if (response.data.status) {
           setProduct(response.data.product)
-          console.log(response.data.product);
+          console.log(response.data.uploadCareSecretKey);
           setCroppedImage(response.data.product?.images?.images)
           setFilesID(response.data.product?.images?._id)
+          setUploadCareKey({publicKey: response.data.uploadCarePublicKey, secretKey: response.data.uploadCareSecretKey})
+
         }
       })
       .catch(error => {
         console.error('Error sending data:', error);
       });
   }, [])
+
+  const uploadcareSimpleAuthSchema = new UploadcareSimpleAuthSchema({
+    publicKey: uploadCareKey?.publicKey,
+    secretKey: uploadCareKey?.secretKey,
+  });
+
 
   useEffect(() => {
     axiosInstance.get('/admin/getAllCategories')
@@ -228,7 +233,7 @@ function EditProduct() {
         const uploadPromises = files.map((file, index) => {
           if (!file.uuid) {
             return uploadDirect(file, {
-              publicKey: 'd32886e1d808b4ca34c7',
+              publicKey: uploadCareKey?.publicKey,
               store: 'auto',
             }).then(result => ({
               uuid: result.uuid,

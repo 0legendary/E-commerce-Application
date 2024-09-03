@@ -7,6 +7,7 @@ import { getAllOrders } from '../controllers/Admin/orders.js';
 import { createNewCoupon, editCoupon, getAllCoupons } from '../controllers/Admin/coupons.js';
 import { createNewOfferAdmin, deleteOffer, editOfferAdmin, getOffersAdmin, toggleOffersAdmin } from '../controllers/Admin/offer.js';
 import { topOrderCategory } from '../controllers/Admin/dashboard.js';
+import { getKeys } from '../controllers/Admin/uploadCareKeys.js';
 
 const router = Router();
 
@@ -20,8 +21,10 @@ router.put('/updateProduct', authenticateTokenAdmin, updateProducts);
 router.post('/moveToTrash', authenticateTokenAdmin, moveToTrashProduct);
 router.post('/deletePermanently', authenticateTokenAdmin, deletePermenantly);
 
+//admin upload care keys
+router.get('/getUploadCare/publicKey', getKeys);
 
-//user management
+//admin management
 router.get('/getAllUsers', authenticateTokenAdmin, getAllUser);
 router.post('/toggleBlockUser', authenticateTokenAdmin, toggleBlockUser);
 
