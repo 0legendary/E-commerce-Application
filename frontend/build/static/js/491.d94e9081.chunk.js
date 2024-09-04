@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkusercontrolapp=self.webpackChunkusercontrolapp||[]).push([[491],{491:(e,r,t)=>{t.r(r),t.d(r,{createSignature:()=>n});const n=async(e,r)=>{const t=new TextEncoder,n={name:"HMAC",hash:"SHA-1"},a=await crypto.subtle.importKey("raw",t.encode(e),n,!1,["sign","verify"]),o=await crypto.subtle.sign(n.name,a,t.encode(r));return Array.from(new Uint8Array(o)).map((e=>e.toString(16).padStart(2,"0"))).join("")}}}]);
+//# sourceMappingURL=491.d94e9081.chunk.js.map
