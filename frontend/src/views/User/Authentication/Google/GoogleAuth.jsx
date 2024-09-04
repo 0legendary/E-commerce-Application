@@ -6,10 +6,13 @@ function GoogleAuth({ onSuccess }) {
     onSuccess(googleUserData);
   };
 
+  const handleError = (error) => {
+    console.error("Google Login Error:", error);
+  };
   return (
     <div>
-      <GoogleOAuthProvider clientId="919917757946-oqcg3lsomt8hnec7hhjd55uvfs56ec65.apps.googleusercontent.com">
-        <GoogleLogin onSuccess={handleGoogleLogin} />
+      <GoogleOAuthProvider clientId= {process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+        <GoogleLogin onSuccess={handleGoogleLogin} onError={handleError} scope="https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile" />
       </GoogleOAuthProvider>
     </div>
   )
