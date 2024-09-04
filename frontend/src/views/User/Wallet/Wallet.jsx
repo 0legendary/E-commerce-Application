@@ -14,6 +14,7 @@ function Wallet() {
     const [amount, setAmount] = useState('');
     const [errors, setErrors] = useState({})
     const [user, setUser] = useState({})
+    
     const mainHeading = "Wallet";
     const breadcrumbs = [{ name: "Home", path: "/" }];
 

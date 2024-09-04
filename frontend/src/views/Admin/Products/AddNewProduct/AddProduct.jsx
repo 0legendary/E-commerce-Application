@@ -183,7 +183,6 @@ function AddProduct() {
         ...product,
         images: uploadResults,
       };
-      console.log(newProduct);
 
       axiosInstance.post('/admin/addProduct', newProduct)
         .then(response => {

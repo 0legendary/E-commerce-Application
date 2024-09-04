@@ -77,7 +77,6 @@ function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, product
                 setOrderDetailsData(response.data.order)
                 setShowSuccessPage(true)
               } else {
-                console.log('order canceled');
                 UploadPendingOrder(orderDetails,checkoutId)
                 setShowSuccessPage(false)
               }
@@ -98,7 +97,6 @@ function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, product
         },
         modal: {
           ondismiss: () => {
-            console.log('Payment modal closed');
             UploadPendingOrder(orderDetails);
           }
         }

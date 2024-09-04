@@ -33,12 +33,9 @@ function NewCoupon({ cancelCreate, coupons }) {
         let validationErrors = couponValidate(formData, coupons)
 
         if (Object.keys(validationErrors).length === 0) {
-            console.log('Coupon Details:', formData);
-
             try {
                 const response = await axiosInstance.post('/admin/create-coupon', formData);
                 if (response.data.status) {
-                    console.log('Coupon created successfully:', response.data.coupon);
                     cancelCreate(response.data.coupon)
                     setFormData({
                         code:'',

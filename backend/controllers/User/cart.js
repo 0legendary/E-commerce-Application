@@ -133,7 +133,6 @@ export const addToCart = async (req, res) => {
         return res.status(404).json({ status: false });
       }
   
-      console.log(cart.products[0].productId);
       const populatedProducts = cart.products.map(product => ({
         productId: product.productId._id,
         name: product.productId.name,
@@ -195,19 +194,16 @@ export const addToCart = async (req, res) => {
     try {
       const user = await User.findOne({ email: req.user.email });
       if (!user) {
-        console.log(1);
         return res.status(404).json({ status: false, message: 'User not found' });
       }
   
       const cart = await Cart.findOne({ userId: user._id });
       if (!cart) {
-        console.log(2);
         return res.status(404).json({ status: false, message: 'Cart not found' });
       }
   
       const itemIndex = cart.products.findIndex(item => item._id.toString() === itemId);
       if (itemIndex === -1) {
-        console.log(3);
         return res.status(404).json({ status: false });
       }
   

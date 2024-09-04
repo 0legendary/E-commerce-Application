@@ -25,7 +25,7 @@ function EditProduct() {
   const [currentPage, setCurrentPage] = useState(0);
 
   const [categories, setCategories] = useState([]);
-  const [uploadCareKey, setUploadCareKey] = useState({publicKey: '', secretKey: ''})
+  const [uploadCareKey, setUploadCareKey] = useState({ publicKey: '', secretKey: '' })
 
   const navigate = useNavigate()
 
@@ -37,17 +37,16 @@ function EditProduct() {
       .then(response => {
         if (response.data.status) {
           setProduct(response.data.product)
-          console.log(response.data.uploadCareSecretKey);
           setCroppedImage(response.data.product?.images?.images)
           setFilesID(response.data.product?.images?._id)
-          setUploadCareKey({publicKey: response.data.uploadCarePublicKey, secretKey: response.data.uploadCareSecretKey})
+          setUploadCareKey({ publicKey: response.data.uploadCarePublicKey, secretKey: response.data.uploadCareSecretKey })
 
         }
       })
       .catch(error => {
         console.error('Error sending data:', error);
       });
-  }, [])
+  }, [id])
 
   const uploadcareSimpleAuthSchema = new UploadcareSimpleAuthSchema({
     publicKey: uploadCareKey?.publicKey,
@@ -80,7 +79,6 @@ function EditProduct() {
     const { name, value } = e.target;
     setProduct({ ...product, [name]: value });
     setNewErrors({ ...newErrors, [name]: '' });
-    console.log(product);
   };
 
 
@@ -109,7 +107,6 @@ function EditProduct() {
   };
 
   const handleColorChange = (index, e) => {
-    console.log(index);
     const { value, checked } = e.target;
     const newVariations = [...product.variations];
     if (checked) {
@@ -155,16 +152,16 @@ function EditProduct() {
 
   const deleteImageFromCloud = async (images) => {
     if (images && images.length > 0) {
-      console.log(images);
       try {
         const deletePromises = images.map(image => {
-          if (image.uuid)
-            deleteFile(
+          if (image.uuid) {
+            return deleteFile(
               { uuid: image.uuid },
               { authSchema: uploadcareSimpleAuthSchema }
-            )
-        }
-        );
+            );
+          }
+          return null;
+        });
 
         const responses = await Promise.all(deletePromises);
 
@@ -305,7 +302,6 @@ function EditProduct() {
 
         axiosInstance.put('/admin/updateProduct', { updatedProductData: updatedProduct, filesID })
           .then(response => {
-            console.log(response.data);
             if (response.data.status) {
               toast.success("Product updated", {
                 autoClose: 2000,

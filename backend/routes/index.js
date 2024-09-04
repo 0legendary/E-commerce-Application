@@ -66,7 +66,6 @@ const createAdmin = async () => {
 
 
   await admin.save(admin)
-  console.log('Admin created');
 }
 
 
@@ -100,7 +99,6 @@ router.post('/login', async (req, res) => {
 router.post('/google/login', async (req, res) => {
   const { credential } = req.body
   const googleClientId = process.env.CLIENT_ID
-  console.log(googleClientId);
   try {
     const response = await axios.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
 
@@ -341,7 +339,6 @@ router.post('/admin/google/login', async (req, res) => {
 
 router.post('/admin/login', async (req, res) => {
   const { email, password } = req.body
-  console.log(email, password);
   try {
     const user = await Admin.findOne({ email });
     if (!user) {

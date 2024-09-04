@@ -99,7 +99,6 @@ function Offer() {
     }
 
     const handleDeleteOffer = (offer_id) => {
-        console.log(offer_id);
         axiosInstance.post('/admin/delete-offer', {offer_id})
             .then(response => {
                 if (response.data.status) {

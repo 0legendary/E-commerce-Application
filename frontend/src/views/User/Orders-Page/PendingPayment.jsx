@@ -24,7 +24,6 @@ function PendingPayment({ order, paymentMethod }) {
 
     const handleOnlinePayment = async () => {
         const initPayment = async (paymentData) => {
-            console.log(paymentData);
             const options = {
                 key: currentUser.razorpayID,
                 amount: paymentData.amount,
@@ -33,7 +32,6 @@ function PendingPayment({ order, paymentMethod }) {
                 description: "shopping",
                 order_id: paymentData.id,
                 handler: (response) => {
-                    console.log(response);
                     
                     axiosInstance.post('/user/pay/pending-payment', { response, order, paymentMethod })
                         .then(response => {
@@ -41,7 +39,6 @@ function PendingPayment({ order, paymentMethod }) {
                                 setOrderDetailsData(response.data.order)
                                 setShowSuccessPage(true)
                             } else {
-                                console.log('order canceled');
                                 setShowSuccessPage(false)
                             }
                         })

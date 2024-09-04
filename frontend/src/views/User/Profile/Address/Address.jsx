@@ -18,7 +18,6 @@ function Address() {
         axiosInstance.get('/user/addresses')
             .then(response => {
                 if (response.data.status) {
-                    console.log(response.data.addresses);
                     setAddresses(response.data.addresses)
                 }
             })

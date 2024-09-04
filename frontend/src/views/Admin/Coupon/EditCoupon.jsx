@@ -32,7 +32,6 @@ function EditCoupon({ completeEditCoupon, coupon, allCoupons }) {
             try {
                 const response = await axiosInstance.post('/admin/edit-coupon', formData);
                 if (response.data.status) {
-                    console.log('Coupon Edited successfully:', response.data.coupon);
                     completeEditCoupon(response.data.coupon)
                     setFormData({});
                     setErrors({});

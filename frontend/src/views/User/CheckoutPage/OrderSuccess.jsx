@@ -3,7 +3,6 @@ import './OrderSuccess.css';
 import Invoice from '../Invoice/Invoice';
 
 function OrderSuccess({ onClose, order }) {
-    //console.log(order);
 
     const currentDate = new Date().toLocaleDateString();
     useEffect(() => {

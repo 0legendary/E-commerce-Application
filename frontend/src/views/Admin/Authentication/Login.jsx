@@ -172,7 +172,6 @@ function Login() {
     e.preventDefault()
     let newErrors = {};
     newErrors = otpVerification(formOtp)
-    console.log(newErrors);
     setErrors(newErrors);
     if (Object.keys(newErrors).length === 0) {
       axiosInstance.post('/admin/forgot-pass/verify-otp', { otp: formOtp, email: formData.email })
@@ -194,7 +193,6 @@ function Login() {
     let newErrors = {}
     newErrors = signUpGoogleAuthenticate(newPassForm.password, newPassForm.confirmPassword)
     setErrors(newErrors);
-    console.log(formData);
     if (Object.keys(newErrors).length === 0) {
       axiosInstance.post('/admin/reset-password', { email: formData.email, password: newPassForm.password })
         .then(response => {
@@ -215,7 +213,6 @@ function Login() {
             setShowOtpPage(false)
             setShowNewPassInput(false)
             setShowManualLogin(true)
-            console.log('password not changed');
           }
         })
     }

@@ -13,7 +13,6 @@ function ShowUser() {
     axiosInstance.get('/admin/getAllUsers')
       .then(response => {
         if (response.data.status) {
-          //console.log(response.data.users);
           setUsers(response.data.users)
           setFilteredUsers(response.data.users);
         }

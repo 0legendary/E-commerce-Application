@@ -52,7 +52,6 @@ function Checkout() {
             .then(response => {
                 if (response.data.status) {
                     let data = response.data
-                    console.log(data.referralOffer ? data.referralOffer : {});
                     setReferralOffer(data.referralOffer ? data.referralOffer : {})
                     setOffers(data.offers)
                     const primaryAddress = data.addresses.find(address => address.isPrimary);
@@ -257,7 +256,6 @@ function Checkout() {
 
             offerDiscount += getApplicableOffer(item.productId, item.categoryId, item.discountedPrice);
         });
-        console.log(referralOffer);
 
         if (referralOffer.rewardAmount) referralOfferDiscount = referralOffer.rewardAmount
 

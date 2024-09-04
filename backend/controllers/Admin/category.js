@@ -44,7 +44,6 @@ export const editCategory = async (req, res) => {
 
 export const deleteCategory = async (req, res) => {
     const { _id } = req.params;
-    console.log(_id);
     try {
         await Category.findByIdAndDelete(_id);
         res.status(201).json({ status: true });

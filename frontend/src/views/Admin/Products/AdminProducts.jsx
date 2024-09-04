@@ -40,7 +40,6 @@ function AdminProducts() {
   }, [searchTerm, products]);
 
   const handleDelete = (_id, index) => {
-    console.log(_id);
     setConfirmDelete(products[index]);
     setDeleteProduct(true);
   };

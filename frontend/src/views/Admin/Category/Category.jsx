@@ -42,7 +42,7 @@ function Category() {
 
   const handleAddCategory = async () => {
     setCategories([...categories, { ...newCategory }]);
-    console.log(newCategory);
+
     await axiosInstance.post('/admin/newCategory', newCategory)
       .then(response => {
         if (response.data.status) {

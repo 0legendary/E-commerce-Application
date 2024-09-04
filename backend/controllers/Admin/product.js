@@ -102,8 +102,7 @@ export const editProducts = async (req, res) => {
 
 export const updateProducts = async (req, res) => {
     const {updatedProductData, filesID} = req.body;
-    //console.log(updatedProductData,filesID);
-    
+
     try {
         let product = await Product.findById(updatedProductData._id);
         
@@ -149,7 +148,6 @@ export const updateProducts = async (req, res) => {
 
 export const moveToTrashProduct = async (req, res) => {
     const { product_id } = req.body;
-    console.log(product_id);
     try {
         // Find the product by ID
         const product = await Product.findById(product_id);

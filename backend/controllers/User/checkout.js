@@ -29,7 +29,6 @@ export const checkoutProduct = async (req, res) => {
                 }
             });
             
-            console.log('jkhbhj',cart.products[0].productId.images);
 
             if (cart && cart.products.length > -1) {
                 populatedProducts = cart.products.map(product => ({
@@ -94,7 +93,6 @@ export const payment = async (req, res) => {
 
         instance.orders.create(options, (error, order) => {
             if (error) {
-                console.log("Can't create orders");
                 console.log(error);
                 return res.status(500).json({ status: false, message: "Something went wrong!" });
             }
@@ -279,7 +277,6 @@ export const payByCod = async (req, res) => {
 }
 
 export const pendingOrder = async (req, res) => {
-    console.log('Creating pending order');
     try {
         const orderDetails = req.body.order;
         const newOrder = new Order({
@@ -336,7 +333,6 @@ export const repayPendingOrder = async (req, res) => {
                 .digest("hex");
 
             if (response.razorpay_signature !== expectedSign) {
-                console.log("Invalid signature");
                 res.status(400).json({ status: false, message: "invalid signature sent!" });
             }
         }

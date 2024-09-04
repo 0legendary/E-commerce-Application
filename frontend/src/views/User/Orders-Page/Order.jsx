@@ -29,7 +29,6 @@ function Order() {
         axiosInstance.get('/user/all-orders')
             .then(response => {
                 if (response.data.status) {
-                    console.log(response.data.orders);
                     setOrders(response.data.orders ? response.data.orders : []);
                 }
             })

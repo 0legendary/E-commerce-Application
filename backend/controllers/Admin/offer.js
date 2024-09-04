@@ -86,7 +86,6 @@ export const editOfferAdmin = async (req, res) => {
             if (!existingImage) {
                 const newImage = new Image({ images: offerData.images });
                 const savedImage = await newImage.save();
-                console.log(savedImage._id);
                 offer.imageID = savedImage._id
             }
             existingImage.images = offerData.images;
@@ -95,7 +94,6 @@ export const editOfferAdmin = async (req, res) => {
         } else {
             const newImage = new Image({ images: offerData.images });
             const savedImage = await newImage.save();
-            console.log(savedImage._id);
             offer.imageID = savedImage._id
         }
 

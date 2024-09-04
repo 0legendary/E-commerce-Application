@@ -1,7 +1,6 @@
 import React from 'react';
 
 function Reviews({ reviews }) {
-    console.log(reviews);
     const totalReviews = reviews.length;
     const totalRating = reviews.reduce((acc, review) => acc + review.rating, 0);
     const averageRating = (totalRating / totalReviews).toFixed(1);

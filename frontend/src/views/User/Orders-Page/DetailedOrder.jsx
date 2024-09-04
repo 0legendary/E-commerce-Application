@@ -33,8 +33,6 @@ function DetailedOrder({ product, backToOrders, openModal }) {
 
 
     const handleReviewSubmit = (reviewData) => {
-        console.log(reviewData);
-
 
         axiosInstance.post('/user/add-review', reviewData)
             .then(response => {

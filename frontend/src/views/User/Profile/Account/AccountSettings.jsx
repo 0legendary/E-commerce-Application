@@ -185,7 +185,6 @@ function AccountSettings() {
         e.preventDefault()
         let newErrors = {};
         newErrors = otpVerification(otp)
-        console.log(newErrors);
         setErrors(newErrors);
         if (Object.keys(newErrors).length === 0) {
             axiosInstance.post('/user/verify-otp', { otp: otp })
