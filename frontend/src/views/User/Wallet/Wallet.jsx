@@ -11,6 +11,7 @@ function Wallet() {
     const [wallet, setWallet] = useState({});
     const [showAddMoney, setShowAddMoney] = useState(false);
     const [showTransfer, setShowTransfer] = useState(false);
+    const [description, setDescription] = useState('');
     const [amount, setAmount] = useState('');
     const [errors, setErrors] = useState({})
     const [user, setUser] = useState({})
