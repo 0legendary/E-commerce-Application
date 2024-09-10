@@ -88,7 +88,7 @@ function ImageCropper({ croppedImageState, setCroppedImage, ascpectRatio = 1, mi
           />
         </div>
         <label className="input-group-text btn btn-primary font-monospace mt-2" htmlFor="mainImage">
-          <i class="bi bi-patch-plus"></i> Choose Image
+          <i className="bi bi-patch-plus"></i> Choose Image
         </label>
       </div>
       {showCropper && (

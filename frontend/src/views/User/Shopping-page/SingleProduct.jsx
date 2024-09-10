@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './SingleProduct.css';
 import axiosInstance from '../../../config/axiosConfig';
+import {handleApiResponse} from '../../../utils/utilsHelper';
 import { Link, useParams } from 'react-router-dom';
 import ReactImageMagnify from 'react-image-magnify';
 import { ToastContainer, toast } from 'react-toastify';
@@ -22,28 +23,33 @@ function SingleProduct() {
 
   const [offers, setOffers] = useState([])
   useEffect(() => {
-    axiosInstance.get(`/user/shop/${id}`)
-      .then(response => {
-        if (response.data.status) {
-          const product = response.data.product;
-          const images = product.images.images;
-          const mainImage = images.find(image => image.mainImage);
-          const additionalImages = images.filter(image => !image.mainImage);
-          setMainImage(mainImage);
-          setAdditionalImages(additionalImages);
-          setReviews(response.data.reviews)
-          setRelatedProdcts(response.data.relatedProducts)
-          setIsProductInWishlist(response.data.isProductInWishlist)
-          setOffers(response.data.offers ? response.data.offers : []);
-          setProduct(product);
-          setSelectedVariation(product.variations[0]);
-          setSelectedColor(product.variations[0].color[0]);
-          setCartProducts(response.data.cartProducts ? response.data.cartProducts : [])
-        }
-      })
-      .catch(error => {
-        console.error('Error getting data:', error);
-      });
+    const fetchProductDetails = async () => {
+      const result = await handleApiResponse(axiosInstance.get(`/user/shop/${id}`));
+
+      if (result.success) {
+        const { product, offers, reviews, relatedProducts, isProductInWishlist, cartProducts } = result.data;
+
+        const images = product.images.images;
+        const mainImage = images.find(image => image.mainImage);
+        const additionalImages = images.filter(image => !image.mainImage);
+
+        setMainImage(mainImage);
+        setAdditionalImages(additionalImages);
+        setReviews(reviews);
+        setRelatedProdcts(relatedProducts);
+        setIsProductInWishlist(isProductInWishlist);
+        setOffers(offers || []);
+        setProduct(product);
+        setSelectedVariation(product.variations[0]);
+        setSelectedColor(product.variations[0].color[0]);
+        setCartProducts(cartProducts || []);
+
+      } else {
+        console.error('Error:', result.message);
+      }
+    };
+
+    fetchProductDetails();
   }, [id]);
 
 
@@ -66,40 +72,83 @@ function SingleProduct() {
 
 
 
-  const handleAddToCart = () => {
-    axiosInstance.post('/user/shop/add-to-cart', {
-      productId: product._id,
-      price: selectedVariation.price,
-      discountedPrice: selectedVariation.discountPrice,
-      selectedStock: selectedVariation.stock,
-      selectedColor,
-      selectedSize: selectedVariation.size,
-      categoryId: product.categoryId._id
-    })
-      .then(response => {
-        if (response.data.status) {
-          response.data.product && setCartProducts([...cartProducts, response.data.product])
+  const handleAddToCart = async () => {
+    try {
+      const result = await handleApiResponse(
+        axiosInstance.post('/user/shop/add-to-cart', {
+          productId: product._id,
+          price: selectedVariation.price,
+          discountedPrice: selectedVariation.discountPrice,
+          selectedStock: selectedVariation.stock,
+          selectedColor,
+          selectedSize: selectedVariation.size,
+          categoryId: product.categoryId._id
+        })
+      );
+  
+      if (result.success) {
+        if (result.data.product) {
+          setCartProducts(prevProducts => [...prevProducts, result.data.product]);
+          toast.success('Added to Cart', {
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            theme: 'dark',
+          });
         }
-      })
-      .catch(error => {
-        console.error('Error adding product to cart:', error);
+      } else {
+        toast.error('Failed to add to cart', {
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: 'dark',
+        });
+      }
+    } catch (error) {
+      toast.error('Something went wrong', {
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: 'dark',
       });
+      console.error('Error adding product to cart:', error);
+    }
   };
-
-
   const isProductInCart = cartProducts.some(cartProduct =>
     cartProduct.selectedColor === selectedColor &&
     cartProduct.selectedSize.toString() === selectedVariation?.size.toString()
   );
 
-
   const addToWishlist = async (productId) => {
-    console.log(productId);
-    axiosInstance.post('/user/add-to-wishlist', { productId })
-      .then(response => {
-        if (response.data.status) {
-          setIsProductInWishlist(true)
-          toast.success("Added to Wishlist", {
+    try {
+        const response = await axiosInstance.post('/user/add-to-wishlist', { productId });
+        
+        const { success } = await handleApiResponse(response);
+        
+        if (success) {
+            setIsProductInWishlist(true);
+            toast.success("Added to Wishlist", {
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+            });
+        }
+    } catch (error) {
+        console.error('Error adding to wishlist:', error);
+        toast.error('Error adding to wishlist', {
             autoClose: 2000,
             hideProgressBar: false,
             closeOnClick: true,
@@ -107,13 +156,9 @@ function SingleProduct() {
             draggable: true,
             progress: undefined,
             theme: "dark",
-          });
-        }
-      })
-      .catch(error => {
-        console.error('Error sending data:', error);
-      });
-  };
+        });
+    }
+};
 
 
   return (
@@ -168,16 +213,16 @@ function SingleProduct() {
                 {selectedColor && selectedVariation ? (
                   isProductInCart ? (
                     <Link to='/cart' className='w-100'>
-                      <button className="btn btn-secondary me-2 w-100"><i class="bi bi-cart-check"></i> Go to Cart</button>
+                      <button className="btn btn-secondary me-2 w-100"><i className="bi bi-cart-check"></i> Go to Cart</button>
                     </Link>
                   ) : (
-                    <button className="btn border border-success text-white me-2 w-100" onClick={handleAddToCart}><i class="bi bi-cart"></i> Add to Cart</button>
+                    <button className="btn border border-success text-white me-2 w-100" onClick={handleAddToCart}><i className="bi bi-cart"></i> Add to Cart</button>
                   )
                 ) : (
-                  <button className="btn btn-primary w-100" disabled><i class="bi bi-cart"></i> Add to Cart</button>
+                  <button className="btn btn-primary w-100" disabled><i className="bi bi-cart"></i> Add to Cart</button>
                 )}
                 <Link to={`/checkout/${product._id}`} className='w-100'>
-                  <button className='btn border border-success text-white me-2 w-100'><i class="bi bi-lightning"></i> Buy Now</button>
+                  <button className='btn border border-success text-white me-2 w-100'><i className="bi bi-lightning"></i> Buy Now</button>
                 </Link>
 
               </div>
@@ -256,14 +301,14 @@ function SingleProduct() {
       </div>
       <div className='mt-4'>
         {relatedProdcts && relatedProdcts.length > 0 && <h3 className='font-monospace m-2'>Related Products</h3>}
-        <div className="products-grid mt-4" style={{ 'grid-template-columns': 'repeat(4, 1fr)'}}>
+        <div className="products-grid mt-4" style={{ 'grid-template-columns': 'repeat(4, 1fr)' }}>
           {relatedProdcts.map((product, index) => {
             const inStock = product.variations[0].stock > 0;
             const mainImage = product.images.images.find(img => img.mainImage === true);
 
             return (
               <div key={index} className="product-card shopping-page-card border border-success">
-                <img src={mainImage.cdnUrl} alt={product.name} className="product-image" style={{flex: '0 0 300px'}} />
+                <img src={mainImage.cdnUrl} alt={product.name} className="product-image" style={{ flex: '0 0 300px' }} />
                 <div className="product-details">
                   <span className="product-name text-white"><span>{product.name}</span></span>
                 </div>

@@ -1,5 +1,6 @@
 import User from '../../model/user.js'
 import Wishlist from '../../model/wishlist.js';
+import { createResponse } from '../../utils/responseHelper.js';
 
 export const addToWishlist =async (req, res) => {
     const { productId } = req.body;
@@ -7,7 +8,7 @@ export const addToWishlist =async (req, res) => {
     try {
       const user = await User.findOne({ email: req.user.email });
       if (!user) {
-        return res.status(404).json({ status: false, message: 'User not found' });
+        return res.status(404).json(createResponse(false, 'User not found'));
       }
       let wishlist = await Wishlist.findOne({ userId: user._id });
   
@@ -24,10 +25,10 @@ export const addToWishlist =async (req, res) => {
         });
       }
       await wishlist.save();
-      res.status(200).json({ status: true });
+      res.status(200).json(createResponse(true, 'Product added to wishlist'));
+
     } catch (error) {
-      res.status(500).json({ status: false, message: 'Server error' });
-      console.error('Error deleting address:', error);
+      res.status(500).json(createResponse(false, 'Something went wrong while adding to wishlist'));
     }
   }
 
@@ -35,7 +36,7 @@ export const addToWishlist =async (req, res) => {
     try {
       const user = await User.findOne({ email: req.user.email });
       if (!user) {
-        return res.status(404).json({ status: false, message: 'User not found' });
+        return res.status(404).json(createResponse(false, 'User not found'));
       }
   
       const wishlist = await Wishlist.findOne({ userId: user._id }).populate({
@@ -47,7 +48,7 @@ export const addToWishlist =async (req, res) => {
         }
       });
       if (!wishlist) {
-        return res.status(404).json({ status: false });
+        return res.status(404).json(createResponse(false, 'Wishlist not found'));
       }
         const populatedProducts = wishlist.products.map(product => ({
         productId: product.productId._id,
@@ -59,11 +60,11 @@ export const addToWishlist =async (req, res) => {
         stock: product.productId.variations[0].stock,
         _id: product._id,
       }));
-  
-      res.status(200).json({ status: true, products: populatedProducts });
+      
+      res.status(200).json(createResponse(true, 'Wishlist products', { products: populatedProducts }));
+
     } catch (error) {
-      console.error('Error fetching cart products:', error);
-      res.status(500).json({ status: false, message: 'Server error' });
+      res.status(500).json(createResponse(false, 'Error fetching orders'));
     }
   }
 
@@ -72,7 +73,7 @@ export const addToWishlist =async (req, res) => {
     try {
       const user = await User.findOne({ email: req.user.email });
       if (!user) {
-        return res.status(404).json({ status: false, message: 'User not found' });
+        return res.status(404).json(createResponse(false, 'User not found'));
       }
   
       const result = await Wishlist.updateOne(
@@ -81,12 +82,11 @@ export const addToWishlist =async (req, res) => {
       );
   
       if (result.modifiedCount === 0) {
-        return res.status(404).json({ status: false, message: 'Product not found in wishlist' });
+        return res.status(404).json(createResponse(false, 'Product not found in wishlist'));
       }
   
-      res.status(200).json({ status: true });
+      res.status(200).json(createResponse(true, 'Product deleted form wishlist'));
     } catch (error) {
-      console.error('Error fetching cart products:', error);
-      res.status(500).json({ status: false, message: 'Server error' });
+      res.status(500).json(createResponse(false, 'Error fetching orders'));
     }
   }

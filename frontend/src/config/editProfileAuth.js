@@ -1,7 +1,7 @@
 const editProfileAuth = (name, mobile) => {
     let Errors = {}
     if (name.length === 0) Errors.name = 'Name field not be Empty';
-    if (mobile.length > 0) {
+    if (mobile?.length > 0) {
         if (mobile.length < 10) Errors.mobile = 'Must contain 10 Digits'
         if (mobile.length > 10) Errors.mobile = '10 digits are allowed'
     }

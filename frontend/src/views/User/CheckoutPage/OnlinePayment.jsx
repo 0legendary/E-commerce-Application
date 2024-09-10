@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import axiosInstance from '../../../config/axiosConfig';
+import { handleApiResponse } from '../../../utils/utilsHelper';
 import { useNavigate } from 'react-router-dom';
 import OrderSuccess from './OrderSuccess';
 import { UploadPendingOrder } from '../../../config/CreatePendingPayment';
@@ -10,20 +11,27 @@ function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, product
   const [orderDetailsData, setOrderDetailsData] = useState({})
   const navigate = useNavigate()
   useEffect(() => {
-    axiosInstance.get('/user/user-payment')
-      .then(response => {
-        if (response.data.status) {
-          response.data.user.razorpayID = response.data.razorpayID
-          setCurrentUser(response.data.user ? response.data.user : {})
-        }
-      })
-      .catch(error => {
-        console.error('Error getting data:', error);
-      });
+    const fetchUserPayment = async () => {
+      const { success, data, message } = await handleApiResponse(
+        axiosInstance.get('/user/user-payment')
+      );
+
+      if (success) {
+        const updatedUser = {
+          ...data.user,
+          razorpayID: data.razorpayID
+        };
+        setCurrentUser(updatedUser);
+      } else {
+        console.error(message);
+      }
+    };
+
+    fetchUserPayment();
   }, []);
 
   const handlePayment = async () => {
-    
+
     const orderDetails = {
       customerId: address.userId,
       shippingAddress: {
@@ -62,6 +70,7 @@ function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, product
         };
       })
     }
+
     const initPayment = async (paymentData) => {
       const options = {
         key: currentUser.razorpayID,
@@ -70,21 +79,18 @@ function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, product
         name: "Olegendary",
         description: "shopping",
         order_id: paymentData.id,
-        handler: (response) => {
-          axiosInstance.post('/user/payment/verify', { response, orderDetails, checkoutId })
-            .then(response => {
-              if (response.data.status) {
-                setOrderDetailsData(response.data.order)
-                setShowSuccessPage(true)
-              } else {
-                UploadPendingOrder(orderDetails,checkoutId)
-                setShowSuccessPage(false)
-              }
-            })
-            .catch(error => {
-              UploadPendingOrder(orderDetails,checkoutId)
-              console.error('Error getting data:', error);
-            })
+        handler: async (response) => {
+          const { success, data } = await handleApiResponse(
+            axiosInstance.post('/user/payment/verify', { response, orderDetails, checkoutId })
+          );
+
+          if (success) {
+            setOrderDetailsData(data.order);
+            setShowSuccessPage(true);
+          } else {
+            UploadPendingOrder(orderDetails, checkoutId);
+            setShowSuccessPage(false);
+          }
         },
         prefill: {
           name: currentUser.name,
@@ -107,10 +113,17 @@ function OnlinePayment({ amount, totalDiscount, deliveryCharge, address, product
     }
 
     try {
-      const { data } = await axiosInstance.post('/user/payments', { amount: coupon.discount ? amount - coupon.discount : amount })
-      initPayment(data.data)
+      const { success, data, message } = await handleApiResponse(
+        axiosInstance.post('/user/payments', { amount: coupon.discount ? amount - coupon.discount : amount })
+      );
+
+      if (success) {
+        initPayment(data);
+      } else {
+        console.error(message);
+      }
     } catch (error) {
-      console.log(error);
+      console.error('Error initiating payment:', error.message);
     }
   };
 

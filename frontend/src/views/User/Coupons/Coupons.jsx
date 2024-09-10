@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../../../config/axiosConfig';
+import { handleApiResponse } from '../../../utils/utilsHelper';
 function Coupons() {
   const [coupons, setCoupons] = useState([]);
 
   useEffect(() => {
-    axiosInstance.get('/user/get-coupons')
-      .then(response => {
-        if (response.data.status) {
+    const fetchCoupons = async () => {
+      try {
+        const apiCall = axiosInstance.get('/user/get-coupons');
+        const response = await handleApiResponse(apiCall);
+        if (response.success) {
           setCoupons(response.data.coupons);
         }
-      })
-      .catch(error => {
-        console.error('Error fetching categories:', error);
-      });
+      } catch (error) {
+        console.error('Error fetching coupons:', error);
+      }
+    };
+
+    fetchCoupons();
   }, []);
 
 

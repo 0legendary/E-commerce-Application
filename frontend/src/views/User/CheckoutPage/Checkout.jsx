@@ -5,13 +5,14 @@ import Layout from '../Header/Layout'
 import NewAddress from '../Profile/Address/NewAddress';
 import EditAddress from '../Profile/Address/EditAddress';
 import { Button } from 'react-bootstrap';
-
 import './Checkout.css'
 import OnlinePayment from './OnlinePayment';
 import CODPayment from './CODPayment';
 import PaymentPolicy from '../Policies/PaymentPolicy';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { handleApiResponse } from '../../../utils/utilsHelper';
+import { useCartWishlist } from '../Header/CartWishlistContext';
 
 function Checkout() {
     const { product_Id } = useParams();
@@ -41,6 +42,7 @@ function Checkout() {
         offerDiscount: 0,
         referralOfferDiscount: 0
     });
+    const { updateCartLength } = useCartWishlist()
 
     const mainHeading = "Checkout";
     const breadcrumbs = [
@@ -48,21 +50,25 @@ function Checkout() {
     ];
 
     useEffect(() => {
-        axiosInstance.get(`/user/checkout/${product_Id}`)
-            .then(response => {
-                if (response.data.status) {
-                    let data = response.data
-                    setReferralOffer(data.referralOffer ? data.referralOffer : {})
-                    setOffers(data.offers)
-                    const primaryAddress = data.addresses.find(address => address.isPrimary);
-                    setSelectedAddress(primaryAddress ? primaryAddress : data.addresses[0])
-                    setAddresses(data.addresses)
-                    setProducts(data.products)
-                }
-            })
-            .catch(error => {
-                console.error('Error getting data:', error);
-            });
+        const fetchCheckoutData = async () => {
+            const { success, data, message } = await handleApiResponse(
+                axiosInstance.get(`/user/checkout/${product_Id}`)
+            );
+            console.log(data,message);
+            if (success) {
+                const { referralOffer, offers, addresses, products } = data;
+                setReferralOffer(referralOffer || {});
+                setOffers(offers || []);
+                const primaryAddress = addresses.find(address => address.isPrimary) || addresses[0];
+                setSelectedAddress(primaryAddress);
+                setAddresses(addresses || []);
+                setProducts(products || []);
+            } else {
+                console.error('Error getting data:', message);
+            }
+        };
+
+        fetchCheckoutData();
     }, [product_Id]);
 
     useEffect(() => {
@@ -219,26 +225,45 @@ function Checkout() {
 
     };
     const handleRemoveFromCart = async (item_id) => {
-        axiosInstance.delete(`/user/delete-cart-items/${item_id}`)
-            .then(response => {
-                if (response.data.status) {
-                    toast.error("Prouct removed", {
-                        autoClose: 1000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: false,
-                        draggable: true,
-                        progress: undefined,
-                        theme: "dark",
-                    });
-                    setProducts(products.filter(items => items._id !== item_id));
-                }
-            })
-            .catch(error => {
-                console.error('Error getting data:', error);
-            });
-    }
+        try {
+            const result = await handleApiResponse(axiosInstance.delete(`/user/delete-cart-items/${item_id}`));
 
+            if (result.success) {
+                updateCartLength(-1);
+                toast.error('Removed from cart', {
+                    autoClose: 1000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: 'dark',
+                });
+                setProducts(products.filter(items => items._id !== item_id));
+            } else {
+                toast.error('Failed to remove item from cart', {
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: 'dark',
+                });
+            }
+        } catch (error) {
+            toast.error('Something went wrong', {
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: 'dark',
+            });
+            console.error('Error removing item from cart:', error);
+        }
+    };
 
 
     const calculatePriceDetails = (cartItems) => {
@@ -280,7 +305,7 @@ function Checkout() {
     };
 
 
-    const handleApplyCoupon = () => {
+    const handleApplyCoupon = async () => {
         if (!couponCode) {
             toast.error('Please enter coupon code', {
                 autoClose: 3000,
@@ -294,37 +319,37 @@ function Checkout() {
             return
         }
 
-        axiosInstance.post('/user/apply-coupon', { code: couponCode, orderAmount: priceDetails.totalAmount })
-            .then(response => {
-                if (response.data.status) {
-                    setCouponAvailable(response.data.coupon)
-                    toast.success("Coupon Applied", {
-                        autoClose: 3000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: false,
-                        draggable: true,
-                        progress: undefined,
-                        theme: "dark",
-                    });
-                } else {
-                    toast.error(response.data.message, {
-                        autoClose: 3000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: false,
-                        draggable: true,
-                        progress: undefined,
-                        theme: "dark",
-                    });
-                    setCouponAvailable({})
+        try {
+            const apiCall = axiosInstance.post('/user/apply-coupon', { code: couponCode, orderAmount: priceDetails.totalAmount });
+            const response = await handleApiResponse(apiCall);
 
-                }
-            })
-            .catch(error => {
-                setCouponAvailable({})
-                console.error('Error getting data:', error);
-            });
+            if (response.success) {
+                setCouponAvailable(response.data.coupon);
+                toast.success("Coupon Applied", {
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "dark",
+                });
+            } else {
+                toast.error(response.message, {
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "dark",
+                });
+                setCouponAvailable({});
+            }
+        } catch (error) {
+            setCouponAvailable({});
+            console.error('Error applying coupon:', error);
+        }
     };
 
 
@@ -351,22 +376,29 @@ function Checkout() {
         return discount;
     };
 
-    const getCouponDetails = (code, totalAmount) => {
-        axiosInstance.post('/user/apply-coupon', { code: code, orderAmount: totalAmount })
-            .then(response => {
-                if (response.data.status) {
-                    setCouponAvailable(response.data.coupon)
+    const getCouponDetails = async (code, totalAmount) => {
+        try {
+            const apiCall = axiosInstance.post('/user/apply-coupon', { code: code, orderAmount: totalAmount });
+            const response = await handleApiResponse(apiCall);
 
-                } else {
-
-                    setCouponAvailable({})
-
-                }
-            })
-            .catch(error => {
-                setCouponAvailable({})
-                console.error('Error getting data:', error);
-            });
+            if (response.success) {
+                setCouponAvailable(response.data.coupon);
+                toast.success("Coupon Applied", {
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "dark",
+                });
+            } else {
+                setCouponAvailable({});
+            }
+        } catch (error) {
+            setCouponAvailable({});
+            console.error('Error applying coupon:', error);
+        }
     }
 
 
@@ -470,7 +502,7 @@ function Checkout() {
                                                 <li className="dropdown-item" onClick={() => { setShowAddress(true); setShowPayment(false); setShowProduct(false); setShowEditAddress(false) }}>Change</li>
                                             </button>
                                             <div className='mt-4 d-flex justify-content-center border-2 text-success'>
-                                                <i class="bi bi-check-circle"></i>
+                                                <i className="bi bi-check-circle"></i>
                                             </div>
                                         </div>
                                         <div className="address-type mb-2">
@@ -512,9 +544,9 @@ function Checkout() {
                                                             <span className="me-3">Color: {item.selectedColor}</span>
                                                         </div>
                                                         <div className="d-flex align-items-center mb-2">
-                                                            <i class="bi bi-dash-circle me-2" onClick={() => handleQuantityChange(item._id, -1)}></i>
+                                                            <i className="bi bi-dash-circle me-2" onClick={() => handleQuantityChange(item._id, -1)}></i>
                                                             <span className="me-2">{item.quantity}</span>
-                                                            <i class="bi bi-plus-circle" onClick={() => handleQuantityChange(item._id, +1)}></i>
+                                                            <i className="bi bi-plus-circle" onClick={() => handleQuantityChange(item._id, +1)}></i>
                                                         </div>
                                                         <div className="mb-2">
                                                             <span className="me-2">₹ {finalPrice}</span>
@@ -554,7 +586,7 @@ function Checkout() {
                                             <li className="dropdown-item" onClick={() => { setShowAddress(false); setShowProduct(true); setShowPayment(false); setShowEditAddress(false) }}>Change</li>
                                         </button>
                                         <div className='mt-4 d-flex justify-content-center border-2 text-success'>
-                                            <i class="bi bi-check-circle"></i>
+                                            <i className="bi bi-check-circle"></i>
                                         </div>
                                     </div>
                                 )}

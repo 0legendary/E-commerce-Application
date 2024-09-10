@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './AccountSettings.css';
 import axiosInstance from '../../../../config/axiosConfig';
+import { handleApiResponse } from '../../../../utils/utilsHelper';
 import { editPasswordAuth, editProfileAuth } from '../../../../config/editProfileAuth';
 import { otpVerification, signUpGoogleAuthenticate } from '../../../../config/authenticateCondition';
 import OTPInput from 'react-otp-input';
@@ -24,17 +25,24 @@ function AccountSettings() {
     const [showNewPassInput, setShowNewPassInput] = useState(false)
 
     useEffect(() => {
-        axiosInstance.get('/user/user')
-            .then(response => {
-                if (response.data.status) {
-                    setName(response.data.name)
-                    setEmail(response.data.email)
-                    setMobile(response.data.mobile)
+        const fetchUserData = async () => {
+            try {
+                const response = await axiosInstance.get('/user/user');
+                const { success, message, data } = await handleApiResponse(response);
+
+                if (success) {
+                    setName(data.name);
+                    setEmail(data.email);
+                    setMobile(data.mobile);
+                } else {
+                    console.error('Error:', message);
                 }
-            })
-            .catch(error => {
-                console.error('Error getting data:', error);
-            });
+            } catch (error) {
+                console.error('Error fetching user profile:', error);
+            }
+        };
+
+        fetchUserData();
     }, []);
 
 
@@ -61,101 +69,24 @@ function AccountSettings() {
         setIsUpdatingPassword(true);
     };
 
+    const handleSave = async () => {
+        let errors = editProfileAuth(name, mobile);
+        setErrors(errors);
 
-    const handleSave = () => {
-        let Errors = editProfileAuth(name, mobile)
-        setErrors(Errors)
-        if (Object.keys(Errors).length === 0) {
-            axiosInstance.put('/user/edit-user', { name, mobile })
-                .then(response => {
-                    if (response.data.status) {
-                        setName(response.data.user.name);
-                        setMobile(response.data.user.mobile ? response.data.user.mobile : null);
-                        setErrors({})
-                        setIsEditing(false);
-                        toast.success('Profile updated', {
-                            autoClose: 2000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: false,
-                            draggable: true,
-                            progress: undefined,
-                            theme: "dark",
-                        });
-                    }
-                })
-                .catch(error => {
-                    toast.error('Error while updating profile', {
-                        autoClose: 2000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: false,
-                        draggable: true,
-                        progress: undefined,
-                        theme: "dark",
-                    });
-                    console.error('Error updating user:', error);
-                });
-        }
-    };
+        if (Object.keys(errors).length === 0) {
+            try {
+                // Await the PUT request
+                const response = await axiosInstance.put('/user/edit-user', { name, mobile });
+                // Await the handling of the API response
+                const { success, message, data } = await handleApiResponse(response);
 
-    const handlePasswordChange = () => {
-        let Errors = editPasswordAuth(currentPassword, newPassword, confirmPassword)
-        setErrors(Errors)
-        if (Object.keys(Errors).length === 0) {
-            axiosInstance.put('/user/edit-password', { currentPassword, newPassword })
-                .then(response => {
-                    if (response.data.status) {
-                        setNewPassword('')
-                        setCurrentPassword('')
-                        setConfirmPassword('')
-                        setErrors({})
-                        setIsEditing(false);
-                        setIsUpdatingPassword(false);
-                        toast.success('Password changed', {
-                            autoClose: 2000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: false,
-                            draggable: true,
-                            progress: undefined,
-                            theme: "dark",
-                        });
-                    } else {
-                        toast.error(response.data.message, {
-                            autoClose: 2000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: false,
-                            draggable: true,
-                            progress: undefined,
-                            theme: "dark",
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error updating user:', error);
-                });
-        }
-    };
+                if (success) {
+                    setName(data.user.name);
+                    setMobile(data.user.mobile || null);
+                    setErrors({});
+                    setIsEditing(false);
 
-
-    const handleForgotPass = (e) => {
-        e.preventDefault()
-        sendOTP(e)
-        setIsUpdatingPassword(false)
-        setShowOtpPage(true)
-    }
-
-    const sendOTP = (e) => {
-        e.preventDefault()
-        axiosInstance.get('/user/send-otp')
-            .then(response => {
-                if (response.data.status) {
-                    setCountdown(10)
-                    setButtonEnabled(false)
-                    setErrors({})
-                    toast.success('OTP send to your verified Email', {
+                    toast.success('Profile updated successfully', {
                         autoClose: 2000,
                         hideProgressBar: false,
                         closeOnClick: true,
@@ -165,7 +96,7 @@ function AccountSettings() {
                         theme: "dark",
                     });
                 } else {
-                    toast.error('Verification Failed', {
+                    toast.error(`Error: ${message}`, {
                         autoClose: 2000,
                         hideProgressBar: false,
                         closeOnClick: true,
@@ -175,92 +106,238 @@ function AccountSettings() {
                         theme: "dark",
                     });
                 }
-            })
-            .catch(error => {
-                console.error('Error sending login data:', error);
-            });
-    }
-
-    const verifyOTP = (e) => {
-        e.preventDefault()
-        let newErrors = {};
-        newErrors = otpVerification(otp)
-        setErrors(newErrors);
-        if (Object.keys(newErrors).length === 0) {
-            axiosInstance.post('/user/verify-otp', { otp: otp })
-                .then(response => {
-                    if (response.data.status) {
-                        toast.success('OTP verified', {
-                            autoClose: 2000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: false,
-                            draggable: true,
-                            progress: undefined,
-                            theme: "dark",
-                        });
-                        setTimeout(() => {
-                            setShowOtpPage(false)
-                            setNewPassword('')
-                            setConfirmPassword('')
-                            setShowNewPassInput(true)
-                        }, 2000);
-                    } else {
-                        toast.error('Something went wrong', {
-                            autoClose: 2000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: false,
-                            draggable: true,
-                            progress: undefined,
-                            theme: "dark",
-                        });
-                    }
-                })
+            } catch (error) {
+                toast.error('Error updating profile', {
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "dark",
+                });
+                console.error('Error updating user:', error);
+            }
         }
+    };
+
+
+    const handlePasswordChange = async () => {
+        let errors = editPasswordAuth(currentPassword, newPassword, confirmPassword);
+        setErrors(errors);
+
+        if (Object.keys(errors).length === 0) {
+            try {
+                const response = await axiosInstance.put('/user/edit-password', { currentPassword, newPassword });
+                const { success, message } = await handleApiResponse(response);
+
+                if (success) {
+                    setNewPassword('');
+                    setCurrentPassword('');
+                    setConfirmPassword('');
+                    setErrors({});
+                    setIsEditing(false);
+                    setIsUpdatingPassword(false);
+
+                    toast.success('Password changed successfully', {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
+                } else {
+                    toast.error(message, {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
+                }
+            } catch (error) {
+                toast.error('Error updating password', {
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "dark",
+                });
+                console.error('Error updating password:', error);
+            }
+        }
+    };
+
+    const handleForgotPass = (e) => {
+        e.preventDefault()
+        sendOTP(e)
+        setIsUpdatingPassword(false)
+        setShowOtpPage(true)
     }
 
+    const sendOTP = async (e) => {
+        e.preventDefault();
 
-    const updatePassword = (e) => {
-        e.preventDefault()
-        let newErrors = {}
-        newErrors = signUpGoogleAuthenticate(newPassword, confirmPassword)
+        try {
+            const response = await axiosInstance.get('/user/send-otp');
+            const { success, message } = await handleApiResponse(response);
+
+            if (success) {
+                setCountdown(10);
+                setButtonEnabled(false);
+                setErrors({});
+                toast.success(message, {
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "dark",
+                });
+            } else {
+                toast.error(message, {
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "dark",
+                });
+            }
+        } catch (error) {
+            toast.error('Error sending OTP', {
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+            });
+            console.error('Error sending OTP:', error);
+        }
+    };
+
+
+    const verifyOTP = async (e) => {
+        e.preventDefault();
+
+        // Validate OTP
+        let newErrors = otpVerification(otp);
         setErrors(newErrors);
+
         if (Object.keys(newErrors).length === 0) {
-            axiosInstance.post('/user/reset-password', { password: newPassword })
-                .then(response => {
-                    if (response.data.status) {
-                        toast.success('Password changed', {
-                            autoClose: 2000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: false,
-                            draggable: true,
-                            progress: undefined,
-                            theme: "dark",
-                        });
-                        setNewPassword('')
-                        setConfirmPassword('')
-                        setTimeout(() => {
-                            setShowOtpPage(false)
-                            setShowNewPassInput(false)
-                            setIsEditing(false)
-                            setIsUpdatingPassword(false)
-                        }, 1000);
-                    } else {
-                        toast.error('something went wrong, try again later', {
-                            autoClose: 2000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: false,
-                            draggable: true,
-                            progress: undefined,
-                            theme: "dark",
-                        });
-                        setShowOtpPage(false)
-                        setShowNewPassInput(false)
-                    }
-                })
+            try {
+                const response = await axiosInstance.post('/user/verify-otp', { otp });
+                const { success, message } = await handleApiResponse(response);
+
+                if (success) {
+                    toast.success(message, {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
+
+                    // Handle post-success actions
+                    setTimeout(() => {
+                        setShowOtpPage(false);
+                        setNewPassword('');
+                        setConfirmPassword('');
+                        setShowNewPassInput(true);
+                    }, 2000);
+                } else {
+                    toast.error('Something went wrong', {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
+                }
+            } catch (error) {
+                console.error('Error verifying OTP:', error);
+                toast.error('Error verifying OTP', {
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "dark",
+                });
+            }
+        }
+    };
+
+
+    const updatePassword = async (e) => {
+        e.preventDefault();
+        let newErrors = {};
+        newErrors = signUpGoogleAuthenticate(newPassword, confirmPassword);
+        setErrors(newErrors);
+
+        if (Object.keys(newErrors).length === 0) {
+            try {
+                const response = await axiosInstance.post('/user/reset-password', { password: newPassword });
+                const { success, message } = await handleApiResponse(response);
+
+                if (success) {
+                    toast.success(message, {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
+                    setNewPassword('');
+                    setConfirmPassword('');
+                    setTimeout(() => {
+                        setShowOtpPage(false);
+                        setShowNewPassInput(false);
+                        setIsEditing(false);
+                        setIsUpdatingPassword(false);
+                    }, 1000);
+                } else {
+                    toast.error('Something went wrong, try again later', {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
+                    setShowOtpPage(false);
+                    setShowNewPassInput(false);
+                }
+            } catch (error) {
+                console.error('Error updating password:', error);
+                toast.error('Error updating password', {
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "dark",
+                });
+            }
         }
     }
 

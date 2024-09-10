@@ -641,8 +641,8 @@ function EditProduct() {
                   }}
                 />
                 <div className='d-flex justify-content-between'>
-                  <button onClick={() => handleRemoveImage(index)} type='button' className='h-50 btn btn-danger mt-2 d-flex align-items-center justify-content-center'>Remove<pre> </pre> <i class="bi bi-trash3-fill"></i></button>
-                  <button onClick={() => { image.mainImage ? setIsMainImage(true) : setSaveImage(true) }} className='h-50 btn-group btn-group-sm mt-2 btn-primary d-flex align-items-center justify-content-center'><i class="bi bi-pencil-square"></i></button>
+                  <button onClick={() => handleRemoveImage(index)} type='button' className='h-50 btn btn-danger mt-2 d-flex align-items-center justify-content-center'>Remove<pre> </pre> <i className="bi bi-trash3-fill"></i></button>
+                  <button onClick={() => { image.mainImage ? setIsMainImage(true) : setSaveImage(true) }} className='h-50 btn-group btn-group-sm mt-2 btn-primary d-flex align-items-center justify-content-center'><i className="bi bi-pencil-square"></i></button>
                 </div>
               </div>
             ))}

@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useCartWishlist } from '../Header/CartWishlistContext';
+import { handleApiResponse } from '../../../utils/utilsHelper';
 
 function Cart() {
     const { updateCartLength } = useCartWishlist();
@@ -18,42 +19,60 @@ function Cart() {
     const [offers, setOffers] = useState([])
 
     useEffect(() => {
-
-        axiosInstance.get('/user/get-cart-products')
-            .then(response => {
-                if (response.data.status) {
-                    setCartItems(response.data.products ? response.data.products : [])
-                    setOffers(response.data.offers)
+        const fetchCartData = async () => {
+            try {
+                const result = await handleApiResponse(axiosInstance.get('/user/get-cart-products'));
+                if (result.success) {
+                    setCartItems(result.data.products || []);
+                    setOffers(result.data.offers || []);
                 }
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error getting data:', error);
-            });
-    }, [])
-
-
+            }
+        };
+        fetchCartData();
+    }, []);
 
     const handleRemoveFromCart = async (item_id) => {
-        axiosInstance.delete(`/user/delete-cart-items/${item_id}`)
-            .then(response => {
-                if (response.data.status) {
-                    updateCartLength(-1);
-                    toast.error("Removed from cart", {
-                        autoClose: 1000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: false,
-                        draggable: true,
-                        progress: undefined,
-                        theme: "dark",
-                    });
-                    setCartItems(cartItems.filter(items => items._id !== item_id));
-                }
-            })
-            .catch(error => {
-                console.error('Error getting data:', error);
+        try {
+            const result = await handleApiResponse(axiosInstance.delete(`/user/delete-cart-items/${item_id}`));
+
+            if (result.success) {
+                updateCartLength(-1);
+                toast.error('Removed from cart', {
+                    autoClose: 1000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: 'dark',
+                });
+                setCartItems(cartItems.filter(item => item._id !== item_id));
+            } else {
+                toast.error('Failed to remove item from cart', {
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: 'dark',
+                });
+            }
+        } catch (error) {
+            toast.error('Something went wrong', {
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: 'dark',
             });
-    }
+            console.error('Error removing item from cart:', error);
+        }
+    };
 
     const handleQuantityChange = async (item_id, change) => {
         let newQuantity
@@ -118,12 +137,33 @@ function Cart() {
 
 
         try {
-            await axiosInstance.put(`/user/update-cart-item/${item_id}`, { quantity: newQuantity });
+            const result = await handleApiResponse(axiosInstance.put(`/user/update-cart-item/${item_id}`, { quantity: newQuantity }));
+
+            if (!result.success) {
+                toast.error('Failed to update cart item quantity', {
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: 'dark',
+                });
+            }
         } catch (error) {
+            toast.error('Something went wrong', {
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: 'dark',
+            });
             console.error('Error updating cart item quantity:', error);
         }
     };
-       const getApplicableOffer = (productId, categoryId, price) => {
+    const getApplicableOffer = (productId, categoryId, price) => {
         const currentDate = new Date();
         const applicableOffers = offers.filter(offer =>
             (offer.applicableTo.includes(productId) || offer.applicableTo.includes(categoryId)) &&
@@ -177,7 +217,7 @@ function Cart() {
 
     const { itemCount, totalPrice, totalDiscount, totalOfferDiscount, totalAmount, deliveryCharge } = calculatePriceDetails(cartItems);
 
- 
+
 
 
     return (
@@ -205,7 +245,7 @@ function Cart() {
                                                         <span className="text-white">{item.brand}</span>
                                                     </div>
                                                     <Button variant="danger" onClick={() => handleRemoveFromCart(item._id)}>
-                                                        <i class="bi bi-trash3-fill"> Remove</i>
+                                                        <i className="bi bi-trash3-fill"> Remove</i>
                                                     </Button>
                                                 </div>
                                                 <div className="mb-2">
@@ -213,9 +253,9 @@ function Cart() {
                                                     <span className="me-3">Color: {item.selectedColor}</span>
                                                 </div>
                                                 <div className="d-flex align-items-center mb-2">
-                                                    <i class="bi bi-dash-circle me-2" onClick={() => handleQuantityChange(item._id, -1)}></i>
+                                                    <i className="bi bi-dash-circle me-2" onClick={() => handleQuantityChange(item._id, -1)}></i>
                                                     <span className="me-2">{item.quantity}</span>
-                                                    <i class="bi bi-plus-circle" onClick={() => handleQuantityChange(item._id, +1)}></i>
+                                                    <i className="bi bi-plus-circle" onClick={() => handleQuantityChange(item._id, +1)}></i>
                                                 </div>
                                                 <div className="mb-2">
                                                     <span className="me-2">${offerPrice > 0 ? item.discountedPrice - offerPrice : item.discountedPrice}</span>

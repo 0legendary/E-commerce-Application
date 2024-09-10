@@ -3,6 +3,7 @@ import axiosInstance from '../../../config/axiosConfig';
 import { useNavigate } from 'react-router-dom';
 import OrderSuccess from './OrderSuccess';
 import { UploadPendingOrder } from '../../../config/CreatePendingPayment';
+import { handleApiResponse } from '../../../utils/utilsHelper';
 
 function CODPayment({ amount, totalDiscount, deliveryCharge, address, products, paymentMethod, checkoutId, coupon, offerDiscount }) {
   const [showSuccessPage, setShowSuccessPage] = useState(false)
@@ -45,22 +46,24 @@ function CODPayment({ amount, totalDiscount, deliveryCharge, address, products, 
           price: product.price,
           discountPrice: discountPrice,
           offerDiscount: offerDiscountPrice,
-          totalPrice:totalPrice
+          totalPrice: totalPrice
         };
       })
     };
 
     try {
-      const response = await axiosInstance.post('/user/payment/cod', { orderDetails, checkoutId });
-      if (response.data.status) {
-        setOrderDetailsData(response.data.order)
-        setShowSuccessPage(true)
+      const apiCall = axiosInstance.post('/user/payment/cod', { orderDetails, checkoutId });
+      const response = await handleApiResponse(apiCall);
+
+      if (response.success) {
+        setOrderDetailsData(response.data.order);
+        setShowSuccessPage(true);
       } else {
-        UploadPendingOrder(orderDetails,checkoutId)
-        setShowSuccessPage(false)
+        UploadPendingOrder(orderDetails, checkoutId);
+        setShowSuccessPage(false);
       }
     } catch (error) {
-      UploadPendingOrder(orderDetails,checkoutId)
+      UploadPendingOrder(orderDetails, checkoutId);
       console.error('Error getting data:', error);
     }
   };

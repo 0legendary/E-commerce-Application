@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './DetailedOrder.css';
 import axiosInstance from '../../../config/axiosConfig';
+import {handleApiResponse} from '../../../utils/utilsHelper';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ReviewForm from './ReviewForm';
@@ -32,39 +33,48 @@ function DetailedOrder({ product, backToOrders, openModal }) {
     };
 
 
-    const handleReviewSubmit = (reviewData) => {
 
-        axiosInstance.post('/user/add-review', reviewData)
-            .then(response => {
-                if (response.data.status) {
-                    toast.success('Review added successfully', {
-                        autoClose: 3000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: false,
-                        draggable: true,
-                        progress: undefined,
-                        theme: "dark",
-                    });
-                    setShowReviewForm(false)
-
-                } else {
-                    toast.error('Review submission failed:', {
-                        autoClose: 2000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: false,
-                        draggable: true,
-                        progress: undefined,
-                        theme: "dark",
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error while creating review data:', error);
+    const handleReviewSubmit = async (reviewData) => {
+        try {
+            const response = await axiosInstance.post('/user/add-review', reviewData);
+            const { success, message } = await handleApiResponse(response);
+    
+            if (success) {
+                toast.success(message, {
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "dark",
+                });
+                setShowReviewForm(false);
+            } else {
+                toast.error(message, {
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "dark",
+                });
+            }
+        } catch (error) {
+            console.error('Error while submitting review:', error);
+            toast.error('Error while submitting review', {
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
             });
+        }
     };
-
+    
 
     return (
         <div className="container mt-5">

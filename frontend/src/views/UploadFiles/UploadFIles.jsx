@@ -92,7 +92,7 @@ function UploadFIles({ setFiles, files, mainImage }) {
             {displayedFiles.map((file) => (
               <div key={file.uuid} className="uploaded-file-preview d-flex">
                 <img src={file.cdnUrl} alt={file.name} width="100" />
-                <i class="bi bi-x-circle-fill" onClick={() => handleRemoveClick(file.uuid)}></i>
+                <i className="bi bi-x-circle-fill" onClick={() => handleRemoveClick(file.uuid)}></i>
               </div>
             ))}
           </div>

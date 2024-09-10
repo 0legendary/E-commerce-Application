@@ -5,6 +5,7 @@ import Cart from '../../model/cart.js';
 import Wishlist from '../../model/wishlist.js';
 import Offer from '../../model/offer.js';
 import Review from '../../model/review.js';
+import { createResponse } from '../../utils/responseHelper.js';
 
 
 export const getUserDetails = async (req, res) => {
@@ -26,9 +27,9 @@ export const getUserDetails = async (req, res) => {
         }
       }
     }
-    res.status(201).json({ status: true, userName, cartLength, wishListLength });
+    res.status(201).json(createResponse(true, 'User details fetched successfully', { userName, cartLength, wishListLength }));
   } catch (error) {
-    res.status(500).json({ error: 'Error fetching products' });
+    res.status(500).json(createResponse(false, 'Error fetching user details', null, error.message));
   }
 }
 
@@ -46,18 +47,14 @@ export const getProducts = async (req, res) => {
         const cart = await Cart.findOne({ userId: user._id }).lean();
         if (cart) {
           const cartProductIds = cart.products.map(p => p.productId.toString());
-          res.status(200).json({
-            status: true,
-            products,
-            cartProducts: cartProductIds
-          });
+          res.status(200).json(createResponse(true, 'Products fetched successfully', { products, cartProducts: cartProductIds }));
           return;
         }
       }
     }
-    res.status(201).json({ status: true, products });
+    res.status(200).json(createResponse(true, 'Products fetched successfully', { products }));
   } catch (error) {
-    res.status(500).json({ error: 'Error fetching products' });
+    res.status(500).json(createResponse(false, 'Error fetching products', null, error.message));
   }
 }
 
@@ -94,17 +91,14 @@ export const getHomeProducts = async (req, res) => {
       }
     }
 
-    // Send the response
-    res.status(200).json({
-      status: true,
+    res.status(200).json(createResponse(true, 'Products and offers fetched successfully', {
       products,
       offers,
       cartProducts: cartProductIds,
       wishlistProducts: wishlistProductIds
-    });
+    }));
   } catch (error) {
-    console.error('Error fetching products:', error);
-    res.status(500).json({ error: 'Error fetching products' });
+    res.status(500).json(createResponse(false, 'Error fetching products', null, error.message));
   }
 }
 
@@ -152,21 +146,19 @@ export const singleProduct = async (req, res) => {
         _id: { $ne: productId }
       }).populate('images', 'images').limit(4);
 
-      res.status(200).json({
-        status: true,
+      res.status(200).json(createResponse(true, 'Product fetched successfully', {
         product,
         offers,
         isProductInWishlist: isProductInWishlist.length > 0 ? true : false,
         cartProducts: cartProducts ? cartProducts : [],
         reviews: reviews.length > 0 ? reviews : [],
         relatedProducts
-      });
-
+      }));
     } else {
-      res.status(404).json({ status: false, message: 'Product not found' });
+      res.status(404).json(createResponse(false, 'Product not found'));
     }
   } catch (error) {
-    res.status(500).json({ status: false, message: 'Error fetching product' });
+    res.status(500).json(createResponse(false, 'Error fetching product', null, error.message));
   }
 }
 

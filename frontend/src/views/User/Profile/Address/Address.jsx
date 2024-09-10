@@ -3,6 +3,7 @@ import './Address.css'
 import NewAddress from './NewAddress'
 import EditAddress from './EditAddress'
 import axiosInstance from '../../../../config/axiosConfig'
+import {handleApiResponse} from '../../../../utils/utilsHelper';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -15,16 +16,18 @@ function Address() {
     const [addressToDelete, setAddressToDelete] = useState(null);
 
     useEffect(() => {
-        axiosInstance.get('/user/addresses')
-            .then(response => {
-                if (response.data.status) {
-                    setAddresses(response.data.addresses)
-                }
-            })
-            .catch(error => {
-                console.error('Error getting data:', error);
-            });
-    }, [])
+        const fetchAddresses = async () => {
+            const result = await handleApiResponse(axiosInstance.get('/user/addresses'));
+
+            if (result.success) {
+                setAddresses(result.data.addresses || []);
+            } else {
+                console.error('Error:', result.message);  // Log error message
+            }
+        };
+
+        fetchAddresses();
+    }, []);
 
 
     const handelNewAddress = () => {
@@ -54,7 +57,7 @@ function Address() {
                     ? { ...preAddress, isPrimary: true }
                     : { ...preAddress, isPrimary: false }
             )
-        );  
+        );
     };
 
     const handelCancleEditAddress = (address) => {
@@ -72,9 +75,10 @@ function Address() {
 
     const handleDelete = async (add_id) => {
         try {
-            const response = await axiosInstance.delete(`/user/delete-address/${add_id}`);
-            if (response.data.status) {
-                toast.error('Address deleted', {
+            const result = await handleApiResponse(axiosInstance.delete(`/user/delete-address/${add_id}`));
+
+            if (result.success) {
+                toast.success('Address deleted', {
                     autoClose: 2000,
                     hideProgressBar: false,
                     closeOnClick: true,
@@ -82,18 +86,28 @@ function Address() {
                     draggable: true,
                     progress: undefined,
                     theme: "dark",
-                });                
+                });
+
                 const updatedAddresses = addresses.filter(address => address._id !== add_id);
-                if (addresses.find(address => address._id === add_id).isPrimary) {
+                if (addresses.find(address => address._id === add_id)?.isPrimary) {
                     if (updatedAddresses.length > 0) {
                         updatedAddresses[0].isPrimary = true;
                     }
                 }
                 setAddresses(updatedAddresses);
-                
+            } else {
+                toast.error('Something went wrong while deleting address', {
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "dark",
+                });
             }
         } catch (error) {
-            toast.error('Something went wrong white deleting address', {
+            toast.error('Something went wrong while deleting address', {
                 autoClose: 2000,
                 hideProgressBar: false,
                 closeOnClick: true,
@@ -125,7 +139,7 @@ function Address() {
 
     return (
         <div className='container text-white'>
-            <ToastContainer/>
+            <ToastContainer />
             <h2>Address Management</h2>
             {!newAddress && (
                 <button className="btn btn-primary my-3 address-card p-3 mb-3 border rounded position-relative" onClick={handelNewAddress}>

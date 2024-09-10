@@ -3,6 +3,7 @@ import axiosInstance from '../../../config/axiosConfig';
 import { Button, Table, Badge, Spinner, Form, Pagination } from 'react-bootstrap';
 import './AdminOrders.css';
 import SelectedOrder from './SelectedOrder';
+import { handleApiResponse } from '../../../utils/utilsHelper';
 
 function AdminOrders() {
     const [orders, setOrders] = useState([]);
@@ -20,19 +21,29 @@ function AdminOrders() {
     const itemsPerPage = 5;
 
     useEffect(() => {
-        axiosInstance.get('/admin/all-orders')
-            .then(response => {
-                if (response.data.status) {
-                    setOrders(response.data.orders ? response.data.orders : []);
-                    setFilteredOrders(response.data.orders ? response.data.orders : []); // Initialize filteredOrders
+        const fetchOrders = async () => {
+            try {
+                const apiCall = axiosInstance.get('/admin/all-orders');
+                const { success, data, message } = await handleApiResponse(apiCall);
+
+                if (success) {
+                    const ordersData = data.orders || [];
+                    setOrders(ordersData);
+                    setFilteredOrders(ordersData);
+                    setLoading(false);
+                } else {
+                    setLoading(false);
+                    console.error('Error fetching orders:', message);
                 }
+            } catch (error) {
                 setLoading(false);
-            })
-            .catch(error => {
-                console.error('Error getting data:', error);
-                setLoading(false);
-            });
+                console.error('Error fetching orders:', error);
+            }
+        };
+        fetchOrders();
     }, []);
+
+
 
     useEffect(() => {
         const filtered = orders.filter(order => {

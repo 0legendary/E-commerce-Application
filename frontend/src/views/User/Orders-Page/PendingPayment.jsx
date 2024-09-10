@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import axiosInstance from '../../../config/axiosConfig';
+import { handleApiResponse } from '../../../utils/utilsHelper';
 import OrderSuccess from '../CheckoutPage/OrderSuccess';
 import { useNavigate } from 'react-router-dom';
 
@@ -9,17 +10,25 @@ function PendingPayment({ order, paymentMethod }) {
     const [currentUser, setCurrentUser] = useState({})
     const navigate = useNavigate()
 
+
     useEffect(() => {
-        axiosInstance.get('/user/user-payment')
-            .then(response => {
-                if (response.data.status) {
-                    response.data.user.razorpayID = response.data.razorpayID
-                    setCurrentUser(response.data.user ? response.data.user : {})
-                }
-            })
-            .catch(error => {
-                console.error('Error getting data:', error);
-            });
+        const fetchUserPayment = async () => {
+            const { success, data, message } = await handleApiResponse(
+                axiosInstance.get('/user/user-payment')
+            );
+
+            if (success) {
+                const updatedUser = {
+                    ...data.user,
+                    razorpayID: data.razorpayID
+                };
+                setCurrentUser(updatedUser);
+            } else {
+                console.error(message);
+            }
+        };
+
+        fetchUserPayment();
     }, []);
 
     const handleOnlinePayment = async () => {
@@ -31,20 +40,16 @@ function PendingPayment({ order, paymentMethod }) {
                 name: "Olegendary",
                 description: "shopping",
                 order_id: paymentData.id,
-                handler: (response) => {
-                    
-                    axiosInstance.post('/user/pay/pending-payment', { response, order, paymentMethod })
-                        .then(response => {
-                            if (response.data.status) {
-                                setOrderDetailsData(response.data.order)
-                                setShowSuccessPage(true)
-                            } else {
-                                setShowSuccessPage(false)
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error getting data:', error);
-                        })
+                handler: async (response) => {
+                    const { success, data } = await handleApiResponse(
+                        axiosInstance.post('/user/payment/verify', { response, order, paymentMethod })
+                    );
+                    if (success) {
+                        setOrderDetailsData(data.order);
+                        setShowSuccessPage(true);
+                    } else {
+                        setShowSuccessPage(false);
+                    }
                 },
                 prefill: {
                     name: currentUser.name,
@@ -65,26 +70,36 @@ function PendingPayment({ order, paymentMethod }) {
             const paymentObject = new window.Razorpay(options);
             paymentObject.open();
         }
-
         try {
-            const { data } = await axiosInstance.post('/user/payments', { amount: order.orderTotal })
-            initPayment(data.data)
+            const { success, data, message } = await handleApiResponse(
+                axiosInstance.post('/user/payments', { amount: order.orderTotal })
+            );
+
+            if (success) {
+                initPayment(data);
+            } else {
+                console.error(message);
+            }
         } catch (error) {
-            console.log(error);
+            console.error('Error initiating payment:', error.message);
         }
     };
 
     const handleCODPayment = async () => {
         try {
-            const response = await axiosInstance.post('/user/pay/pending-payment', { order, paymentMethod })
-            if (response.data.status) {
-                setOrderDetailsData(response.data.order)
-                setShowSuccessPage(true)
+            const apiCall = axiosInstance.post('/user/pay/pending-payment', { order, paymentMethod });
+            const response = await handleApiResponse(apiCall);
+    
+            if (response.success) {
+                setOrderDetailsData(response.data.order);
+                setShowSuccessPage(true);
             } else {
-                setShowSuccessPage(false)
+                setShowSuccessPage(false);
+                console.error('Payment failed:', response.message);
             }
         } catch (error) {
-            console.error('Error getting data:', error);
+            setShowSuccessPage(false);
+            console.error('Error processing COD payment:', error);
         }
     };
 

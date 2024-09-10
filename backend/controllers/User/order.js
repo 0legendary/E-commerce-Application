@@ -5,6 +5,7 @@ import Product from "../../model/product.js";
 import Review from "../../model/review.js";
 import User from "../../model/user.js";
 import Wallet from "../../model/wallet.js";
+import { createResponse } from "../../utils/responseHelper.js";
 
 const updateStockOnCancel = async (orderId, productId) => {
     const order = await Order.findOne({ orderId });
@@ -28,7 +29,7 @@ export const getAllOrders = async (req, res) => {
     try {
         const user = await User.findOne({ email: req.user.email })
         if (!user) {
-            return res.status(404).json({ status: false, message: 'User not found' });
+            return res.status(404).json(createResponse(false, 'User not found'));
         }
         const orders = await Order.find({ customerId: user._id })
             .populate({
@@ -39,10 +40,9 @@ export const getAllOrders = async (req, res) => {
                     select: 'images.cdnUrl images.mainImage'
                 }
             });
-        res.json({ status: true, orders });
+        res.status(200).json(createResponse(true, 'Orders fetched successfully', { orders }));
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ status: false, message: 'Error fetching user' });
+        res.status(500).json(createResponse(false, 'Error fetching orders'));
     }
 }
 
@@ -57,13 +57,13 @@ export const updateOrderStatus = async (req, res) => {
         );
 
         if (result.modifiedCount === 0) {
-            return res.status(404).json({ status: false, message: 'Order or product not found' });
+            return res.status(404).json(createResponse(false, 'Order or product not found'));
         }
 
         if (status === 'canceled') {
             const order = await Order.findOne({ orderId });
             if (!order) {
-                return res.status(404).json({ status: false, message: 'Order not found' });
+                return res.status(404).json(createResponse(false, 'Order not found'));
             }
 
             // Recalculate order total
@@ -86,7 +86,7 @@ export const updateOrderStatus = async (req, res) => {
                     product._id.toString() === productId && product.orderStatus === 'canceled'
                 );
                 if (!canceledProduct) {
-                    return res.status(404).json({ status: false, message: 'Canceled product not found' });
+                    return res.status(404).json(createResponse(false, 'Canceled product not found'));
                 }
                 let couponDiscount = order.couponDiscount > 0 ? (canceledProduct.totalPrice * order.couponDiscount / 100) > coupon.maxDiscount ? coupon.maxDiscount : (canceledProduct.totalPrice * order.couponDiscount / 100) : 0
                 const refundAmount = canceledProduct.totalPrice - couponDiscount
@@ -117,10 +117,10 @@ export const updateOrderStatus = async (req, res) => {
             await updateStockOnCancel(orderId, productId);
         }
 
-        return res.json({ status: true });
+        return res.status(200).json(createResponse(true, 'Order status updated successfully'));
     } catch (error) {
         console.error('Error updating order status:', error);
-        res.status(500).json({ status: false, message: 'Server error' });
+        return res.status(500).json(createResponse(false, 'Server error'));
     }
 }
 
@@ -159,9 +159,8 @@ export const addNewReview = async (req, res) => {
             { new: true }
         );
 
-        res.json({ status: true, newReview });
+        res.json(createResponse(true, 'Review added successfully', { newReview }));
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ status: false, message: 'Error fetching user' });
+        res.status(500).json(createResponse(false, 'Error adding review', error));
     }
 }

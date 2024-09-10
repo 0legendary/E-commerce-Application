@@ -8,6 +8,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Invoice from '../Invoice/Invoice';
 import PendingPayment from './PendingPayment';
+import { handleApiResponse } from '../../../utils/utilsHelper';
 
 function Order() {
     const [orders, setOrders] = useState([]);
@@ -26,22 +27,32 @@ function Order() {
     ];
 
     useEffect(() => {
-        axiosInstance.get('/user/all-orders')
-            .then(response => {
-                if (response.data.status) {
-                    setOrders(response.data.orders ? response.data.orders : []);
+        const fetchOrders = async () => {
+            try {
+                const apiCall = axiosInstance.get('/user/all-orders');
+                const { success, data, message } = await handleApiResponse(apiCall);
+
+                if (success) {
+                    const ordersData = data.orders || [];
+                    setOrders(ordersData);
+                } else {
+                    console.error('Error fetching orders:', message);
                 }
-            })
-            .catch(error => {
-                console.error('Error getting data:', error);
-            });
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+            }
+        };
+        fetchOrders();
     }, []);
+
 
     const handleCancel = () => {
         if (currentOrderId && currentProductId && currentStatus) {
-            axiosInstance.post('/user/update-order-status', { orderId: currentOrderId, productId: currentProductId, status: currentStatus })
+            const apiCall = axiosInstance.post('/user/update-order-status', { orderId: currentOrderId, productId: currentProductId, status: currentStatus });
+
+            handleApiResponse(apiCall)
                 .then(response => {
-                    if (response.data.status) {
+                    if (response.success) {
                         toast.error("Order canceled!", {
                             autoClose: 2000,
                             hideProgressBar: false,
@@ -66,6 +77,8 @@ function Order() {
                             )
                         );
                         setShowModal(false);
+                    } else {
+                        console.error('Error canceling order:', response.message);
                     }
                 })
                 .catch(error => {
@@ -117,60 +130,60 @@ function Order() {
                                                         <div className="order-card mb-4 p-3 border rounded">
                                                             {order.products.map((product, index) => {
                                                                 let mainImage = product.productId.images.images.filter((img) => img.mainImage)
-                                                                    return (
-                                                                        <div
-                                                                            key={product._id}
-                                                                            className={`order-item d-flex align-items-start ${order.products.length > 1 && order.products.length - 1 !== index ? 'border-bottom' : ''
-                                                                                } pb-3 mb-3`} onClick={() => handleDetailedOrder(product, order)}
-                                                                        >
-                                                                            {mainImage && mainImage[0].cdnUrl && (
-                                                                                <img
-                                                                                    src={mainImage[0].cdnUrl}
-                                                                                    alt={product.productName}
-                                                                                    className="order-image img-thumbnail me-3"
-                                                                                    style={{ maxWidth: '100px', maxHeight: '100px' }}
-                                                                                />
-                                                                            )}
+                                                                return (
+                                                                    <div
+                                                                        key={product._id}
+                                                                        className={`order-item d-flex align-items-start ${order.products.length > 1 && order.products.length - 1 !== index ? 'border-bottom' : ''
+                                                                            } pb-3 mb-3`} onClick={() => handleDetailedOrder(product, order)}
+                                                                    >
+                                                                        {mainImage && mainImage[0].cdnUrl && (
+                                                                            <img
+                                                                                src={mainImage[0].cdnUrl}
+                                                                                alt={product.productName}
+                                                                                className="order-image img-thumbnail me-3"
+                                                                                style={{ maxWidth: '100px', maxHeight: '100px' }}
+                                                                            />
+                                                                        )}
 
-                                                                            <div className="order-details flex-grow-1">
-                                                                                <h5 className="order-item-name" >
-                                                                                    {product.productName}
-                                                                                </h5>
-                                                                                <p className="order-item-color">Color: {product.selectedColor}</p>
-                                                                                <p className="order-item-size">Size: {product.selectedSize}</p>
-                                                                                <p className="order-item-quantity">Quantity: {product.quantity}</p>
-                                                                            </div>
-                                                                            <div className="order-summary ms-3">
-                                                                                <p className="order-item-total-price">Total Price: ₹{product.discountPrice * product.quantity}</p>
-                                                                                <p
-                                                                                    className={`order-status ${product.orderStatus === 'pending' && 'text-warning'
-                                                                                        } ${product.orderStatus === 'canceled' && 'text-danger'
-                                                                                        } ${product.orderStatus === 'delivered' && 'text-success'
-                                                                                        }`}
-                                                                                >
-                                                                                    Status: {product.orderStatus}
-                                                                                </p>
-                                                                                {product.orderStatus !== 'delivered' &&
-                                                                                    product.orderStatus !== 'canceled' &&
-                                                                                    product.orderStatus !== 'returned' && (
-                                                                                        <button
-                                                                                            className="btn btn-danger btn-sm mt-2"
-                                                                                            onClick={() => openModal(order.orderId, product._id, 'canceled')}
-                                                                                        >
-                                                                                            Cancel Order
-                                                                                        </button>
-                                                                                    )}
-                                                                                {product.orderStatus === 'delivered' && (
+                                                                        <div className="order-details flex-grow-1">
+                                                                            <h5 className="order-item-name" >
+                                                                                {product.productName}
+                                                                            </h5>
+                                                                            <p className="order-item-color">Color: {product.selectedColor}</p>
+                                                                            <p className="order-item-size">Size: {product.selectedSize}</p>
+                                                                            <p className="order-item-quantity">Quantity: {product.quantity}</p>
+                                                                        </div>
+                                                                        <div className="order-summary ms-3">
+                                                                            <p className="order-item-total-price">Total Price: ₹{product.discountPrice * product.quantity}</p>
+                                                                            <p
+                                                                                className={`order-status ${product.orderStatus === 'pending' && 'text-warning'
+                                                                                    } ${product.orderStatus === 'canceled' && 'text-danger'
+                                                                                    } ${product.orderStatus === 'delivered' && 'text-success'
+                                                                                    }`}
+                                                                            >
+                                                                                Status: {product.orderStatus}
+                                                                            </p>
+                                                                            {product.orderStatus !== 'delivered' &&
+                                                                                product.orderStatus !== 'canceled' &&
+                                                                                product.orderStatus !== 'returned' && (
                                                                                     <button
-                                                                                        className="btn btn-primary btn-sm mt-2"
-                                                                                        onClick={() => openModal(order.orderId, product._id, 'returned')}
+                                                                                        className="btn btn-danger btn-sm mt-2"
+                                                                                        onClick={() => openModal(order.orderId, product._id, 'canceled')}
                                                                                     >
-                                                                                        Return
+                                                                                        Cancel Order
                                                                                     </button>
                                                                                 )}
-                                                                            </div>
+                                                                            {product.orderStatus === 'delivered' && (
+                                                                                <button
+                                                                                    className="btn btn-primary btn-sm mt-2"
+                                                                                    onClick={() => openModal(order.orderId, product._id, 'returned')}
+                                                                                >
+                                                                                    Return
+                                                                                </button>
+                                                                            )}
                                                                         </div>
-                                                                    )
+                                                                    </div>
+                                                                )
                                                             })}
                                                             <p className="order-purchase-date d-flex justify-content-end">
                                                                 Purchased on: {new Date(order.orderDate).toLocaleDateString()} at {new Date(order.orderDate).toLocaleTimeString()}

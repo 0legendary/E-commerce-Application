@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Form, InputGroup, Button, Pagination } from 'react-bootstrap';
 import NewCoupon from './NewCoupon';
 import axiosInstance from '../../../config/axiosConfig';
+import { handleApiResponse } from '../../../utils/utilsHelper';
 import moment from 'moment';
 import EditCoupon from './EditCoupon';
 
@@ -17,15 +18,23 @@ function Coupon() {
 
 
     useEffect(() => {
-        axiosInstance.get('/admin/get-coupons')
-            .then(response => {
-                if (response.data.status) {
+        const fetchCoupons = async () => {
+            try {
+                const apiCall = axiosInstance.get('/admin/get-coupons');
+                const response = await handleApiResponse(apiCall);
+                console.log(response,apiCall);
+                
+                if (response.success) {
                     setCoupons(response.data.coupons);
+                } else {
+                    console.error('Error fetching coupons:', response.message);
                 }
-            })
-            .catch(error => {
-                console.error('Error fetching categories:', error);
-            });
+            } catch (error) {
+                console.error('Error fetching coupons:', error);
+            }
+        };
+    
+        fetchCoupons();
     }, []);
 
     const handleSearch = (e) => {

@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useCartWishlist } from '../Header/CartWishlistContext';
+import { handleApiResponse } from '../../../utils/utilsHelper';
 
 function ShoppingPage() {
     const { updateWishlistLength, updateCartLength } = useCartWishlist();
@@ -29,20 +30,26 @@ function ShoppingPage() {
     ];
 
     useEffect(() => {
-        axiosInstance.get('/user/home/getProducts')
-            .then(response => {
-                if (response.data.status) {
-                    setOffers(response.data.offers ? response.data.offers : []);
-                    setCartProducts(response.data.cartProducts ? response.data.cartProducts : []);
-                    setWishlistProducts(response.data.wishlistProducts ? response.data.wishlistProducts : []);
-                    setProducts(response.data.products);
-                    setFilteredProducts(response.data.products);
-                }
-            })
-            .catch(error => {
-                console.error('Error sending data:', error);
-            });
+        const fetchHomeProducts = async () => {
+            const result = await handleApiResponse(axiosInstance.get('/user/home/getProducts'));
+
+            if (result.success) {
+                const { products, offers, cartProducts, wishlistProducts } = result.data;
+
+                setOffers(offers || []);
+                setCartProducts(cartProducts || []);
+                setWishlistProducts(wishlistProducts || []);
+                setProducts(products || []);
+                setFilteredProducts(products || []);
+
+            } else {
+                console.error('Error:', result.message);
+            }
+        };
+
+        fetchHomeProducts();
     }, []);
+
 
     useEffect(() => {
         filterAndSortProducts();
@@ -140,47 +147,70 @@ function ShoppingPage() {
     };
 
     const addToCart = async (productId) => {
-        axiosInstance.post('/user/add-to-cart', { productId })
-            .then(response => {
-                if (response.data.status) {
-                    updateCartLength(1);
-                    toast.success("Added to Cart", {
-                        autoClose: 2000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: false,
-                        draggable: true,
-                        progress: undefined,
-                        theme: "dark",
-                    });
-                    setCartProducts([...cartProducts, productId]);
+        try {
+            const result = await handleApiResponse(axiosInstance.post('/user/add-to-cart', { productId }));
 
-                }
-            })
-            .catch(error => {
-                console.error('Error sending data:', error);
+            if (result.success) {
+                updateCartLength(1);
+                toast.success('Added to Cart', {
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: 'dark',
+                });
+                setCartProducts(prevProducts => [...prevProducts, productId]);
+            } else {
+                toast.error('Failed to add to cart', {
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: 'dark',
+                });
+            }
+        } catch (error) {
+            toast.error('Something went wrong', {
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: 'dark',
             });
-    };
+            console.error('Error adding to cart:', error);
+        }
+    };  
+
+
     const addToWishlist = async (productId) => {
         axiosInstance.post('/user/add-to-wishlist', { productId })
-            .then(response => {
-                if (response.data.status) {
-                    updateWishlistLength(1)
-                    toast.success("Added to Wishlist", {
-                        autoClose: 2000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: false,
-                        draggable: true,
-                        progress: undefined,
-                        theme: "dark",
-                    });
-                    setWishlistProducts([...wishlistProducts, productId])
-                }
-            })
-            .catch(error => {
-                console.error('Error sending data:', error);
-            });
+        try {
+            const response = await axiosInstance.post('/user/add-to-wishlist', { productId })
+            const { success } = await handleApiResponse(response);
+
+            updateWishlistLength(1)
+            if (success) {
+                toast.success("Added to Wishlist", {
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "dark",
+                });
+                setWishlistProducts([...wishlistProducts, productId])
+            }
+
+        }catch (error) {
+            console.error('Error sending data:', error);
+        }
     };
 
     const uniqueCategories = Array.from(new Set(products.map(product => product.categoryId._id)))
@@ -404,7 +434,7 @@ function ShoppingPage() {
                                                     ) : (
                                                         <Link to={`/cart`}>
                                                             <div className="product-background">
-                                                                <i class="bi bi-cart-check"></i>
+                                                                <i className="bi bi-cart-check"></i>
                                                             </div>
                                                         </Link>
                                                     )}
@@ -415,7 +445,7 @@ function ShoppingPage() {
                                                     ) : (
                                                         <Link to={`/wishlist`}>
                                                             <div className="product-background">
-                                                                <i class="bi bi-heart-half"></i>
+                                                                <i className="bi bi-heart-half"></i>
                                                             </div>
                                                         </Link>
                                                     )}

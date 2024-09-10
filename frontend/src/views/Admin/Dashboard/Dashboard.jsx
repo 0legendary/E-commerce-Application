@@ -7,6 +7,7 @@ import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import './Dashboard.css';
 import axiosInstance from '../../../config/axiosConfig';
+import { handleApiResponse } from '../../../utils/utilsHelper';
 import LedgerBook from './LedgerBook';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
@@ -40,31 +41,46 @@ const Dashboard = () => {
     });
 
 
+
     useEffect(() => {
-        axiosInstance.get('/admin/all-orders')
-            .then(response => {
-                if (response.data.status) {
-                    const ordersData = response.data.orders || [];
+        const fetchOrders = async () => {
+            try {
+                const apiCall = axiosInstance.get('/admin/all-orders');
+                const { success, data, message } = await handleApiResponse(apiCall);
+
+                if (success) {
+                    const ordersData = data.orders || [];
                     setOrders(ordersData);
                     updateDashboard(ordersData);
+                } else {
+                    console.error('Error fetching orders:', message);
                 }
-            })
-            .catch(error => {
-                console.error('Error getting data:', error);
-            });
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+            }
+        };
 
-        axiosInstance.get('/admin/top-orders-category')
-            .then(response => {
-                if (response.data.status) {
-                    setTopCategories(response.data.topCategories)
-                    setTopBrands(response.data.topBrands)
+        const fetchTopCategories = async () => {
+            try {
+                const apiCall = axiosInstance.get('/admin/top-orders-category');
+                const { success, data, message } = await handleApiResponse(apiCall);
+
+                if (success) {
+                    setTopCategories(data.topCategories);
+                    setTopBrands(data.topBrands);
+                } else {
+                    console.error('Error fetching top categories:', message);
                 }
-            })
-            .catch(error => {
-                console.error('Error getting data:', error);
-            });
+            } catch (error) {
+                console.error('Error fetching top categories:', error);
+            }
+        };
+
+        fetchOrders();
+        fetchTopCategories();
         // eslint-disable-next-line
     }, []);
+
 
     useEffect(() => {
         updateDashboard(orders);
@@ -130,7 +146,7 @@ const Dashboard = () => {
 
         setRecentOrders(
             filteredOrders
-                .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate)) 
+                .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
                 .slice(0, 5)
                 .map(order => ({
                     orderId: order.orderId,
@@ -139,7 +155,7 @@ const Dashboard = () => {
                     status: order.products[0].orderStatus
                 }))
         );
-        
+
 
         // Calculate discount impact
         const totalDiscount = filteredOrders.reduce((total, order) =>

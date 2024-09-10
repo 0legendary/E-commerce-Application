@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axiosInstance from '../../../config/axiosConfig';
-
+import { handleApiResponse } from '../../../utils/utilsHelper';
+ 
 // Create context
 const CartWishlistContext = createContext();
 
@@ -17,20 +18,19 @@ export const CartWishlistProvider = ({ children }) => {
 
     // Function to fetch user details
     const fetchUserDetails = async () => {
-        try {
-            const response = await axiosInstance.get('/user/get-user-details');
-            if (response.data.status) {
-                const user = response.data;
-                setUserDetails({
-                    name: user.userName,
-                    cartLength: user.cartLength,
-                    wishListLength: user.wishListLength
-                });
-            }
-        } catch (error) {
-            console.error('Error getting data:', error);
+        const result = await handleApiResponse(axiosInstance.get('/user/get-user-details'));
+      
+        if (result.success) {
+          const { userName, cartLength, wishListLength } = result.data;
+          setUserDetails({
+            name: userName,
+            cartLength,
+            wishListLength
+          });
+        } else {
+          console.error('Error:', result.message);  // Log the error message from the backend
         }
-    };
+      };
 
     // Effect to fetch user details on component mount
     useEffect(() => {

@@ -17,12 +17,12 @@ function Reviews({ reviews }) {
             </div>
             <div className="d-flex align-items-center my-3">
                 <div className="average-rating me-3 d-flex" style={{ fontSize: '2rem', fontWeight: 'bold' }}>
-                    <pre>{!isNaN(averageRating) ? averageRating : 0} <i class="bi bi-star-fill"></i></pre>
+                    <pre>{!isNaN(averageRating) ? averageRating : 0} <i className="bi bi-star-fill"></i></pre>
                 </div>
                 <div className="progress-container w-100 ml-3">
                     {ratingDistribution.map(({ star, count }) => (
                         <div className="d-flex align-items-center mb-1" key={star}>
-                            <pre><span className="mr-2" style={{ width: '30px' }}>{star} <i class="bi bi-star-fill"></i> </span></pre>
+                            <pre><span className="mr-2" style={{ width: '30px' }}>{star} <i className="bi bi-star-fill"></i> </span></pre>
                             <div className="progress w-25 mb-3">
                                 <div
                                     className="progress-bar"

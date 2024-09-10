@@ -34,7 +34,7 @@ function Invoice({ order }) {
         <div>
             <div className='d-flex justify-content-end'>
                 <button className="btn btn-success me-2" onClick={handleDownloadInvoice}>Download Invoice</button>
-                <button className='btn btn-secondary' style={{ minWidth: "31px" }} onClick={() => setShowInvoice(!showInvoice)}><i class="bi bi-arrow-down-short"></i></button>
+                <button className='btn btn-secondary' style={{ minWidth: "31px" }} onClick={() => setShowInvoice(!showInvoice)}><i className="bi bi-arrow-down-short"></i></button>
             </div>
             <div className={`d-flex justify-content-center ${showInvoice ? 'mt-5' : ''}`} >
                 {order.shippingAddress && (

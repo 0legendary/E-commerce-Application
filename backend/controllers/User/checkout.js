@@ -8,6 +8,7 @@ import crypto from 'crypto'
 import { v4 } from 'uuid'
 import Coupon from '../../model/coupon.js';
 import Offer from '../../model/offer.js';
+import { createResponse } from '../../utils/responseHelper.js';
 
 
 export const checkoutProduct = async (req, res) => {
@@ -15,7 +16,7 @@ export const checkoutProduct = async (req, res) => {
     try {
         const user = await User.findOne({ email: req.user.email });
         if (!user) {
-            return res.status(404).json({ status: false, message: 'User not found' });
+            return res.status(404).json(createResponse(false, 'User not found'));
         }
         const addresses = await Address.find({ userId: user._id });
         let populatedProducts
@@ -28,7 +29,7 @@ export const checkoutProduct = async (req, res) => {
                     select: 'images'
                 }
             });
-            
+
 
             if (cart && cart.products.length > -1) {
                 populatedProducts = cart.products.map(product => ({
@@ -52,27 +53,35 @@ export const checkoutProduct = async (req, res) => {
                 path: 'images',
                 select: 'images'
             });
-            let Variations = product.variations[0]
+            if (!product) {
+                return res.status(404).json(createResponse(false, 'Product not found'));
+            }
+
+            const variations = product.variations[0] || {};
             populatedProducts = [{
                 productId: product._id,
                 name: product.name,
                 images: product.images.images,
                 quantity: 1,
-                price: Variations.price,
-                discountedPrice: Variations.discountPrice,
-                selectedColor: Variations.color[0],
-                selectedSize: Variations.size,
-                selectedStock: Variations.stock,
+                price: variations.price,
+                discountedPrice: variations.discountPrice,
+                selectedColor: variations.color[0],
+                selectedSize: variations.size,
+                selectedStock: variations.stock,
                 categoryId: product.categoryId,
                 _id: product._id,
             }]
         }
-        const referralOffer = user.referralRewards.find(reward => reward.status === 'pending');        
-        const offers = await Offer.find({})
-        res.status(200).json({ status: true, addresses, products: populatedProducts, offers, referralOffer });
+        const referralOffer = user.referralRewards.find(reward => reward.status === 'pending') || {};
+        const offers = await Offer.find({});
+        res.status(200).json(createResponse(true, 'Checkout data retrieved successfully', {
+            addresses,
+            products: populatedProducts,
+            offers,
+            referralOffer
+        }));
     } catch (error) {
-        console.error('Error updating address:', error);
-        res.status(500).json({ status: false, message: 'Server error' });
+        res.status(500).json(createResponse(false, 'Server error', null, error.message));
     }
 }
 
@@ -94,13 +103,12 @@ export const payment = async (req, res) => {
         instance.orders.create(options, (error, order) => {
             if (error) {
                 console.log(error);
-                return res.status(500).json({ status: false, message: "Something went wrong!" });
+                return res.status(500).json(createResponse(false, "Something went wrong!", null, error));
             }
-            res.status(200).json({ status: true, data: order });
+            res.status(200).json(createResponse(true, "Order created successfully", order));
         });
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({ status: false, message: "Internal server error" });
+        return res.status(500).json(createResponse(false, "Internal server error", null, error));
     }
 }
 
@@ -108,12 +116,11 @@ export const userPayment = async (req, res) => {
     try {
         const user = await User.findOne({ email: req.user.email }).select('-password');
         if (!user) {
-            return res.status(404).json({ status: false, message: 'User not found' });
+            return res.status(404).json(createResponse(false, 'User not found'));
         }
-        res.json({ status: true, user, razorpayID: process.env.KEY_ID });
+        res.json(createResponse(true, 'User found', { user, razorpayID: process.env.KEY_ID }));
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ status: false, message: 'Error fetching user' });
+        res.status(500).json(createResponse(false, 'Error fetching user', null, error));
     }
 }
 
@@ -131,7 +138,7 @@ export const verifyPayment = async (req, res) => {
 
         if (razorpay_signature !== expectedSign) {
             console.log("Invalid signature");
-            res.status(400).json({ status: false, message: "invalid signature sent!" });
+            return res.status(400).json(createResponse(false, "Invalid signature sent!"));
         }
 
         const newOrder = new Order({
@@ -181,7 +188,7 @@ export const verifyPayment = async (req, res) => {
             }
         }
 
-        const user = await User.findById({_id: orderDetails.customerId})
+        const user = await User.findById({ _id: orderDetails.customerId })
         if (user) {
             const pendingRewards = user.referralRewards.filter(reward => reward.status === 'pending');
 
@@ -195,12 +202,10 @@ export const verifyPayment = async (req, res) => {
                 await user.save();
             }
         }
-
-        res.status(200).json({ status: true, order: newOrder })
+        res.status(200).json(createResponse(true, 'Payment verified successfully', { order: newOrder }));
 
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json(createResponse(false, 'Internal server error', null, error));
     }
 }
 
@@ -253,7 +258,7 @@ export const payByCod = async (req, res) => {
             }
         }
 
-        const user = await User.findById({_id: orderDetails.customerId})
+        const user = await User.findById({ _id: orderDetails.customerId })
         if (user) {
             const pendingRewards = user.referralRewards.filter(reward => reward.status === 'pending');
 
@@ -268,11 +273,10 @@ export const payByCod = async (req, res) => {
             }
         }
 
-        res.status(200).json({ status: true, order: newOrder })
+        res.status(200).json(createResponse(true, 'Payment verified successfully', { order: newOrder }));
 
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json(createResponse(false, 'Internal server error', null, error));
     }
 }
 
@@ -298,7 +302,7 @@ export const pendingOrder = async (req, res) => {
             await Cart.deleteOne({ userId: orderDetails.customerId });
         }
 
-        const user = await User.findById({_id: orderDetails.customerId})
+        const user = await User.findById({ _id: orderDetails.customerId })
         if (user) {
             const pendingRewards = user.referralRewards.filter(reward => reward.status === 'pending');
 
@@ -312,11 +316,11 @@ export const pendingOrder = async (req, res) => {
                 await user.save();
             }
         }
-        res.status(200).json({ status: true, order: newOrder })
+        res.status(200).json(createResponse(true, 'Payment verified successfully', { order: newOrder }));
 
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json(createResponse(false, 'Internal server error', null, error));
     }
 }
 
@@ -333,7 +337,7 @@ export const repayPendingOrder = async (req, res) => {
                 .digest("hex");
 
             if (response.razorpay_signature !== expectedSign) {
-                res.status(400).json({ status: false, message: "invalid signature sent!" });
+                res.status(400).json(createResponse(false, "Invalid signature sent!"));
             }
         }
 
@@ -368,10 +372,11 @@ export const repayPendingOrder = async (req, res) => {
             }
         }
 
-        res.status(200).json({ status: true, order: PendingOrder })
+        res.status(200).json(createResponse(true, 'Payment verified successfully', { order: PendingOrder }));
+
 
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json(createResponse(false, 'Internal server error', null, error));
     }
 }

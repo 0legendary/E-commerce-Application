@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './adminProduct.css';
 import { Link } from 'react-router-dom';
 import axiosInstance from '../../../config/axiosConfig';
+import {handleApiResponse} from '../../../utils/utilsHelper'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 function AdminProducts() {
@@ -14,17 +15,21 @@ function AdminProducts() {
   const [itemsPerPage] = useState(10);
 
   useEffect(() => {
-    axiosInstance.get('/admin/getProducts')
-      .then(response => {
-        if (response.data.status) {
-          setProducts(response.data.products);
-          setFilteredProducts(response.data.products);
-        }
-      })
-      .catch(error => {
-        // Handle error
-        console.error('Error fetching data:', error);
-      });
+    const fetchProducts = async () => {
+      const result = await handleApiResponse(
+        axiosInstance.get('/admin/getProducts')
+      );
+  
+      if (result.success) {
+        setProducts(result.data.products);
+        setFilteredProducts(result.data.products);
+        console.log(result.message);
+      } else {
+        console.error(result.message);
+      }
+    };
+  
+    fetchProducts();
   }, []);
 
   useEffect(() => {

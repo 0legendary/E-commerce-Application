@@ -5,6 +5,7 @@ import Layout from '../Header/Layout'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useCartWishlist } from '../Header/CartWishlistContext';
+import { handleApiResponse } from '../../../utils/utilsHelper';
 
 
 function Wishlist() {
@@ -15,61 +16,84 @@ function Wishlist() {
         { name: "Home", path: "/" },
     ];
     useEffect(() => {
-        axiosInstance.get('/user/get-wishlist-products')
-            .then(response => {
-                if (response.data.status) {
-                    setWishlistItems(response.data.products ? response.data.products : [])
+        const fetchData = async () => {
+            try {
+                const response = await axiosInstance.get('/user/get-wishlist-products');
+                const { success, data } = await handleApiResponse(response);
+                if (success) {
+                    setWishlistItems(data.products ? data.products : []);
                 }
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error getting data:', error);
-            });
-    }, [])
+            }
+        };
 
-    const handleRemove = (product_id) => {
-        axiosInstance.delete(`/user/delete-wishlist-item/${product_id}`)
-            .then(response => {
-                if (response.data.status) {
-                    updateWishlistLength(-1);
-                    toast.error("Removed from wishlist", {
-                        autoClose: 2000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: false,
-                        draggable: true,
-                        progress: undefined,
-                        theme: "dark",
-                    });
-                    setWishlistItems(wishlistItems.filter(items => items.productId !== product_id));
-                }
-            })
-            .catch(error => {
-                console.error('Error sending data:', error);
-            });
+        fetchData();
+    }, []);
+
+    const handleRemove = async (product_id) => {
+        try {
+            const response = await axiosInstance.delete(`/user/delete-wishlist-item/${product_id}`);
+            const { success } = await handleApiResponse(response);
+    
+            if (success) {
+                updateWishlistLength(-1);
+                toast.error("Removed from wishlist", {
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "dark",
+                });
+                setWishlistItems(wishlistItems.filter(item => item.productId !== product_id));
+            }
+        } catch (error) {
+            console.error('Error sending data:', error);
+        }
     }
-
+    
     const handleAddToCart = async (productId) => {
-        axiosInstance.post('/user/add-to-cart', { productId })
-            .then(response => {
-                if (response.data.status) {
-                    updateCartLength(1);
-                    updateWishlistLength(-1)
-                    toast.success("Added to Cart", {
-                        autoClose: 2000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: false,
-                        draggable: true,
-                        progress: undefined,
-                        theme: "dark",
-                    });
-                    setWishlistItems(wishlistItems.filter(items => items.productId !== productId));
-                }
-            })
-            .catch(error => {
-                console.error('Error sending data:', error);
+        try {
+            const result = await handleApiResponse(axiosInstance.post('/user/add-to-cart', { productId }));
 
+            if (result.success) {
+                updateCartLength(1);
+                updateWishlistLength(-1)
+                toast.success('Added to Cart', {
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: 'dark',
+                });
+                setWishlistItems(wishlistItems.filter(items => items.productId !== productId));
+            } else {
+                toast.error('Failed to add to cart', {
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: 'dark',
+                });
+            }
+        } catch (error) {
+            toast.error('Something went wrong', {
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: 'dark',
             });
+            console.error('Error adding to cart:', error);
+        }
     };
 
     return (
@@ -90,7 +114,7 @@ function Wishlist() {
                                             </div>
                                             <div className="cart-item-details d-flex flex-column">
                                                 <div className='d-flex justify-content-end'>
-                                                    <i class="bi bi-trash-fill" onClick={() => handleRemove(item.productId)}></i>
+                                                    <i className="bi bi-trash-fill" onClick={() => handleRemove(item.productId)}></i>
                                                 </div>
                                                 <div className=" align-items-center mb-2">
                                                     <h5 className="me-3">{item.name}</h5>
@@ -105,7 +129,7 @@ function Wishlist() {
                                                 </div>
                                                 <div className='d-flex justify-content-end'>
                                                     <button className='btn btn-success' onClick={() => handleAddToCart(item.productId)}>
-                                                        <i class="bi bi-cart4">Add to cart</i>
+                                                        <i className="bi bi-cart4">Add to cart</i>
                                                     </button>
                                                 </div>
                                             </div>

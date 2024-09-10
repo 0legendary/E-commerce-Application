@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import axiosInstance from '../../../../config/axiosConfig';
+import {handleApiResponse} from '../../../../utils/utilsHelper';
 import { addressValidate } from '../../../../config/addressValidation';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -9,28 +10,39 @@ function EditAddress({ address, handleCancel }) {
   const [addressData, setAddressData] = useState(address)
   const [states, setStates] = useState([]);
 
+
   const handleUpdateAddress = async (e) => {
     e.preventDefault();
-    let Errors = addressValidate(addressData)
-    setErrors(Errors)
+    let Errors = addressValidate(addressData);
+    setErrors(Errors);
+  
     if (Object.keys(Errors).length === 0) {
-      axiosInstance.post('/user/edit-address', { address: addressData })
-        .then(response => {
-          if (response.data.status) {
-            handleCancel(response.data.address)
-            toast.success("Address edited", {
-              autoClose: 2000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: false,
-              draggable: true,
-              progress: undefined,
-              theme: "dark",
-          });
-          }
-        })
+      const result = await handleApiResponse(axiosInstance.post('/user/edit-address', { address: addressData }));
+  
+      if (result.success) {
+        handleCancel(result.data.address);
+        toast.success("Address edited", {
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+      } else {
+        toast.error("Something went wrong while editing address", {
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+      }
     }
-  }
+  };
 
   useEffect(() => {
     const fetchStates = async () => {

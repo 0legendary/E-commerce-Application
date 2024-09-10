@@ -7,6 +7,7 @@ import { loginAuthenticate } from '../../../config/authenticateCondition';
 import GoogleAuth from '../../User/Authentication/Google/GoogleAuth';
 import OTPInput from 'react-otp-input';
 import { validateEmailForOTP, otpVerification, signUpGoogleAuthenticate } from '../../../config/authenticateCondition';
+import { handleApiResponse } from '../../../utils/utilsHelper';
 
 function Login() {
   const [errors, setErrors] = useState({});
@@ -188,35 +189,45 @@ function Login() {
     }
   }
 
-  const updatePassword = (e) => {
-    e.preventDefault()
-    let newErrors = {}
-    newErrors = signUpGoogleAuthenticate(newPassForm.password, newPassForm.confirmPassword)
+  const updatePassword = async (e) => {
+    e.preventDefault();
+    let newErrors = signUpGoogleAuthenticate(newPassForm.password, newPassForm.confirmPassword);
     setErrors(newErrors);
+
     if (Object.keys(newErrors).length === 0) {
-      axiosInstance.post('/admin/reset-password', { email: formData.email, password: newPassForm.password })
-        .then(response => {
-          if (response.data.status) {
-            setSuccessMsg({passChanged:'Password changed'})
-            setFormData({
-              email: '',
-              password: '',
-            })
-            setTimeout(() => {
-              setShowOtpPage(false)
-              setShowNewPassInput(false)
-              setShowManualLogin(true)
-              setSuccessMsg({passChanged:''})
-            }, 1000);
-          } else {
-            setErrors({ unAuthorised: 'something went wrong, try again later' })
-            setShowOtpPage(false)
-            setShowNewPassInput(false)
-            setShowManualLogin(true)
-          }
-        })
+        try {
+            const response = await axiosInstance.post('/admin/reset-password', { email: formData.email, password: newPassForm.password });
+            const { success, message } = await handleApiResponse(response);
+
+            if (success) {
+                setSuccessMsg({ passChanged: message });
+                setFormData({
+                    email: '',
+                    password: '',
+                });
+                setTimeout(() => {
+                    setShowOtpPage(false);
+                    setShowNewPassInput(false);
+                    setShowManualLogin(true);
+                    setSuccessMsg({ passChanged: '' });
+                }, 1000);
+            } else {
+                setErrors({ unAuthorised: 'Something went wrong, try again later' });
+                setShowOtpPage(false);
+                setShowNewPassInput(false);
+                setShowManualLogin(true);
+            }
+        } catch (error) {
+            // Handle any errors from the API request
+            setErrors({ unAuthorised: 'Error occurred while updating password' });
+            setShowOtpPage(false);
+            setShowNewPassInput(false);
+            setShowManualLogin(true);
+            console.error('Error updating password:', error);
+        }
     }
-  }
+};
+
   return (
     <div>
       <div className='authPage'>

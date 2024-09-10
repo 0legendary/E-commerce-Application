@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import axiosInstance from '../../../../config/axiosConfig';
+import {handleApiResponse} from '../../../../utils/utilsHelper';
 import { addressValidate } from '../../../../config/addressValidation';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -47,36 +48,36 @@ function NewAddress({ handleCancel }) {
 
     const saveAddress = async (e) => {
         e.preventDefault();
-        let Errors = addressValidate(formData)
-        setErrors(Errors)
+        let Errors = addressValidate(formData);
+        setErrors(Errors);
+      
         if (Object.keys(Errors).length === 0) {
-            axiosInstance.post('/user/add-address', { address: formData })
-                .then(response => {
-                    if (response.data.status) {
-                        toast.success("New address added", {
-                            autoClose: 2000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: false,
-                            draggable: true,
-                            progress: undefined,
-                            theme: "dark",
-                        });
-                        handleCancel(response.data.address)
-                    }
-                }).catch((error) => {
-                    toast.error("Something went wrong white saving address", {
-                        autoClose: 2000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: false,
-                        draggable: true,
-                        progress: undefined,
-                        theme: "dark",
-                    });
-                })
+          const result = await handleApiResponse(axiosInstance.post('/user/add-address', { address: formData }));
+      
+          if (result.success) {
+            toast.success("New address added", {
+              autoClose: 2000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: false,
+              draggable: true,
+              progress: undefined,
+              theme: "dark",
+            });
+            handleCancel(result.data.address);
+          } else {
+            toast.error("Something went wrong while saving address", {
+              autoClose: 2000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: false,
+              draggable: true,
+              progress: undefined,
+              theme: "dark",
+            });
+          }
         }
-    };
+      };
 
 
     return (

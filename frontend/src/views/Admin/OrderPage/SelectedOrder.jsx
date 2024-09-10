@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axiosInstance from '../../../config/axiosConfig';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { handleApiResponse } from '../../../utils/utilsHelper';
 
 function SelectedOrder({ order, handleCloseModal, updateOrderStatus }) {
     const [productStatuses, setProductStatuses] = useState(
@@ -39,9 +40,11 @@ function SelectedOrder({ order, handleCloseModal, updateOrderStatus }) {
     };
 
     const changeStatus = (orderId, productId, newStatus) => {
-        axiosInstance.post('/user/update-order-status', { orderId, productId, status: newStatus })
+        const apiCall = axiosInstance.post('/user/update-order-status', { orderId, productId, status: newStatus });
+
+        handleApiResponse(apiCall)
             .then(response => {
-                if (response.data.status) {
+                if (response.success) {
                     updateOrderStatus(orderId, productId, newStatus);
                     toast.success(`Changed the status to ${newStatus}`, {
                         autoClose: 2000,
@@ -52,14 +55,14 @@ function SelectedOrder({ order, handleCloseModal, updateOrderStatus }) {
                         progress: undefined,
                         theme: "dark",
                     });
+                } else {
+                    console.error('Error updating order status:', response.message);
                 }
             })
             .catch(error => {
                 console.error('Error updating order status:', error);
             });
     };
-
-
 
     return (
         <div className="mt-5 text-white">

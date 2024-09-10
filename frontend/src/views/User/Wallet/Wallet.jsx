@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axiosInstance from '../../../config/axiosConfig';
+import { handleApiResponse } from '../../../utils/utilsHelper';
 import Layout from '../Header/Layout';
 import { Button, Card, Form, Tab, Tabs, ListGroup } from 'react-bootstrap';
 import './Wallet.css'; // Create a Wallet.css file for custom styling
@@ -15,21 +16,27 @@ function Wallet() {
     const [amount, setAmount] = useState('');
     const [errors, setErrors] = useState({})
     const [user, setUser] = useState({})
-    
+
     const mainHeading = "Wallet";
     const breadcrumbs = [{ name: "Home", path: "/" }];
 
     useEffect(() => {
-        axiosInstance.get('/user/wallet')
-            .then(response => {
-                if (response.data.status) {
-                    setWallet(response.data.wallet ? response.data.wallet[0] : {});
-                    setUser(response.data.userData ? response.data.userData : {});
+        const fetchWalletData = async () => {
+            try {
+                const apiCall = axiosInstance.get('/user/wallet');
+                const { success, data, message } = await handleApiResponse(apiCall);
+                if (success) {
+                    setWallet(data.wallet ? data.wallet[0] : {});
+                    setUser(data.userData ? data.userData : {});
+                } else {
+                    console.error(message);
                 }
-            })
-            .catch(error => {
-                console.error('Error getting data:', error);
-            });
+            } catch (error) {
+                console.error('Error fetching wallet data:', error);
+            }
+        };
+
+        fetchWalletData();
     }, []);
 
 
@@ -40,32 +47,49 @@ function Wallet() {
             name: "Olegendary",
             description: "wallet payment",
             order_id: paymentData.id,
-            handler: (response) => {
-                axiosInstance.post('/user/add-wallet', { response, amount: parseInt(amount), description:'Adding money to wallet', userID: user._id })
-                    .then(response => {
-                        if (response.data.status) {
-                            toast.success(`₹ ${amount} added to your wallet`, {
-                                autoClose: 2000,
-                                hideProgressBar: false,
-                                closeOnClick: true,
-                                pauseOnHover: false,
-                                draggable: true,
-                                progress: undefined,
-                                theme: "dark",
-                            });
-                            let res = response.data
-                            setWallet(prevWallet => ({
-                                ...prevWallet,
-                                balance: res.wallet.balance,
-                                transactions: res.wallet.transactions
-                            }));
-                            setAmount('')
-                            setShowAddMoney(false)
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error getting data:', error);
-                    })
+            handler: async (response) => {
+                try {
+                    const apiResponse = await axiosInstance.post('/user/add-wallet', {
+                        response,
+                        amount: parseInt(amount),
+                        description: 'Adding money to wallet',
+                        userID: user._id
+                    });
+            
+                    const { success, data } = await handleApiResponse(apiResponse);
+            
+                    if (success) {
+                        toast.success(`₹ ${amount} added to your wallet`, {
+                            autoClose: 2000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: false,
+                            draggable: true,
+                            progress: undefined,
+                            theme: "dark",
+                        });
+            
+                        setWallet(prevWallet => ({
+                            ...prevWallet,
+                            balance: data.wallet.balance,
+                            transactions: data.wallet.transactions
+                        }));
+            
+                        setAmount('');
+                        setShowAddMoney(false);
+                    }
+                } catch (error) {
+                    console.error('Server error', error);
+                    toast.error('Error adding money to wallet', {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
+                }
             },
             prefill: {
                 name: user.name,
@@ -87,12 +111,18 @@ function Wallet() {
         let Errors = walletValidate(amount)
         setErrors(Errors)
         if (Object.keys(Errors).length === 0) {
-            
             try {
-                const { data } = await axiosInstance.post('/user/payments', { amount: amount })
-                initPayment(data.data)
+                const { success, data, message } = await handleApiResponse(
+                    axiosInstance.post('/user/payments', { amount: amount })
+                );
+
+                if (success) {
+                    initPayment(data);
+                } else {
+                    console.error(message);
+                }
             } catch (error) {
-                console.log(error);
+                console.error('Error initiating payment:', error.message);
             }
         }
     };
@@ -111,7 +141,7 @@ function Wallet() {
     return (
         <div>
             <Layout mainHeading={mainHeading} breadcrumbs={breadcrumbs} />
-            <ToastContainer/>
+            <ToastContainer />
             <div className="container mt-4">
                 <div className="row">
                     <div className="col-md-6">
