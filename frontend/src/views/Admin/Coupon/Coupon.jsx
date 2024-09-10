@@ -22,7 +22,6 @@ function Coupon() {
             try {
                 const apiCall = axiosInstance.get('/admin/get-coupons');
                 const response = await handleApiResponse(apiCall);
-                console.log(response,apiCall);
                 
                 if (response.success) {
                     setCoupons(response.data.coupons);

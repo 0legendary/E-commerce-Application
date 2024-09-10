@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './addProduct.css';
 import { addProductformValidation } from '../../../../config/productValidation';
 import axiosInstance from '../../../../config/axiosConfig';
+import {handleApiResponse} from '../../../../utils/utilsHelper';
 import { Link, useNavigate } from 'react-router-dom';
 import 'react-image-crop/dist/ReactCrop.css'
 import { uploadDirect } from '@uploadcare/upload-client';
@@ -30,23 +31,24 @@ function AddProduct() {
   const [saveImage, setSaveImage] = useState(false)
   const [categories, setCategories] = useState([]);
   const [croppedImage, setCroppedImage] = useState([])
-  const [publicKey, setPublicKey] = useState(null)
 
   const navigate = useNavigate();
 
 
   useEffect(() => {
-    axiosInstance.get('/admin/getAllCategories')
-      .then(response => {
-        if (response.data.status) {
-          setCategories(response.data.categories);
-          setPublicKey(response.data.publicKey)
+    const fetchCategories = async () => {
+        const apiCall = axiosInstance.get('/admin/getAllCategories');
+        
+        const { success, data, message } = await handleApiResponse(apiCall);
+
+        if (success) {
+            setCategories(data.categories);
+        } else {
+            console.error(message);
         }
-      })
-      .catch(error => {
-        console.error('Error fetching categories:', error);
-      });
-  }, []);
+    };
+    fetchCategories();
+}, []);
 
   useEffect(() => {
     const commonColors = [
@@ -156,7 +158,7 @@ function AddProduct() {
     const uploadImagesToUploadcare = async (files) => {
       const uploadPromises = files.map((file, index) =>
         uploadDirect(file, {
-          publicKey: publicKey,
+          publicKey: process.env.REACT_APP_UPLOADCARE_PUBLIC_KEY,
           store: 'auto',
         }).then(result => ({
           uuid: result.uuid,
@@ -184,29 +186,41 @@ function AddProduct() {
         images: uploadResults,
       };
 
-      axiosInstance.post('/admin/addProduct', newProduct)
-        .then(response => {
-          if (response.data.status) {
-            toast.success("Product created Successfully", {
-              autoClose: 2000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: false,
-              draggable: true,
-              progress: undefined,
-              theme: "dark",
-            });
-            setTimeout(() => {
-              setSuccessMsg('');
-              navigate('/admin/products');
-            }, 2000);
-          } else {
-            // Handle error
-          }
-        })
-        .catch(error => {
-          console.error('Error sending data:', error);
-        });
+
+      const addNewProduct = async (newProduct) => {
+        const apiCall = axiosInstance.post('/admin/addProduct', newProduct);
+
+        const response = await handleApiResponse(apiCall);
+
+        if (response.success) {
+          toast.success(response.message, {
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
+          setTimeout(() => {
+            setSuccessMsg('');
+            navigate('/admin/products');
+          }, 2000);
+        } else {
+          console.error('Error:', response.message);
+          toast.error(response.message, {
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
+        }
+      };
+
+      addNewProduct(newProduct)
     }
   };
 
@@ -372,7 +386,7 @@ function AddProduct() {
                             <input
                               type="checkbox"
                               name="color"
-                              value={color} 
+                              value={color}
                               checked={product.variations[currentPage].color.includes(color)}
                               onChange={(e) => handleColorChange(currentPage, e)}
                             />

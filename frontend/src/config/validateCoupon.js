@@ -1,6 +1,5 @@
 const couponValidate = (formData, existingCoupons) => {
     const errors = {};
-    const today = new Date().toISOString().split('T')[0]; // Current date in YYYY-MM-DD format
 
     // Validate Coupon Code
     if (!formData.code.trim()) {
@@ -42,14 +41,12 @@ const couponValidate = (formData, existingCoupons) => {
     // Validate Valid From Date
     if (!formData.validFrom) {
         errors.validFrom = 'Valid from date is required.';
-    } else if (formData.validFrom < today) {
-        errors.validFrom = 'Valid from date cannot be before today.';
     }
 
     // Validate Valid Until Date
     if (!formData.validUntil) {
         errors.validUntil = 'Valid until date is required.';
-    } else if (formData.validUntil <= formData.validFrom) {
+    } else if (formData.validUntil < formData.validFrom) {
         errors.validUntil = 'Valid until date must be after valid from date.';
     }
 

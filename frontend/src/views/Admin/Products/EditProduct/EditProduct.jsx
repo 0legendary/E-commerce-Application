@@ -7,6 +7,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { deleteFile, UploadcareSimpleAuthSchema } from '@uploadcare/rest-client';
 import { uploadDirect } from '@uploadcare/upload-client';
+import { handleApiResponse } from '../../../../utils/utilsHelper'
+
 
 function EditProduct() {
   const { id } = useParams();
@@ -25,7 +27,6 @@ function EditProduct() {
   const [currentPage, setCurrentPage] = useState(0);
 
   const [categories, setCategories] = useState([]);
-  const [uploadCareKey, setUploadCareKey] = useState({ publicKey: '', secretKey: '' })
 
   const navigate = useNavigate()
 
@@ -33,37 +34,44 @@ function EditProduct() {
 
 
   useEffect(() => {
-    axiosInstance.get(`/admin/edit/getProduct/${id}`)
-      .then(response => {
-        if (response.data.status) {
-          setProduct(response.data.product)
-          setCroppedImage(response.data.product?.images?.images)
-          setFilesID(response.data.product?.images?._id)
-          setUploadCareKey({ publicKey: response.data.uploadCarePublicKey, secretKey: response.data.uploadCareSecretKey })
+    const fetchProduct = async () => {
+      const apiCall = axiosInstance.get(`/admin/edit/getProduct/${id}`);
+      const { success, data, message } = await handleApiResponse(apiCall);
 
-        }
-      })
-      .catch(error => {
-        console.error('Error sending data:', error);
-      });
-  }, [id])
+      if (success) {
+        const { product} = data;
+        const { images } = product || {};
+
+        setProduct(product);
+        setCroppedImage(images?.images);
+        setFilesID(images?._id);
+      } else {
+        console.error('Error fetching product:', message);
+      }
+    };
+
+    fetchProduct();
+  }, [id]);
+
 
   const uploadcareSimpleAuthSchema = new UploadcareSimpleAuthSchema({
-    publicKey: uploadCareKey?.publicKey,
-    secretKey: uploadCareKey?.secretKey,
+    publicKey: process.env.REACT_APP_UPLOADCARE_PUBLIC_KEY,
+    secretKey: process.env.REACT_APP_UPLOADCARE_SECRET_KEY,
   });
 
 
   useEffect(() => {
-    axiosInstance.get('/admin/getAllCategories')
-      .then(response => {
-        if (response.data.status) {
-          setCategories(response.data.categories);
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching categories:', error);
-      });
+    const fetchCategories = async () => {
+      const apiCall = axiosInstance.get('/admin/getAllCategories');
+
+      const { success, data, message } = await handleApiResponse(apiCall);
+      if (success) {
+        setCategories(data.categories);
+      } else {
+        console.error(message);
+      }
+    };
+    fetchCategories();
   }, []);
 
   useEffect(() => {
@@ -194,6 +202,39 @@ function EditProduct() {
     }
   };
 
+
+  const handleUpdateProduct = async (updatedProductData, filesID) => {
+    const apiCall = axiosInstance.put('/admin/updateProduct', { updatedProductData, filesID });
+
+    const { success, message } = await handleApiResponse(apiCall);
+
+    if (success) {
+      toast.success(message || "Product updated", {
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+      setTimeout(() => {
+        navigate('/admin/products');
+      }, 1000);
+    } else {
+      console.error('Error:', message);
+      toast.error(message || "Error updating product", {
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+    }
+  };
+
   const handleSubmit = async (e) => {
     const uniqueImageUrls = new Set();
     const uniqueCroppedImages = croppedImage.filter((image) => {
@@ -230,7 +271,7 @@ function EditProduct() {
         const uploadPromises = files.map((file, index) => {
           if (!file.uuid) {
             return uploadDirect(file, {
-              publicKey: uploadCareKey?.publicKey,
+              publicKey: process.env.REACT_APP_UPLOADCARE_PUBLIC_KEY,
               store: 'auto',
             }).then(result => ({
               uuid: result.uuid,
@@ -272,26 +313,7 @@ function EditProduct() {
           images: allImages,
         };
 
-        axiosInstance.put('/admin/updateProduct', { updatedProductData: updatedProduct, filesID })
-          .then(response => {
-            if (response.data.status) {
-              toast.success("Product updated", {
-                autoClose: 2000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: true,
-                progress: undefined,
-                theme: "dark",
-              });
-              setTimeout(() => {
-                navigate('/admin/products');
-              }, 1000);
-            }
-          })
-          .catch(error => {
-            console.error('Error sending data:', error);
-          });
+        handleUpdateProduct(updatedProduct, filesID)
       } else {
         const allImages = [...uniqueCroppedImages.filter(image => image.uuid)];
 
@@ -300,26 +322,7 @@ function EditProduct() {
           images: allImages,
         };
 
-        axiosInstance.put('/admin/updateProduct', { updatedProductData: updatedProduct, filesID })
-          .then(response => {
-            if (response.data.status) {
-              toast.success("Product updated", {
-                autoClose: 2000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: true,
-                progress: undefined,
-                theme: "dark",
-              });
-              setTimeout(() => {
-                navigate('/admin/products');
-              }, 1000);
-            }
-          })
-          .catch(error => {
-            console.error('Error sending data:', error);
-          });
+        handleUpdateProduct(updatedProduct, filesID)
       }
     }
   };
@@ -375,8 +378,9 @@ function EditProduct() {
                 value={product.categoryId}
                 onChange={handleInputChange}
               >
+
                 <option value="">Select Category</option>
-                {categories.length > 0 && categories.map((category, index) => (
+                {categories?.length > 0 && categories.map((category, index) => (
                   !category.isBlocked && <option key={index} value={category._id}>{category.name}</option>
                 ))}
               </select>

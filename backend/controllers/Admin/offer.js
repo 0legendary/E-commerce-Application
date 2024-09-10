@@ -6,6 +6,7 @@ import {
     deleteFile,
     UploadcareSimpleAuthSchema,
 } from '@uploadcare/rest-client';
+import { createResponse } from '../../utils/responseHelper.js';
 
 const uploadcareSimpleAuthSchema = new UploadcareSimpleAuthSchema({
     publicKey: process.env.UPLOADCARE_PUBLIC_KEY,
@@ -19,17 +20,22 @@ export const getOffersAdmin = async (req, res) => {
                 path: 'imageID',
                 select: 'images'
             }).lean();
-        const categories = await Category.find({})
+        const categories = await Category.find({});
         const products = await Product.find({})
             .populate({
                 path: 'images',
                 select: 'images'
             }).lean();
-        res.status(201).json({ status: true, offers, categories, products });
+        
+        res.status(200).json(createResponse(true, 'Offers, categories, and products fetched successfully', {
+            offers,
+            categories,
+            products
+        }));
     } catch (error) {
-        res.status(500).json({ error: 'Error fetching products' });
+        res.status(500).json(createResponse(false, 'Error fetching offers, categories, or products', null, error.message));
     }
-}
+};
 
 export const createNewOfferAdmin = async (req, res) => {
     const offerData = req.body;
@@ -64,10 +70,9 @@ export const createNewOfferAdmin = async (req, res) => {
             );
         }
 
-        res.status(200).json({ status: true });
+        res.status(200).json(createResponse(true, 'Offer created successfully'));
     } catch (error) {
-        res.status(500).json({ status: false, message: 'Server error' });
-        console.error('Error creating offer:', error);
+        res.status(500).json(createResponse(false, 'Error in creating new offer', null, error.message));
     }
 }
 
@@ -78,7 +83,7 @@ export const editOfferAdmin = async (req, res) => {
         const offer = await Offer.findById(offerData._id);
 
         if (!offer) {
-            return res.status(404).json({ status: false, message: 'Offer not found' });
+            return res.status(200).json(createResponse(false, 'Offer not found'));
         }
 
         if (offerData.images && imageID) {
@@ -170,10 +175,11 @@ export const editOfferAdmin = async (req, res) => {
         await offer.save();
 
 
-        res.status(200).json({ status: true });
+        res.status(200).json(createResponse(true, 'Offer edited successfully'));
+
     } catch (error) {
-        res.status(500).json({ status: false, message: 'Server error' });
-        console.error('Error while editing offer:', error);
+        res.status(500).json(createResponse(false, 'Error editing the offer', null, error.message));
+
     }
 }
 
@@ -182,19 +188,20 @@ export const toggleOffersAdmin = async (req, res) => {
     try {
         const offer = await Offer.findById(offer_id);
         if (!offer) {
-            return res.status(404).json({ status: false, message: 'Offer not found' });
+            return res.status(404).json(createResponse(false, 'Offer not found'));
         }
         offer.isActive = !offer.isActive;
         await offer.save();
 
-        res.status(201).json({ status: true });
+        res.status(200).json(createResponse(true, 'Offer status updated successfully'));
     } catch (error) {
-        res.status(500).json({ error: 'Error fetching products' });
+        res.status(500).json(createResponse(false, 'Error updating offer status', null, error.message));
     }
 }
 
 export const deleteOffer = async (req, res) => {
     const { offer_id } = req.body;
+    
     try {
         const offer = await Offer.findById(offer_id);
 
@@ -211,9 +218,8 @@ export const deleteOffer = async (req, res) => {
 
         await Offer.findByIdAndDelete(offer_id);
 
-        res.status(200).json({ status: true });
+        res.status(200).json(createResponse(true, 'Offer deleted successfully'));
     } catch (error) {
-        console.error('Error deleting the offer:', error);
-        res.status(500).json({ status: false, message: 'Error deleting the offer' });
+        res.status(500).json(createResponse(false, 'Error deleting the offer', null, error.message));
     }
 };

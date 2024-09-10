@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Form, Button, Container } from 'react-bootstrap';
 import { couponValidate } from '../../../config/validateCoupon';
 import axiosInstance from '../../../config/axiosConfig';
+import {handleApiResponse} from '../../../utils/utilsHelper';
+
 
 function NewCoupon({ cancelCreate, coupons }) {
     const [errors, setErrors] = useState({})
@@ -28,39 +30,42 @@ function NewCoupon({ cancelCreate, coupons }) {
         })
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        let validationErrors = couponValidate(formData, coupons)
 
-        if (Object.keys(validationErrors).length === 0) {
-            try {
-                const response = await axiosInstance.post('/admin/create-coupon', formData);
-                if (response.data.status) {
-                    cancelCreate(response.data.coupon)
-                    setFormData({
-                        code:'',
-                        description:'',
-                        discountValue: '',
-                        minOrderAmount: '',
-                        validFrom: '',
-                        validUntil: '',
-                        usageLimit: ''
-                    });
-                    setErrors({});
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    const validationErrors = couponValidate(formData, coupons);
 
-                } else {
-                    console.error('Error creating coupon:', response.data.message);
-                    setErrors({ server: response.data.message });
-                }
-            } catch (error) {
-                console.error('Error during API request:', error);
-                setErrors({ server: 'An unexpected error occurred' });
+    if (Object.keys(validationErrors).length === 0) {
+        try {
+            const apiCall = axiosInstance.post('/admin/create-coupon', formData);
+            const { success, data, message } = await handleApiResponse(apiCall);
+
+            if (success) {
+                const { coupon } = data;
+                cancelCreate(coupon);
+                setFormData({
+                    code: '',
+                    description: '',
+                    discountValue: '',
+                    minOrderAmount: '',
+                    validFrom: '',
+                    validUntil: '',
+                    usageLimit: ''
+                });
+                setErrors({});
+            } else {
+                console.error('Error creating coupon:', message);
+                setErrors({ server: message });
             }
-        } else {
-            setErrors(validationErrors);
+        } catch (error) {
+            console.error('Error during API request:', error);
+            setErrors({ server: 'An unexpected error occurred' });
         }
-
-    };
+    } else {
+        setErrors(validationErrors);
+    }
+};
+    
 
     return (
         <Container className="mt-5">

@@ -47,7 +47,6 @@ const Dashboard = () => {
             try {
                 const apiCall = axiosInstance.get('/admin/all-orders');
                 const { success, data, message } = await handleApiResponse(apiCall);
-
                 if (success) {
                     const ordersData = data.orders || [];
                     setOrders(ordersData);
@@ -63,8 +62,8 @@ const Dashboard = () => {
         const fetchTopCategories = async () => {
             try {
                 const apiCall = axiosInstance.get('/admin/top-orders-category');
-                const { success, data, message } = await handleApiResponse(apiCall);
-
+                const { success, message, data } = await handleApiResponse(apiCall);
+                console.log(data);
                 if (success) {
                     setTopCategories(data.topCategories);
                     setTopBrands(data.topBrands);
@@ -72,7 +71,7 @@ const Dashboard = () => {
                     console.error('Error fetching top categories:', message);
                 }
             } catch (error) {
-                console.error('Error fetching top categories:', error);
+                console.error('Unexpected error fetching top categories:', error);
             }
         };
 
@@ -89,12 +88,11 @@ const Dashboard = () => {
 
 
     const updateDashboard = (ordersData) => {
-        // Filter orders based on selected filter type
         const filteredOrders = filterOrders(ordersData);
         setTotalSales(filteredOrders.reduce((total, order) => total + order.orderTotal, 0).toFixed(2))
         setTotalOrders(filteredOrders.length)
         setAverageOrderVal((filteredOrders.reduce((total, order) => total + order.orderTotal, 0) / orders.length).toFixed(2))
-        // Prepare sales data for chart
+
         const salesData = filteredOrders.map(order => ({
             date: new Date(order.orderDate).toLocaleDateString(),
             sales: order.orderTotal
@@ -209,6 +207,15 @@ const Dashboard = () => {
                 return ordersData.filter(order => {
                     const orderDate = new Date(order.orderDate);
                     return orderDate >= startOfYear && orderDate <= now;
+                });
+            case 'customeDate':
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+
+                return ordersData.filter(order => {
+                    const orderDate = new Date(order.orderDate);
+                    return orderDate >= start && orderDate <= end;
                 });
             case 'all':
                 return ordersData;
@@ -566,7 +573,7 @@ const Dashboard = () => {
                                 <ul className="list-group">
                                     {topCategories.map((category, index) => (
                                         <li key={index} className="list-group-item">
-                                            {category.category} - {category.count}
+                                            {category.category} - {category.totalSold}
                                         </li>
                                     ))}
                                 </ul>
@@ -588,7 +595,7 @@ const Dashboard = () => {
                                 <ul className="list-group">
                                     {topBrands.map((brand, index) => (
                                         <li key={index} className="list-group-item">
-                                            {brand.brand} - {brand.count}
+                                            {brand.brand} - {brand.totalSold}
                                         </li>
                                     ))}
                                 </ul>

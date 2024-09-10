@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import axiosInstance from '../../../config/axiosConfig';
+import { handleApiResponse } from '../../../utils/utilsHelper';
 
 function Category() {
   const [showModal, setShowModal] = useState(false);
@@ -13,15 +14,22 @@ function Category() {
 
 
   useEffect(() => {
-    axiosInstance.get('/admin/getAllCategories')
-      .then(response => {
-        if (response.data.status) {
-          setCategories(response.data.categories);
+    const fetchCategories = async () => {
+      try {
+        const apiCall = axiosInstance.get('/admin/getAllCategories');
+        const { success, data, message } = await handleApiResponse(apiCall);
+
+        if (success) {
+          setCategories(data.categories);
+        } else {
+          console.error('Error fetching categories:', message);
         }
-      })
-      .catch(error => {
-        console.error('Error fetching categories:', error);
-      });
+      } catch (error) {
+        console.error('Unexpected error fetching categories:', error);
+      }
+    };
+
+    fetchCategories();
   }, []);
 
 
@@ -40,38 +48,45 @@ function Category() {
     setNewCategory({ ...newCategory, [name]: value });
   };
 
-  const handleAddCategory = async () => {
-    setCategories([...categories, { ...newCategory }]);
 
-    await axiosInstance.post('/admin/newCategory', newCategory)
-      .then(response => {
-        if (response.data.status) {
-          setCategories([...categories, response.data.category]);
-          handleCloseModal();
-        }
-      })
-      .catch(error => {
-        console.error('Error adding category:', error);
-      });
+  const handleAddCategory = async () => {
+    const updatedCategories = [...categories, { ...newCategory }];
+    setCategories(updatedCategories);
+
+    // Post the new category to the backend
+    const apiCall = axiosInstance.post('/admin/newCategory', newCategory);
+
+    const { success, data, message } = await handleApiResponse(apiCall);
+
+    if (success) {
+      setCategories([...categories, data.newCategory]);
+      handleCloseModal();
+    } else {
+      // Optionally handle error UI updates here
+      console.error('Error adding category:', message);
+    }
   };
+
 
   const handleEditCategory = async () => {
     const editedCategory = {
       _id: editCategoryId,
       ...newCategory
+    };
+
+    const apiCall = axiosInstance.put('/admin/editCategory', editedCategory);
+
+    const { success, data, message } = await handleApiResponse(apiCall);
+    
+    if (success) {
+      setCategories(categories.map(category =>
+        category._id === editCategoryId ? data.existingCategory : category
+      ));
+      handleCloseModal();
+    } else {
+      // Optionally handle error UI updates here
+      console.error('Error editing category:', message);
     }
-    await axiosInstance.put('/admin/editCategory', editedCategory)
-      .then(response => {
-        if (response.data.status) {
-          setCategories(categories.map(category =>
-            category._id === editCategoryId ? response.data.category : category
-          ));
-          handleCloseModal();
-        }
-      })
-      .catch(error => {
-        console.error('Error editing category:', error);
-      });
   };
 
   const openEditModal = (category) => {
@@ -93,33 +108,37 @@ function Category() {
 
   const handleConfirmDelete = async () => {
     if (categoryToDelete) {
-      await axiosInstance.delete(`/admin/deleteCategory/${categoryToDelete._id}`)
-        .then(response => {
-          if (response.data.status) {
+        const apiCall = axiosInstance.delete(`/admin/deleteCategory/${categoryToDelete._id}`);
+
+        const { success, message } = await handleApiResponse(apiCall);
+
+        if (success) {
             setCategories(categories.filter(category => category._id !== categoryToDelete._id));
             handleCloseDeleteModal();
-          }
-        })
-        .catch(error => {
-          console.error('Error deleting category:', error);
-        });
+        } else {
+            // Optionally handle error UI updates here
+            console.error('Error deleting category:', message);
+        }
     }
-  };
+};
 
 
-  const handleToggleCategory = async (_id) => {
+  const handleToggleCategory = async (category_id) => {
     try {
-      const response = await axiosInstance.put('/admin/toggleCategory', { _id });
-      if (response.data.status) {
-        setCategories(categories.map(category =>
-          category._id === _id ? { ...category, isBlocked: !category.isBlocked } : category
-        ));
-      }
-    } catch (error) {
-      console.error('Error toggling category:', error);
-    }
-  };
+        const apiCall = axiosInstance.put('/admin/toggleCategory', { category_id });
+        const { success, data, message } = await handleApiResponse(apiCall);
 
+        if (success) {
+            setCategories(categories.map(category =>
+                category._id === category_id ? data.category : category
+            ));
+        } else {
+            console.error('Error toggling category:', message);
+        }
+    } catch (error) {
+        console.error('Error toggling category:', error);
+    }
+};
 
   return (
     <div className="container mt-5 text-white">

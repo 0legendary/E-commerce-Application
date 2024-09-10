@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Form, Button, Container } from 'react-bootstrap';
 import { couponValidate } from '../../../config/validateCoupon';
 import axiosInstance from '../../../config/axiosConfig';
+import { handleApiResponse } from '../../../utils/utilsHelper';
 
 function EditCoupon({ completeEditCoupon, coupon, allCoupons }) {
     const [errors, setErrors] = useState({})
@@ -22,22 +23,24 @@ function EditCoupon({ completeEditCoupon, coupon, allCoupons }) {
         })
     };
 
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        let allCouponsData = allCoupons.filter(val => val._id !== formData._id)
-        let validationErrors = couponValidate(formData, allCouponsData)
-
+        const allCouponsData = allCoupons.filter(val => val._id !== formData._id);
+        const validationErrors = couponValidate(formData, allCouponsData);
+    
         if (Object.keys(validationErrors).length === 0) {
-
             try {
-                const response = await axiosInstance.post('/admin/edit-coupon', formData);
-                if (response.data.status) {
-                    completeEditCoupon(response.data.coupon)
+                const apiCall = axiosInstance.post('/admin/edit-coupon', formData);
+                const { success, data, message } = await handleApiResponse(apiCall);
+    
+                if (success) {
+                    completeEditCoupon(data.coupon);
                     setFormData({});
                     setErrors({});
                 } else {
-                    console.error('Error creating coupon:', response.data.message);
-                    setErrors({ server: response.data.message });
+                    console.error('Error editing coupon:', message);
+                    setErrors({ server: message });
                 }
             } catch (error) {
                 console.error('Error during API request:', error);
@@ -46,7 +49,6 @@ function EditCoupon({ completeEditCoupon, coupon, allCoupons }) {
         } else {
             setErrors(validationErrors);
         }
-
     };
     return (
         <Container className="mt-5">

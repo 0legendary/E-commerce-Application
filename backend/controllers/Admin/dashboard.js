@@ -1,55 +1,105 @@
 import Product from "../../model/product.js";
+import Order from "../../model/order.js";
+import Category from "../../model/category.js";
+import { createResponse } from "../../utils/responseHelper.js";
 
-
+// Top 5 Selling Categories and Brands based on orders
 export const topOrderCategory = async (req, res) => {
     try {
-        const topCategories = await Product.aggregate([
+        // Top 5 Selling Categories
+        const topCategories = await Order.aggregate([
+            { 
+                // Unwind the products array in orders
+                $unwind: "$products"
+            },
             {
-                $group: {
-                    _id: "$name",
-                    count: { $sum: 1 }
+                $lookup: {
+                    // Join with the Product collection
+                    from: "products",
+                    localField: "products.productId",
+                    foreignField: "_id",
+                    as: "productInfo"
                 }
             },
             {
-                $sort: { count: -1 }
+                // Unwind the joined product details
+                $unwind: "$productInfo" 
             },
             {
-                $limit: 10
+                $lookup: {
+                    // Join with the Category collection
+                    from: "categories", 
+                    localField: "productInfo.categoryId",
+                    foreignField: "_id",
+                    as: "categoryInfo"
+                }
+            },
+            {
+                // Unwind the joined category details
+                $unwind: "$categoryInfo" 
+            },
+            {
+                $group: {
+                    // Group by category name
+                    _id: "$categoryInfo.name", 
+                    totalSold: { $sum: "$products.quantity" } 
+                }
+            },
+            {
+                $sort: { totalSold: -1 }
+            },
+            {
+                $limit: 5 
             },
             {
                 $project: {
                     _id: 0,
                     category: "$_id",
-                    count: 1
+                    totalSold: 1
                 }
             }
         ]);
 
-        const topBrands = await Product.aggregate([
+        // Top 5 Selling Brands
+        const topBrands = await Order.aggregate([
             {
-                $group: {
-                    _id: "$brand",
-                    count: { $sum: 1 }
+                $unwind: "$products" 
+            },
+            {
+                $lookup: {
+                    from: "products", 
+                    localField: "products.productId",
+                    foreignField: "_id",
+                    as: "productInfo"
                 }
             },
             {
-                $sort: { count: -1 }
+                $unwind: "$productInfo"
             },
             {
-                $limit: 10
+                $group: {
+                    _id: "$productInfo.brand",
+                    totalSold: { $sum: "$products.quantity" }
+                }
+            },
+            {
+                $sort: { totalSold: -1 }
+            },
+            {
+                $limit: 5
             },
             {
                 $project: {
                     _id: 0,
                     brand: "$_id",
-                    count: 1
+                    totalSold: 1
                 }
             }
         ]);
 
+        res.status(200).json(createResponse(true, 'Top categories and brands fetched successfully', { topCategories, topBrands }));
 
-        res.status(201).json({ status: true, topCategories, topBrands});
     } catch (error) {
-        res.status(500).json({ error: 'Error fetching products' });
+        res.status(500).json(createResponse(false, 'Error fetching data', null, error.message));
     }
-}
+};

@@ -1,28 +1,22 @@
 import { Router } from 'express';
 import { authenticateTokenAdmin } from '../middleware/authMiddleware.js';
-import { addImage, deleteImage, addNewProduct, getProducts, editProducts, updateProducts, moveToTrashProduct, deletePermenantly } from '../controllers/Admin/product.js';
+import { addNewProduct, getProducts, editProducts, updateProducts, moveToTrashProduct, deletePermenantly } from '../controllers/Admin/product.js';
 import { getAllUser, toggleBlockUser } from '../controllers/Admin/user.js';
 import { createNewCategory, deleteCategory, editCategory, getAllCategories, toggleCategory } from '../controllers/Admin/category.js';
 import { getAllOrders } from '../controllers/Admin/orders.js';
 import { createNewCoupon, editCoupon, getAllCoupons } from '../controllers/Admin/coupons.js';
 import { createNewOfferAdmin, deleteOffer, editOfferAdmin, getOffersAdmin, toggleOffersAdmin } from '../controllers/Admin/offer.js';
 import { topOrderCategory } from '../controllers/Admin/dashboard.js';
-import { getKeys } from '../controllers/Admin/uploadCareKeys.js';
 
 const router = Router();
 
 // Products Management
-router.post('/uploadImage', authenticateTokenAdmin, addImage);
-router.post('/deleteImage', authenticateTokenAdmin, deleteImage);
 router.post('/addProduct', authenticateTokenAdmin, addNewProduct)
 router.get('/getProducts', authenticateTokenAdmin, getProducts);
-router.get('/edit/getProduct/:id', authenticateTokenAdmin, editProducts);
+router.get('/edit/getProduct/:product_id', authenticateTokenAdmin, editProducts);
 router.put('/updateProduct', authenticateTokenAdmin, updateProducts);
 router.post('/moveToTrash', authenticateTokenAdmin, moveToTrashProduct);
 router.post('/deletePermanently', authenticateTokenAdmin, deletePermenantly);
-
-//admin upload care keys
-router.get('/getUploadCare/publicKey', getKeys);
 
 //admin management
 router.get('/getAllUsers', authenticateTokenAdmin, getAllUser);
@@ -33,7 +27,7 @@ router.post('/toggleBlockUser', authenticateTokenAdmin, toggleBlockUser);
 router.get('/getAllCategories', authenticateTokenAdmin, getAllCategories);
 router.post('/newCategory', authenticateTokenAdmin, createNewCategory)
 router.put('/editCategory', authenticateTokenAdmin, editCategory);
-router.delete('/deleteCategory/:_id', authenticateTokenAdmin, deleteCategory);
+router.delete('/deleteCategory/:category_id', authenticateTokenAdmin, deleteCategory);
 router.put('/toggleCategory', authenticateTokenAdmin, toggleCategory);
 
 

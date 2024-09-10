@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './adminProduct.css';
 import { Link } from 'react-router-dom';
 import axiosInstance from '../../../config/axiosConfig';
-import {handleApiResponse} from '../../../utils/utilsHelper'
+import { handleApiResponse } from '../../../utils/utilsHelper'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 function AdminProducts() {
@@ -19,7 +19,7 @@ function AdminProducts() {
       const result = await handleApiResponse(
         axiosInstance.get('/admin/getProducts')
       );
-  
+
       if (result.success) {
         setProducts(result.data.products);
         setFilteredProducts(result.data.products);
@@ -28,7 +28,7 @@ function AdminProducts() {
         console.error(result.message);
       }
     };
-  
+
     fetchProducts();
   }, []);
 
@@ -44,78 +44,77 @@ function AdminProducts() {
     }
   }, [searchTerm, products]);
 
-  const handleDelete = (_id, index) => {
-    setConfirmDelete(products[index]);
-    setDeleteProduct(true);
+  const handleDelete = (_id) => {
+    const product = products.find(p => p._id === _id);
+  
+    if (product) {
+      setConfirmDelete(product);
+      setDeleteProduct(true);
+    }
   };
+  
 
-  const handleMoveToTrash = (_id) => {
-    axiosInstance.post('/admin/moveToTrash', { product_id: _id })
-      .then((response) => {
-        if (response.data.status) {
-          setProducts(prevProducts => prevProducts.filter(product => product._id !== _id));
-          toast.error("Product moved to trash", {
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            theme: "dark",
-          });
-          setDeleteProduct(false);
-        } else {
-          toast.error("Failed to move to trash", {
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            theme: "dark",
-          });
-        }
-      })
-      .catch(() => {
-        console.log('Error moving to trash');
+  const handleMoveToTrash = async (_id) => {
+    const apiCall = axiosInstance.post('/admin/moveToTrash', { product_id: _id });
+    const { success, message } = await handleApiResponse(apiCall);
+
+    if (success) {
+      setProducts((prevProducts) => prevProducts.filter((product) => product._id !== _id));
+
+      toast.error(message || "Product moved to trash", {
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
       });
-  };
-
-  const handleDeletePermanently = (_id) => {
-    axiosInstance.post('/admin/deletePermanently', { product_id: _id })
-      .then((response) => {
-        if (response.data.status) {
-          setProducts(prevProducts => prevProducts.filter(product => product._id !== _id));
-          toast.error("Product deleted", {
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            theme: "dark",
-          });
-          setDeleteProduct(false);
-        } else {
-          toast.error("Failed to delete permanently", {
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            theme: "dark",
-          });
-          setDeleteProduct(false);
-        }
-      })
-      .catch(() => {
-        console.log('Error deleting permanently');
-        setDeleteProduct(false);
+      setDeleteProduct(false);
+    } else {
+      toast.error(message || "Failed to move to trash", {
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
       });
+    }
   };
 
-  // Pagination logic
+
+  const handleDeletePermanently = async (_id) => {
+    const apiCall = axiosInstance.post('/admin/deletePermanently', { product_id: _id });
+    const { success, message } = await handleApiResponse(apiCall);
+
+    if (success) {
+      setProducts((prevProducts) => prevProducts.filter((product) => product._id !== _id));
+
+      toast.error(message || "Product deleted", {
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+    } else {
+      toast.error(message || "Failed to delete permanently", {
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+    }
+
+    setDeleteProduct(false);
+  };
   const indexOfLastProduct = currentPage * itemsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - itemsPerPage;
   const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
@@ -128,7 +127,7 @@ function AdminProducts() {
   return (
     <>
       <div className="admin-products">
-      <ToastContainer />
+        <ToastContainer />
         <div className="header">
           <h1>Products</h1>
           <Link to='/admin/addProduct'>

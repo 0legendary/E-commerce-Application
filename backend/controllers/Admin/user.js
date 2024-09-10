@@ -1,11 +1,12 @@
 import User from "../../model/user.js";
+import { createResponse } from "../../utils/responseHelper.js";
 
 export const getAllUser = async (req, res) => {
     try {
         const users = await User.find({})
-        res.status(201).json({ status: true, users: users });
+        return res.status(200).json(createResponse(true, 'Users fetched successfully', users));
     } catch (error) {
-        res.status(500).json({ error: 'Error fetching products' });
+        return res.status(500).json(createResponse(false, 'Error fetching users', null, error.message));
     }
 }
 
@@ -16,11 +17,11 @@ export const toggleBlockUser = async (req, res) => {
         if (user) {
             user.isBlocked = isBlocked;
             await user.save();
-            res.json({ status: true });
+            return res.status(200).json(createResponse(true, 'User status updated successfully'));
         } else {
-            res.json({ status: false, message: 'User not found' });
+            return res.status(404).json(createResponse(false, 'User not found'));
         }
     } catch (error) {
-        res.json({ status: false, message: 'Error updating user status', error });
+        return res.status(500).json(createResponse(false, 'Error updating user status', null, error.message));
     }
-}
+};

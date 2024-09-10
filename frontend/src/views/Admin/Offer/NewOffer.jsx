@@ -5,6 +5,8 @@ import axiosInstance from '../../../config/axiosConfig';
 import UploadFIles from '../../UploadFiles/UploadFIles';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import {handleApiResponse} from '../../../utils/utilsHelper';
+
 function NewOffer({ cancelCreate, products, categories }) {
     const [errors, setErrors] = useState({})
     const [files, setFiles] = useState([]);
@@ -35,35 +37,54 @@ function NewOffer({ cancelCreate, products, categories }) {
         }))
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        const newOfferData = { ...formData, images: files }
-        let validate = offerValidate(newOfferData)
-        setErrors(validate)
-        if (Object.keys(validate).length === 0) {
-            axiosInstance.post('/admin/add-offer', newOfferData)
-                .then(response => {
-                    if (response.data.status) {
-                        cancelCreate(newOfferData)
-                    } else {
-                        toast.error("unable to create new offer", {
-                            autoClose: 2000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: false,
-                            draggable: true,
-                            progress: undefined,
-                            theme: "dark",
-                        });
 
-                    }
-                })
-                .catch(error => {
-                    console.error('Error sending data:', error);
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const newOfferData = { ...formData, images: files };
+        const validationErrors = offerValidate(newOfferData);
+        setErrors(validationErrors);
+
+        if (Object.keys(validationErrors).length === 0) {
+            try {
+                const apiCall = axiosInstance.post('/admin/add-offer', newOfferData);
+                const { success, message } = await handleApiResponse(apiCall);
+
+                if (success) {
+                    cancelCreate(newOfferData);
+                    toast.success("New offer created successfully", {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
+                } else {
+                    toast.error(message || "Unable to create new offer", {
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "dark",
+                    });
+                }
+            } catch (error) {
+                console.error('Error sending data:', error);
+                toast.error('An unexpected error occurred', {
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "dark",
                 });
+            }
         }
     };
-
     const handleTypeChange = (e) => {
         setFormData(prev => ({
             ...prev,

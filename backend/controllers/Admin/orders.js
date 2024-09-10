@@ -1,4 +1,6 @@
+import { trusted } from "mongoose";
 import Order from "../../model/order.js";
+import { createResponse } from "../../utils/responseHelper.js";
 
 export const getAllOrders = async (req, res) => {
     try {
@@ -16,9 +18,8 @@ export const getAllOrders = async (req, res) => {
                 path: 'customerId',
                 select: 'name email mobile'
             });
-        res.json({ status: true, orders });
+        res.json(createResponse(true, 'Orders fetched successfully', {orders}));
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ status: false, message: 'Error fetching user' });
+        res.status(500).json(createResponse(false, 'Error fetching orders', null, error.message));
     }
 }
