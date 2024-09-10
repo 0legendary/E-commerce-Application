@@ -63,7 +63,6 @@ const Dashboard = () => {
             try {
                 const apiCall = axiosInstance.get('/admin/top-orders-category');
                 const { success, message, data } = await handleApiResponse(apiCall);
-                console.log(data);
                 if (success) {
                     setTopCategories(data.topCategories);
                     setTopBrands(data.topBrands);

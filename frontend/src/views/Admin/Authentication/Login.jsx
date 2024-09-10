@@ -70,63 +70,64 @@ function Login() {
   }, [countdown]);
 
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    let newErrors = {};
-    newErrors = loginAuthenticate(formData.email, formData.password)
+    let newErrors = loginAuthenticate(formData.email, formData.password);
     setErrors(newErrors);
+  
     if (Object.keys(newErrors).length === 0) {
-      const loginData = {
-        email: formData.email,
-        password: formData.password,
-      };
-
-      axiosInstance.post('/admin/login', loginData)
-        .then(response => {
-          if (response.data.status) {
-            sessionStorage.setItem('accessToken', response.data.accessToken);
-            setErrors({})
-            setSuccessMsg({login:'Login successful'})
-            setTimeout(() => {
-              navigate("/admin")
-              setSuccessMsg({login:''})
-            }, 2000)
-            setCountdown(2)
-          } else {
-            setErrors({ unAuthorised: 'Wrong Email or Password' })
-          }
-
-        })
-        .catch(error => {
-          setErrors({ unAuthorised: 'Wrong Email or Password' })
-          console.error('Error sending login data:', error);
-        });
-
-    }
-  };
-
-
-  const openGoogleSignIn = async (googleUserData) => {
-    setErrors({})
-    const credential = googleUserData.credential
-    try {
-      const response = await axiosInstance.post('/admin/google/login', { credential });
-      if (response.data.status) {
-        setErrors({})
-        sessionStorage.setItem('accessToken', response.data.accessToken);
-        setSuccessMsg({login:'Login successful'});
-        setTimeout(() => {
-          navigate("/admin");
-          setSuccessMsg({login:''})
-        }, 2000);
-        countdown(2)
-      } else {
-        setErrors({ unAuthorised: 'This Account is not registered' });
+      try {
+        const loginData = {
+          email: formData.email,
+          password: formData.password,
+        };
+  
+        const apiCall = axiosInstance.post('/admin/login', loginData);
+        const { success, message, data } = await handleApiResponse(apiCall);
+  
+        if (success) {
+          sessionStorage.setItem('accessToken', data.accessToken);
+          setErrors({});
+          setSuccessMsg({ login: message });
+          setTimeout(() => {
+            navigate("/admin");
+            setSuccessMsg({ login: '' });
+          }, 2000);
+          setCountdown(2);
+        } else {
+          setErrors({ unAuthorised: message });
+        }
+      } catch (error) {
+        setErrors({ unAuthorised: 'Error occurred during login' });
+        console.error('Error sending login data:', error);
       }
-    } catch (error) {
-      console.error('Error verifying Google credential:', error);
     }
   };
+  
+const openGoogleSignIn = async (googleUserData) => {
+  setErrors({});
+  const credential = googleUserData.credential;
+
+  try {
+    const apiCall = axiosInstance.post('/admin/google/login', { credential });
+    const { success, message, data } = await handleApiResponse(apiCall);
+    
+    if (success) {
+      sessionStorage.setItem('accessToken', data.accessToken);
+      setSuccessMsg({ login: message });
+      setTimeout(() => {
+        navigate("/admin");
+        setSuccessMsg({ login: '' });
+      }, 2000);
+      setCountdown(2);
+    } else {
+      setErrors({ unAuthorised: message });
+    }
+  } catch (error) {
+    setErrors({ unAuthorised: 'Error occurred during Google login' });
+    console.error('Error verifying Google credential:', error);
+  }
+};
 
 
 
@@ -146,87 +147,94 @@ function Login() {
   }
 
 
-  const sendOTP = (e) => {
-    e.preventDefault()
-    axiosInstance.post('/admin/forgot-pass/send-otp', { email: formData.email })
-      .then(response => {
-        if (response.data.status) {
-          setCountdown(10)
-          setButtonEnabled(false)
-          setSuccessMsg({newOTPSend:'New OTP sended to your email'})
-          setErrors({})
-          setTimeout(() => {
-            setSuccessMsg({newOTPSend:''})
-          }, 2000)
-        } else {
-          setErrors({ unAuthorised: 'Verification failed' })
-        }
-      })
-      .catch(error => {
-        console.error('Error sending login data:', error);
-      });
-
-  }
-
-
-  const verifyOTP = (e) => {
-    e.preventDefault()
-    let newErrors = {};
-    newErrors = otpVerification(formOtp)
-    setErrors(newErrors);
-    if (Object.keys(newErrors).length === 0) {
-      axiosInstance.post('/admin/forgot-pass/verify-otp', { otp: formOtp, email: formData.email })
-        .then(response => {
-          if (response.data.status) {
-            setSuccessMsg({otpVerified:'OTP verified'})
-            setTimeout(() => {
-              setShowOtpPage(false)
-              setShowNewPassInput(true)
-              setSuccessMsg({otpVerified:''})
-            }, 2000);
-          }
-        })
+  const sendOTP = async (e) => {
+    e.preventDefault();
+    try {
+      const apiCall = axiosInstance.post('/admin/forgot-pass/send-otp', { email: formData.email });
+      const { success, message } = await handleApiResponse(apiCall);
+  
+      if (success) {
+        setCountdown(10);
+        setButtonEnabled(false);
+        setSuccessMsg({ newOTPSend: message });
+        setErrors({});
+        setTimeout(() => {
+          setSuccessMsg({ newOTPSend: '' });
+        }, 2000);
+      } else {
+        setErrors({ unAuthorised: message });
+      }
+    } catch (error) {
+      console.error('Error sending OTP:', error);
+      setErrors({ unAuthorised: 'Error occurred while sending OTP' });
     }
-  }
-
+  };
+  
+  const verifyOTP = async (e) => {
+    e.preventDefault();
+    let newErrors = otpVerification(formOtp);
+    setErrors(newErrors);
+  
+    if (Object.keys(newErrors).length === 0) {
+      try {
+        const apiCall = axiosInstance.post('/admin/forgot-pass/verify-otp', { otp: formOtp, email: formData.email });
+        const { success, message } = await handleApiResponse(apiCall);
+  
+        if (success) {
+          setSuccessMsg({ otpVerified: message });
+          setTimeout(() => {
+            setShowOtpPage(false);
+            setShowNewPassInput(true);
+            setSuccessMsg({ otpVerified: '' });
+          }, 2000);
+        } else {
+          setErrors({ unAuthorised: message });
+        }
+      } catch (error) {
+        console.error('Error verifying OTP:', error);
+        setErrors({ unAuthorised: 'Error occurred during OTP verification' });
+      }
+    }
+  };
+  
   const updatePassword = async (e) => {
     e.preventDefault();
     let newErrors = signUpGoogleAuthenticate(newPassForm.password, newPassForm.confirmPassword);
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-        try {
-            const response = await axiosInstance.post('/admin/reset-password', { email: formData.email, password: newPassForm.password });
-            const { success, message } = await handleApiResponse(response);
+      try {
+        const apiCall = axiosInstance.post('/admin/reset-password', { email: formData.email, password: newPassForm.password });
+        const { success, message } = await handleApiResponse(apiCall);
 
-            if (success) {
-                setSuccessMsg({ passChanged: message });
-                setFormData({
-                    email: '',
-                    password: '',
-                });
-                setTimeout(() => {
-                    setShowOtpPage(false);
-                    setShowNewPassInput(false);
-                    setShowManualLogin(true);
-                    setSuccessMsg({ passChanged: '' });
-                }, 1000);
-            } else {
-                setErrors({ unAuthorised: 'Something went wrong, try again later' });
-                setShowOtpPage(false);
-                setShowNewPassInput(false);
-                setShowManualLogin(true);
-            }
-        } catch (error) {
-            // Handle any errors from the API request
-            setErrors({ unAuthorised: 'Error occurred while updating password' });
+        if (success) {
+          setSuccessMsg({ passChanged: message });
+          setFormData({
+            email: '',
+            password: '',
+          });
+          setTimeout(() => {
             setShowOtpPage(false);
             setShowNewPassInput(false);
             setShowManualLogin(true);
-            console.error('Error updating password:', error);
+            setSuccessMsg({ passChanged: '' });
+          }, 1000);
+        } else {
+          setErrors({ unAuthorised: message });
+          setShowOtpPage(false);
+          setShowNewPassInput(false);
+          setShowManualLogin(true);
         }
+      } catch (error) {
+        setErrors({ unAuthorised: 'Error occurred while updating password' });
+        setShowOtpPage(false);
+        setShowNewPassInput(false);
+        setShowManualLogin(true);
+        console.error('Error updating password:', error);
+      }
     }
-};
+  };
+
 
   return (
     <div>
@@ -338,7 +346,7 @@ function Login() {
 
             </>
           )}
-          {successMsg.login && <p className='successMsg text-success'>{successMsg.login}... <span className='redirect-text'>{countdown && countdown}</span></p>}          
+          {successMsg.login && <p className='successMsg text-success'>{successMsg.login}... <span className='redirect-text'>{countdown && countdown}</span></p>}
         </form>
       </div>
     </div>

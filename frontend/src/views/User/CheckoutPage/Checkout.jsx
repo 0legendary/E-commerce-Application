@@ -54,7 +54,6 @@ function Checkout() {
             const { success, data, message } = await handleApiResponse(
                 axiosInstance.get(`/user/checkout/${product_Id}`)
             );
-            console.log(data,message);
             if (success) {
                 const { referralOffer, offers, addresses, products } = data;
                 setReferralOffer(referralOffer || {});

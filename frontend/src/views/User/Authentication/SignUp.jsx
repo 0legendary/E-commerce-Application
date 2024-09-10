@@ -7,6 +7,7 @@ import { signUpAuthenticate, signUpGoogleAuthenticate, otpVerification } from '.
 import GoogleAuth from './Google/GoogleAuth';
 import { jwtDecode } from 'jwt-decode'
 import OTPInput from 'react-otp-input';
+import { handleApiResponse } from '../../../utils/utilsHelper';
 
 
 function SignUp({ handleLoginClick, handleSignUpClick }) {
@@ -72,47 +73,48 @@ function SignUp({ handleLoginClick, handleSignUpClick }) {
     setGoogleData(data)
   };
 
-  const sendOTP = (e) => {
-    e.preventDefault()
-    let newErrors = {}
-    googleData.googleId
-      ? newErrors = signUpGoogleAuthenticate(formData.password, formData.confirmPassword)
-      : newErrors = signUpAuthenticate(formData.username, formData.email, formData.password, formData.confirmPassword)
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length === 0) {
-      axiosInstance.post('/otp/verify', { email: googleData.email ? googleData.email : formData.email })
-        .then(response => {
-          if (response.data.status) {
-            setCountdown(10)
-            setButtonEnabled(false);
-            setShowGooglePass(false)
-            setShowManualLogin(false)
-            setShowOtpPage(true)
-            setSuccessMsg({ otpSendMsg: 'New OTP sended' })
-            setErrors({})
-            setTimeout(() => {
-              setSuccessMsg('')
-            }, 3000)
-
-          } else {
-            setShowOtpPage(false)
-            setShowGooglePass(false)
-            setShowManualLogin(true)
-            setErrors({ unAuthorised: response.data.message })
-          }
-        })
-        .catch(error => {
-          console.error('Error sending login data:', error);
-        });
-    }
-  }
-
-  const handelGoogleSignUp = (e) => {
-    e.preventDefault()
+  const sendOTP = async (e) => {
+    e.preventDefault();
+  
     let newErrors = {};
-    newErrors = otpVerification(formData.otp)
+    if (googleData.googleId) {
+      newErrors = signUpGoogleAuthenticate(formData.password, formData.confirmPassword);
+    } else {
+      newErrors = signUpAuthenticate(formData.username, formData.email, formData.password, formData.confirmPassword);
+    }
     setErrors(newErrors);
+  
+    if (Object.keys(newErrors).length === 0) {
+      const apiCall = axiosInstance.post('/otp/verify', { email: googleData.email ? googleData.email : formData.email });
+      const response = await handleApiResponse(apiCall);
+  
+      if (response.success) {
+        setCountdown(10);
+        setButtonEnabled(false);
+        setShowGooglePass(false);
+        setShowManualLogin(false);
+        setShowOtpPage(true);
+        setSuccessMsg({ otpSendMsg: 'New OTP sent' });
+        setErrors({});
+        setTimeout(() => {
+          setSuccessMsg('');
+        }, 3000);
+      } else {
+        setShowOtpPage(false);
+        setShowGooglePass(false);
+        setShowManualLogin(true);
+        setErrors({ unAuthorised: response.message });
+      }
+    }
+  };
+  
+
+  const handelGoogleSignUp = async (e) => {
+    e.preventDefault();
+    
+    let newErrors = otpVerification(formData.otp);
+    setErrors(newErrors);
+  
     if (Object.keys(newErrors).length === 0) {
       const signupData = {
         username: googleData.username,
@@ -123,33 +125,35 @@ function SignUp({ handleLoginClick, handleSignUpClick }) {
         otp: formData.otp,
         referralCode: formData.referralCode
       };
-      axiosInstance.post('/google/signup', signupData)
-        .then(response => {
-          if (response.data.status) {
-            sessionStorage.setItem('accessToken', response.data.accessToken);
-            setCountdown(3)
-            setSuccessMsg({ accCreation: 'Account created successfully' })
-            setErrors({})
-            setTimeout(() => {
-              navigate('/')
-            }, 3000)
-
-          } else {
-            setErrors({ username: 'Already taken, try another one' })
-          }
-        })
-        .catch(error => {
-          console.error('Error sending login data:', error);
-        });
+  
+      try {
+        const apiCall = axiosInstance.post('/google/signup', signupData);
+        const { success, message, data } = await handleApiResponse(apiCall);
+  
+        if (success) {
+          sessionStorage.setItem('accessToken', data.accessToken);
+          setCountdown(3);
+          setSuccessMsg({ accCreation: message });
+          setErrors({});
+          setTimeout(() => {
+            navigate('/');
+          }, 3000);
+        } else {
+          setErrors({ username: message });
+        }
+      } catch (error) {
+        console.error('Error sending signup data:', error);
+        setErrors({ unAuthorised: 'Error occurred during signup' });
+      }
     }
-  }
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-
-    let newErrors = {};
-    newErrors = otpVerification(formData.otp)
+  };
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  
+    let newErrors = otpVerification(formData.otp);
     setErrors(newErrors);
+  
     if (Object.keys(newErrors).length === 0) {
       const signupData = {
         username: formData.username,
@@ -158,27 +162,30 @@ function SignUp({ handleLoginClick, handleSignUpClick }) {
         otp: formData.otp,
         referralCode: formData.referralCode,
       };
-      axiosInstance.post('/signup', signupData)
-        .then(response => {
-          if (response.data.status) {
-            sessionStorage.setItem('accessToken', response.data.accessToken);
-            setErrors({})
-            setCountdown(3)
-            setSuccessMsg({ accCreation: 'Account created successfully' })
-            setTimeout(() => {
-              setSuccessMsg('')
-              navigate('/')
-            }, 3000)
-          } else {
-            setErrors({ unAuthorised: response.data.message })
-          }
-        })
-        .catch(error => {
-          console.error('Error sending login data:', error);
-        });
+  
+      try {
+        const apiCall = axiosInstance.post('/signup', signupData);
+        const { success, message, data } = await handleApiResponse(apiCall);
+  
+        if (success) {
+          sessionStorage.setItem('accessToken', data.accessToken);
+          setErrors({});
+          setCountdown(3);
+          setSuccessMsg({ accCreation: message });
+          setTimeout(() => {
+            setSuccessMsg('');
+            navigate('/');
+          }, 3000);
+        } else {
+          setErrors({ unAuthorised: message });
+        }
+      } catch (error) {
+        console.error('Error sending signup data:', error);
+        setErrors({ unAuthorised: 'Error occurred during signup' });
+      }
     }
   };
-
+  
 
 
   return (

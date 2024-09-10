@@ -129,7 +129,6 @@ function Offer() {
         try {
             const apiCall = axiosInstance.post('/admin/delete-offer', { offer_id });
             const { success, message } = await handleApiResponse(apiCall);
-            console.log(message);
             if (success) {
                 setOffers(prevOffers =>
                     prevOffers.filter(offer =>

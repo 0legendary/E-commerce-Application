@@ -23,7 +23,6 @@ function AdminProducts() {
       if (result.success) {
         setProducts(result.data.products);
         setFilteredProducts(result.data.products);
-        console.log(result.message);
       } else {
         console.error(result.message);
       }
