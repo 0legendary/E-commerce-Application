@@ -126,7 +126,7 @@ function Products() {
                                 <img src={offer.imageID.images[0].cdnUrl} alt={offer.description} className="offer-image" />
                                 <div className="offer-details">
                                     <p className="offer-description">{offer.description}</p>
-                                    <span className="offer-discount">Save {offer.discountPercentage}%</span>
+                                    <span className="offer-discount">Save {offer.discountPercentage ? `${offer.discountPercentage}%` : `${offer.discountAmount} $`}</span>
                                 </div>
                             </div>
                         )
