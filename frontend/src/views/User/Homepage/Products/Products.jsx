@@ -7,6 +7,10 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useCartWishlist } from '../../Header/CartWishlistContext';
 import { handleApiResponse } from '../../../../utils/utilsHelper';
+import { Carousel } from 'react-bootstrap';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
+
 
 function Products() {
     const { updateWishlistLength, updateCartLength } = useCartWishlist();
@@ -14,7 +18,7 @@ function Products() {
     const [products, setProducts] = useState([])
     const [wishlistProducts, setWishlistProducts] = useState([])
     const [offers, setOffers] = useState([])
-
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchHomeProducts = async () => {
@@ -23,7 +27,6 @@ function Products() {
             if (result.success) {
                 const { products, offers, cartProducts, wishlistProducts } = result.data;
 
-                // Set the offers, cart products, wishlist products
                 setOffers(offers || []);
                 setCartProducts(cartProducts || []);
                 setWishlistProducts(wishlistProducts || []);
@@ -32,8 +35,9 @@ function Products() {
                 const latestProducts = sortedProducts.slice(0, 10);
                 setProducts(latestProducts);
             } else {
-                console.error('Error:', result.message);  // Log error message
+                console.error('Error:', result.message);
             }
+            setLoading(false);
         };
 
         fetchHomeProducts();
@@ -99,7 +103,7 @@ function Products() {
                 setWishlistProducts([...wishlistProducts, productId])
             }
 
-        }catch (error) {
+        } catch (error) {
             console.error('Error sending data:', error);
         }
     };
@@ -116,105 +120,147 @@ function Products() {
 
 
     return (
-        <div className="container products-container">
+        <div className="container-fluid products-container home-page">
             <ToastContainer />
             <div className="offers-section mb-4 text-success">
-                {offers && offers.length > 0 ? (
-                    offers.map((offer) => {
-                        return (
-                            <div key={offer._id} className="offer-card">
-                                <img src={offer.imageID.images[0].cdnUrl} alt={offer.description} className="offer-image" />
-                                <div className="offer-details">
+
+                {loading ? (
+                    <div className='carousel'>
+                        <Skeleton height={600} width={'100%'} />
+                    </div>
+                ) : offers && offers.length > 0 ? (
+                    <Carousel>
+                        {offers.map((offer) => (
+                            <Carousel.Item key={offer._id}>
+                                <img
+                                    className="d-block w-100 offer-image"
+                                    src={offer.imageID.images[0].cdnUrl}
+                                    alt={offer.description}
+                                />
+                                <Carousel.Caption className="offer-details">
                                     <p className="offer-description">{offer.description}</p>
-                                    <span className="offer-discount">Save {offer.discountPercentage ? `${offer.discountPercentage}%` : `${offer.discountAmount} $`}</span>
-                                </div>
-                            </div>
-                        )
-                    })
+                                    <span className="offer-discount">
+                                        Save {offer.discountPercentage ? `${offer.discountPercentage}%` : `${offer.discountAmount} $`}
+                                    </span>
+                                </Carousel.Caption>
+                            </Carousel.Item>
+                        ))}
+                    </Carousel>
                 ) : (
                     <p>No current offers.</p>
                 )}
             </div>
+
             <div className="products-header">
                 <span className="products-title"><span>Latest Products</span></span>
             </div>
-            <div className="products-grid mt-4" style={{ 'grid-template-columns': 'repeat(4, 1fr)' }}>
-                {products.map((product, index) => {
-                    const isInCart = Array.isArray(cartProducts) && cartProducts.includes(product._id);
-                    const isWishlist = Array.isArray(wishlistProducts) && wishlistProducts.includes(product._id)
-                    const applicableOffer = getApplicableOffer(product._id);
-                    const applicableCategoryOffer = getApplicableOffer(product.categoryId._id.toString());
-                    const inStock = product.variations[0].stock > 0;
-                    const mainImage = product.images.images.find(img => img.mainImage === true);
-                    return (
-                        <div key={index} className="product-card bg-white">
-                            <img src={mainImage.cdnUrl} alt={product.name} className="product-image" />
+
+            <div className="products-grid mt-4">
+                {loading ? (
+                    Array(10).fill().map((_, index) => (
+                        <div key={index} className="skeleton-card-container border rounded p-2">
+                            <Skeleton height={270} width={'100%'} />
                             <div className="product-details">
-                                <span className="product-name"><span>{product.name}</span></span>
+                                <Skeleton count={2} height={20} width={'80%'} />
                             </div>
-                            <div className='d-flex gap-3'>
-                                <span className="product-current-price"><span>{product.variations[0].price}</span></span>
-                                <span className="product-original-price"><span>{product.variations[0].discountPrice}</span></span>
+                            <div className="product-details pt-1 pb-1">
+                                <Skeleton height={20} width={'30%'} />
+                                <Skeleton height={20} width={'30%'} />
                             </div>
-                            <div className='d-flex' style={{ fontFamily: 'Saira Stencil One' }}>
-                                {applicableOffer && (
-                                    <div className="offer-badge">
-                                        {applicableOffer.discountPercentage
-                                            ? `|| ${applicableOffer.discountPercentage}% OFF ||`
-                                            : `|| Discount: ${applicableOffer.discountAmount} ||`}
-                                    </div>
-                                )}
-                                {applicableCategoryOffer && (
-                                    <div className="offer-badge">
-                                        {applicableCategoryOffer.discountPercentage
-                                            ? `|| ${applicableCategoryOffer.discountPercentage}% OFF ||`
-                                            : `|| Discount: ${applicableCategoryOffer.discountAmount} ||`}
-                                    </div>
-                                )}
-                            </div>
-                            {inStock ? (
-                                <div className="product-actions w-100 justify-content-between ">
-                                    <div className='d-flex gap-1'>
-                                        {!isInCart ? (
-                                            <div className="product-background">
-                                                <i className="bi bi-cart3" onClick={() => addToCart(product._id)}></i>
-                                            </div>
-                                        ) : (
-                                            <Link to={`/cart`}>
-                                                <div className="product-background">
-                                                    <i className="bi bi-cart-check"></i>
-                                                </div>
-                                            </Link>
-                                        )}
-                                        {!isWishlist ? (
-                                            <div className="product-background">
-                                                <i className="bi bi-heart" onClick={() => addToWishlist(product._id)}></i>
-                                            </div>
-                                        ) : (
-                                            <Link to={`/wishlist`}>
-                                                <div className="product-background">
-                                                    <i className="bi bi-heart-half"></i>
-                                                </div>
-                                            </Link>
-                                        )}
-                                        <Link to={`/shop/${product._id}`}>
-                                            <div className="product-background">
-                                                <i className="bi bi-search"></i>
-                                            </div>
-                                        </Link>
-                                    </div>
-                                    <div>
-                                        <Link to={`/checkout/${product._id}`}>
-                                            <button className='btn border border-success text-black'>Buy</button>
-                                        </Link>
-                                    </div>
+                            <div className='d-flex justify-content-between'>
+                                <div className='me-5'>
+                                    <Skeleton containerClassName='d-flex gap-1 pt-2' count={3} circle width={40} height={40} />
                                 </div>
-                            ) : (
-                                <h4 className='text-danger'>Out of Stock</h4>
-                            )}
+                                <div className='d-flex w-100'>
+                                    <Skeleton containerClassName='w-100' height={40} width={'100%'} />
+                                </div>
+                            </div>
                         </div>
-                    );
-                })}
+                    ))
+                ) : (
+                    products.map((product, index) => {
+                        const isInCart = Array.isArray(cartProducts) && cartProducts.includes(product._id);
+                        const isWishlist = Array.isArray(wishlistProducts) && wishlistProducts.includes(product._id);
+                        const applicableOffer = getApplicableOffer(product._id);
+                        const applicableCategoryOffer = getApplicableOffer(product.categoryId._id.toString());
+                        const inStock = product.variations[0].stock > 0;
+                        const mainImage = product.images.images.find(img => img.mainImage === true);
+
+                        return (
+                            <div key={index} className="product-card bg-white">
+                                <img src={mainImage.cdnUrl} alt={product.name} className="product-image" />
+                                <div className="product-details">
+                                    <span className="product-name">
+                                        <span className="truncate-text">{product.name}</span>
+                                    </span>
+                                </div>
+                                <div className='d-flex gap-3'>
+                                    <span className="product-current-price"><span>{product.variations[0].price}</span></span>
+                                    <span className="product-original-price"><span>{product.variations[0].discountPrice}</span></span>
+                                </div>
+                                <div className='d-flex' style={{ fontFamily: 'Saira Stencil One' }}>
+                                    <div className="offer-badge">
+                                        {applicableOffer
+                                            ? applicableOffer.discountPercentage
+                                                ? `|| ${applicableOffer.discountPercentage}% OFF ||`
+                                                : `|| Discount: ${applicableOffer.discountAmount} ||`
+                                            : ' '}
+                                    </div>
+
+                                    {applicableCategoryOffer && (
+                                        <div className="offer-badge">
+                                            {applicableCategoryOffer ?
+                                                applicableCategoryOffer.discountPercentage
+                                                    ? `|| ${applicableCategoryOffer.discountPercentage}% OFF ||`
+                                                    : `|| Discount: ${applicableCategoryOffer.discountAmount} ||`
+                                                : ''}
+                                        </div>
+                                    )}
+                                </div>
+                                {inStock ? (
+                                    <div className="product-actions w-100 justify-content-between ">
+                                        <div className='d-flex gap-1'>
+                                            {!isInCart ? (
+                                                <div className="product-background">
+                                                    <i className="bi bi-cart3" onClick={() => addToCart(product._id)}></i>
+                                                </div>
+                                            ) : (
+                                                <Link to={`/cart`}>
+                                                    <div className="product-background">
+                                                        <i className="bi bi-cart-check"></i>
+                                                    </div>
+                                                </Link>
+                                            )}
+                                            {!isWishlist ? (
+                                                <div className="product-background">
+                                                    <i className="bi bi-heart" onClick={() => addToWishlist(product._id)}></i>
+                                                </div>
+                                            ) : (
+                                                <Link to={`/wishlist`}>
+                                                    <div className="product-background">
+                                                        <i className="bi bi-heart-half"></i>
+                                                    </div>
+                                                </Link>
+                                            )}
+                                            <Link to={`/shop/${product._id}`}>
+                                                <div className="product-background">
+                                                    <i className="bi bi-search"></i>
+                                                </div>
+                                            </Link>
+                                        </div>
+                                        <div>
+                                            <Link to={`/checkout/${product._id}`}>
+                                                <button className='btn border border-success text-black'>Buy</button>
+                                            </Link>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <h4 className='text-danger'>Out of Stock</h4>
+                                )}
+                            </div>
+                        );
+                    })
+                )}
             </div>
         </div>
     );
