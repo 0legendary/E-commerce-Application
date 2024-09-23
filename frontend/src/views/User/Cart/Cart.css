@@ -37,3 +37,31 @@
 .modal-body .form-check {
     margin-bottom: 10px;
 }
+
+.no-cart-items {
+    padding: 50px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    margin: 50px auto;
+}
+
+.no-cart-items h4 {
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.no-cart-items p {
+    color: #b3b3b3;
+    font-size: 1.1rem;
+}
+
+.shop-button {
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    transition: background-color 0.3s ease;
+}
+
+.shop-button:hover {
+    background-color: #28a745;
+}

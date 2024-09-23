@@ -8,9 +8,11 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useCartWishlist } from '../Header/CartWishlistContext';
 import { handleApiResponse } from '../../../utils/utilsHelper';
+import Skeleton from 'react-loading-skeleton';
 
 function Cart() {
     const { updateCartLength } = useCartWishlist();
+    const [loading, setLoading] = useState(true);
     const mainHeading = "Cart";
     const breadcrumbs = [
         { name: "Home", path: "/" },
@@ -26,6 +28,7 @@ function Cart() {
                     setCartItems(result.data.products || []);
                     setOffers(result.data.offers || []);
                 }
+                setLoading(false);
             } catch (error) {
                 console.error('Error getting data:', error);
             }
@@ -218,98 +221,139 @@ function Cart() {
     const { itemCount, totalPrice, totalDiscount, totalOfferDiscount, totalAmount, deliveryCharge } = calculatePriceDetails(cartItems);
 
 
-
-
     return (
         <div>
             <Layout mainHeading={mainHeading} breadcrumbs={breadcrumbs} />
             <ToastContainer />
             <div className="container text-white p-3 mb-4 ">
-                {cartItems.length > 0 ? (
+                {loading ? (
                     <div className="row">
                         <div className='col-md-8'>
-                            <div>
-                                {cartItems.map(item => {
-                                    const offerPrice = getApplicableOffer(item.productId, item.categoryId, item.discountedPrice)
-                                    // const finalPrice = item.discountedPrice - offerPrice
-                                    let mainImage = item.images.filter((img) => img.mainImage)
-                                    return (
-                                        <div key={item._id} className="cart-item d-flex align-items-center mb-3 border rounded p-3">
-                                            <div className="cart-item-image me-3">
-                                                <img src={mainImage[0].cdnUrl} alt={item.name} className="img-thumbnail" />
-                                            </div>
-                                            <div className="cart-item-details d-flex flex-column">
-                                                <div className="d-flex align-items-center mb-2 justify-content-between">
-                                                    <div>
-                                                        <h5 className="me-3">{item.name}</h5>
-                                                        <span className="text-white">{item.brand}</span>
-                                                    </div>
-                                                    <Button variant="danger" onClick={() => handleRemoveFromCart(item._id)}>
-                                                        <i className="bi bi-trash3-fill"> Remove</i>
-                                                    </Button>
-                                                </div>
-                                                <div className="mb-2">
-                                                    <span className="me-3">Size: {item.selectedSize}</span>
-                                                    <span className="me-3">Color: {item.selectedColor}</span>
-                                                </div>
-                                                <div className="d-flex align-items-center mb-2">
-                                                    <i className="bi bi-dash-circle me-2" onClick={() => handleQuantityChange(item._id, -1)}></i>
-                                                    <span className="me-2">{item.quantity}</span>
-                                                    <i className="bi bi-plus-circle" onClick={() => handleQuantityChange(item._id, +1)}></i>
-                                                </div>
-                                                <div className="mb-2">
-                                                    <span className="me-2">${offerPrice > 0 ? item.discountedPrice - offerPrice : item.discountedPrice}</span>
-                                                    {item.discountedPrice !== item.price && (
-                                                        <span className="text-danger"><del>${item.price}</del></span>
-                                                    )}
-                                                    {offerPrice > 0 && <span className="me-2 mt-1 text-success"> ₹ {offerPrice.toFixed(2)} OFF</span>}
-                                                </div>
-
-                                            </div>
+                            {Array(3).fill().map((_, index) => (
+                                <div key={index} className="cart-item d-flex align-items-center mb-3 border rounded p-3">
+                                    <div className="cart-item-image me-3">
+                                        <Skeleton variant="rectangular" width={100} height={100} />
+                                    </div>
+                                    <div className="cart-item-details d-flex flex-column">
+                                        <div className="d-flex justify-content-between">
+                                            <Skeleton containerClassName='flex-grow-1' borderRadius={3} height={35} width={'60%'} />
+                                            <Skeleton containerClassName='d-flex flex-grow-1 justify-content-end' borderRadius={3} height={35} width={'30%'} />
                                         </div>
-                                    )
-                                })}
-                            </div>
+                                        <Skeleton containerClassName='pt-3' borderRadius={3} height={25} width={'35%'} />
+                                        <Skeleton containerClassName='pt-2' borderRadius={3} height={25} width={'10%'} />
+                                        <Skeleton containerClassName='pt-2' borderRadius={3} height={25} width={'20%'} />
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                         <div className='col-md-4'>
                             <div className="total-price p-3 border rounded">
-                                <h5>Price Details</h5>
-                                <div className='d-flex justify-content-between'>
-                                    <p>Price ({itemCount} items) </p>
-                                    <p>₹ {totalPrice}</p>
-                                </div>
-                                <div className='d-flex justify-content-between'>
-                                    <p>Discount</p>
-                                    <p>-₹{totalDiscount}</p>
-                                </div>
-                                <div className='d-flex justify-content-between'>
-                                    <p>Delivery Charge</p>
-                                    <p>-₹ {deliveryCharge}</p>
-                                </div>
-                                <div className='d-flex justify-content-between'>
-                                    <p>Offer discount:</p>
-                                    <p>- ₹{totalOfferDiscount.toFixed(2)}</p>
-                                </div>
-                                <div className='d-flex justify-content-between'>
-                                    <p>Total Amount</p>
-                                    <p>₹{totalAmount}</p>
+                                <div>
+                                    {[...Array(5)].map((_, index) => (
+                                        <div key={index} className='pt-3'>
+                                            <Skeleton height={25} />
+                                        </div>
+                                    ))}
                                 </div>
                                 <div className='d-flex justify-content-end'>
-                                    <Link to='/checkout/null'>
-                                        <button className='btn btn-success'>Proceed to Checkout</button>
-                                    </Link>
+                                    <Skeleton containerClassName='pt-4 d-flex justify-content-end' height={35} width={167} />
                                 </div>
                             </div>
                         </div>
                     </div>
+
                 ) : (
-                    <div>
-                        No Products in cart
-                        <Link to="/shop">
-                            <button className='btn btn-success m-3'>Shop</button>
-                        </Link>
-                    </div>
+                    cartItems.length > 0 ? (
+                        <div className="row">
+                            <div className='col-md-8'>
+                                <div>
+                                    {cartItems.map(item => {
+                                        const offerPrice = getApplicableOffer(item.productId, item.categoryId, item.discountedPrice)
+                                        // const finalPrice = item.discountedPrice - offerPrice
+                                        let mainImage = item.images.filter((img) => img.mainImage)
+                                        return (
+                                            <div key={item._id} className="cart-item d-flex align-items-center mb-3 border rounded p-3">
+                                                <div className="cart-item-image me-3">
+                                                    <img src={mainImage[0].cdnUrl} alt={item.name} className="img-thumbnail" />
+                                                </div>
+                                                <div className="cart-item-details d-flex flex-column">
+                                                    <div className="d-flex align-items-center mb-2 justify-content-between">
+                                                        <div>
+                                                            <h5 className="me-3">{item.name}</h5>
+                                                            <span className="text-white">{item.brand}</span>
+                                                        </div>
+                                                        <Button variant="danger" onClick={() => handleRemoveFromCart(item._id)}>
+                                                            <i className="bi bi-trash3-fill"> Remove</i>
+                                                        </Button>
+                                                    </div>
+                                                    <div className="mb-2">
+                                                        <span className="me-3">Size: {item.selectedSize}</span>
+                                                        <span className="me-3">Color: {item.selectedColor}</span>
+                                                    </div>
+                                                    <div className="d-flex align-items-center mb-2">
+                                                        <i className="bi bi-dash-circle me-2" onClick={() => handleQuantityChange(item._id, -1)}></i>
+                                                        <span className="me-2">{item.quantity}</span>
+                                                        <i className="bi bi-plus-circle" onClick={() => handleQuantityChange(item._id, +1)}></i>
+                                                    </div>
+                                                    <div className="mb-2">
+                                                        <span className="me-2">${offerPrice > 0 ? item.discountedPrice - offerPrice : item.discountedPrice}</span>
+                                                        {item.discountedPrice !== item.price && (
+                                                            <span className="text-danger"><del>${item.price}</del></span>
+                                                        )}
+                                                        {offerPrice > 0 && <span className="me-2 mt-1 text-success"> ₹ {offerPrice.toFixed(2)} OFF</span>}
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                            <div className='col-md-4'>
+                                <div className="total-price p-3 border rounded">
+                                    <h5>Price Details</h5>
+                                    <div className='d-flex justify-content-between'>
+                                        <p>Price ({itemCount} items) </p>
+                                        <p>₹ {totalPrice}</p>
+                                    </div>
+                                    <div className='d-flex justify-content-between'>
+                                        <p>Discount</p>
+                                        <p>-₹{totalDiscount}</p>
+                                    </div>
+                                    <div className='d-flex justify-content-between'>
+                                        <p>Delivery Charge</p>
+                                        <p>-₹ {deliveryCharge}</p>
+                                    </div>
+                                    <div className='d-flex justify-content-between'>
+                                        <p>Offer discount:</p>
+                                        <p>- ₹{totalOfferDiscount.toFixed(2)}</p>
+                                    </div>
+                                    <div className='d-flex justify-content-between'>
+                                        <p>Total Amount</p>
+                                        <p>₹{totalAmount}</p>
+                                    </div>
+                                    <div className='d-flex justify-content-end'>
+                                        <Link to='/checkout/null'>
+                                            <button className='btn btn-success'>Proceed to Checkout</button>
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="no-cart-items text-center border border-success font-monospace">
+                            <h4 className="mb-4">Your Cart is Empty</h4>
+                            <p className="mb-4">Looks like you haven't added anything to your cart yet.</p>
+                            <Link to="/shop">
+                                <button className="btn btn-success btn-lg shop-button">
+                                    Continue Shopping
+                                </button>
+                            </Link>
+                        </div>
+
+                    )
                 )}
+
 
             </div>
         </div>
