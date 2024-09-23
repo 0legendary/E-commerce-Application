@@ -54,15 +54,6 @@ export const addWallet = async (req, res) => {
     });
 
     await wallet.save();
-
-    res.status(200).json({
-      status: true,
-      wallet: {
-        balance: wallet.balance,
-        transactions: wallet.transactions
-      }
-    });
-
     res.status(200).json(createResponse(true, 'Amount added to wallet',
       {
         wallet: {
