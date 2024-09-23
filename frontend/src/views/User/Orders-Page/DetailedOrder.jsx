@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import './DetailedOrder.css';
 import axiosInstance from '../../../config/axiosConfig';
-import {handleApiResponse} from '../../../utils/utilsHelper';
+import { handleApiResponse } from '../../../utils/utilsHelper';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ReviewForm from './ReviewForm';
+import Invoice from '../Invoice/Invoice';
 
 function DetailedOrder({ product, backToOrders, openModal }) {
     const { order } = product;
@@ -38,7 +39,7 @@ function DetailedOrder({ product, backToOrders, openModal }) {
         try {
             const response = await axiosInstance.post('/user/add-review', reviewData);
             const { success, message } = await handleApiResponse(response);
-    
+
             if (success) {
                 toast.success(message, {
                     autoClose: 3000,
@@ -74,7 +75,7 @@ function DetailedOrder({ product, backToOrders, openModal }) {
             });
         }
     };
-    
+
 
     return (
         <div className="container mt-5">
@@ -125,7 +126,7 @@ function DetailedOrder({ product, backToOrders, openModal }) {
 
                                                 <div className='d-flex justify-content-between align-items-center'>
                                                     <div>
-                                                        <p><strong>₹{product.price}</strong></p>
+                                                        <p><strong>₹{product.discountPrice}</strong></p>
                                                     </div>
                                                     <div>
                                                         {product.orderStatus !== 'delivered' && product.orderStatus !== 'canceled' && product.orderStatus !== 'returned' && (
@@ -200,7 +201,28 @@ function DetailedOrder({ product, backToOrders, openModal }) {
                                 )}
                             </div>
                         </div>
+                        <div className="card mb-4">
+                            <div className="card-header">
+                                <h5 className="card-title">Order Details</h5>
+                            </div>
+                            <div className="card-body font-monospace">
+                                <div>
+                                    <h4 className='d-flex text-success font-monospace'>
+                                        Total Amount:  ₹{order.orderTotal}
+                                    </h4>
+                                </div>
+                                <h5>Purchased Date: {order.createdAt.slice(0, 10)}</h5>
+                                <h5>Payment Method: {order.paymentMethod}</h5>
+                            </div>
+                            {status === 'delivered' && (
+                                <div className='pe-3'>
+                                    <Invoice order={order} />
+                                </div>
+                            )}
+
+                        </div>
                     </div>
+
                 </div>
             </div>
         </div>

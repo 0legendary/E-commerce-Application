@@ -47,10 +47,10 @@ router.put('/update-cart-item/:itemId', authenticateToken, updateCartItems);
 router.get('/checkout/:product_id', authenticateToken, checkoutProduct);
 router.post('/payments', payment);
 router.get('/user-payment', authenticateToken, userPayment);
-router.post('/payment/verify', verifyPayment);
-router.post('/payment/cod', payByCod);
-router.post('/pendingOrder', pendingOrder);
-router.post('/pay/pending-payment', repayPendingOrder);
+router.post('/payment/verify',authenticateToken, verifyPayment);
+router.post('/payment/cod',authenticateToken, payByCod);
+router.post('/pendingOrder',authenticateToken, pendingOrder);
+router.post('/pay/pending-payment',authenticateToken, repayPendingOrder);
 
 
 //orders

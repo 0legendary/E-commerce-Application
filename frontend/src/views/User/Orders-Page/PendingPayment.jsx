@@ -42,7 +42,7 @@ function PendingPayment({ order, paymentMethod }) {
                 order_id: paymentData.id,
                 handler: async (response) => {
                     const { success, data } = await handleApiResponse(
-                        axiosInstance.post('/user/payment/verify', { response, order, paymentMethod })
+                        axiosInstance.post('/user/pay/pending-payment', { response, order, paymentMethod })
                     );
                     if (success) {
                         setOrderDetailsData(data.order);
@@ -74,7 +74,6 @@ function PendingPayment({ order, paymentMethod }) {
             const { success, data, message } = await handleApiResponse(
                 axiosInstance.post('/user/payments', { amount: order.orderTotal })
             );
-
             if (success) {
                 initPayment(data);
             } else {
@@ -105,11 +104,11 @@ function PendingPayment({ order, paymentMethod }) {
 
     return (
         <div>
-            <div>
+            <div className='font-monospace d-flex justify-content-center align-items-center'>
                 {paymentMethod === 'online' ? (
-                    <button className='btn btn-success m-3' onClick={handleOnlinePayment}>Pay with Razorpay</button>
+                    <button className='btn m-3 border-1 border-success text-success' onClick={handleOnlinePayment}>Pay with Razorpay ( ₹{order.orderTotal}) </button>
                 ) : (
-                    <button className='btn btn-success m-3' onClick={handleCODPayment}>Continue with Cash on Delivery</button>
+                    <button className='btn m-3 border-success text-success' onClick={handleCODPayment}>Pay with COD ( ₹{order.orderTotal})</button>
                 )}
                 {showSuccessPage && (
                     <OrderSuccess onClose={() => navigate('/orders')} order={orderDetailsData} />

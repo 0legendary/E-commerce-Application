@@ -3,6 +3,12 @@
     border-radius: 5px;
     color: white;
     background-color: #1c1c1c;
+    transition: border-color 0.4s ease-in-out;
+}
+
+.order-card:hover {
+    border: 1px solid #28a745;
+    cursor: pointer;
 }
 
 .order-item {
@@ -11,17 +17,7 @@
     padding: 1rem;
     padding-bottom: 10px;
     margin-bottom: 10px;
-    border: 1px solid #ccc; /* Add a default border */
-    border-radius: 8px; /* Rounded corners */
     transition: all 0.3s ease;
-}
-
-.order-item:hover{
-    color: black;
-    border-color: #28a745;
-    border-color: #28a745; /* Change border color on hover */
-    background-color: #f8f9fa; /* Light background color on hover */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .order-image {
@@ -33,7 +29,27 @@
     margin: 0;
 }
 
-.order-item-color, .order-item-size, .order-item-quantity {
+.payment-method-container {
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: opacity 0.5s ease-in-out, max-height 0.5s ease-in-out;
+}
+
+.payment-method-container.show {
+    opacity: 1;
+    max-height: 500px;
+}
+
+.payment-method-container.hide {
+    opacity: 0;
+    max-height: 0;
+}
+
+
+.order-item-color,
+.order-item-size,
+.order-item-quantity {
     margin: 0;
 }
 
@@ -56,4 +72,3 @@
 .text-success {
     color: #28a745;
 }
-

@@ -6,9 +6,9 @@ import './Order.css';
 import DetailedOrder from './DetailedOrder';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Invoice from '../Invoice/Invoice';
 import PendingPayment from './PendingPayment';
 import { handleApiResponse } from '../../../utils/utilsHelper';
+import Skeleton from 'react-loading-skeleton';
 
 function Order() {
     const [orders, setOrders] = useState([]);
@@ -18,8 +18,9 @@ function Order() {
     const [currentStatus, setCurrentStatus] = useState(null)
     const [showDetailedOrder, setShowDetailedOrder] = useState(false)
     const [currentDetailedProduct, setCurrentDetailedProduct] = useState({})
-    const [showPaymentMethod, setShowPaymentMethod] = useState(false)
+    const [activeOrderId, setActiveOrderId] = useState('')
     const [paymentMethod, setPaymentMethod] = useState('Razorpay');
+    const [loading, setLoading] = useState(true);
 
     const mainHeading = "Orders";
     const breadcrumbs = [
@@ -38,6 +39,7 @@ function Order() {
                 } else {
                     console.error('Error fetching orders:', message);
                 }
+                setLoading(false);
             } catch (error) {
                 console.error('Error fetching orders:', error);
             }
@@ -103,206 +105,210 @@ function Order() {
         setCurrentDetailedProduct({ order, product })
     }
 
-    const handleCancelDetailedOrder = (product) => {
+    const handleCancelDetailedOrder = () => {
         setShowDetailedOrder(false)
     }
 
 
     return (
-
         <div>
             <Layout mainHeading={mainHeading} breadcrumbs={breadcrumbs} />
             <ToastContainer />
             <div className=" pt-4 bg-black">
                 {!showDetailedOrder ? (
                     <Card className='bg-dark container'>
-                        <Card.Body>
-                            <Tabs defaultActiveKey="SuccessfulOrders" id="transaction-tabs" className="mb-3 border-4">
+                        <Card.Body className='font-monospace'>
+                            <Tabs defaultActiveKey="SuccessfulOrders" id="transaction-tabs" className="mb-5 border-2">
                                 <Tab eventKey="SuccessfulOrders" title="Successful Orders">
-                                    {orders ?
-                                        <>
-                                            {orders
-                                                ?.filter(order => order.paymentMethod !== 'pending')
-                                                .slice()
-                                                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                                                .map(order => (
-                                                    <ListGroup.Item key={order._id} className='bg-dark' >
-                                                        <div className="order-card mb-4 p-3 border rounded">
-                                                            {order.products.map((product, index) => {
-                                                                let mainImage = product.productId.images.images.filter((img) => img.mainImage)
-                                                                return (
-                                                                    <div
-                                                                        key={product._id}
-                                                                        className={`order-item d-flex align-items-start ${order.products.length > 1 && order.products.length - 1 !== index ? 'border-bottom' : ''
-                                                                            } pb-3 mb-3`} onClick={() => handleDetailedOrder(product, order)}
-                                                                    >
-                                                                        {mainImage && mainImage[0].cdnUrl && (
-                                                                            <img
-                                                                                src={mainImage[0].cdnUrl}
-                                                                                alt={product.productName}
-                                                                                className="order-image img-thumbnail me-3"
-                                                                                style={{ maxWidth: '100px', maxHeight: '100px' }}
-                                                                            />
+                                    {loading ? (
+                                        Array(4).fill().map((_, index) => (
+                                            <li key={index} className="main-nav-list">
+                                                <Skeleton borderRadius={10} height={165} width={'100%'} />
+                                            </li>
+                                        ))
+                                    ) : (
+                                        orders ? (
+                                            <>
+                                                {orders
+                                                    ?.filter(order => order.paymentMethod !== 'pending')
+                                                    .slice()
+                                                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                                                    .map(order => (
+                                                        <ListGroup.Item key={order._id} className='bg-dark' onClick={() => handleDetailedOrder(order, order)}>
+                                                            <div className="order-card mb-4 p-3">
+                                                                {order.products.map((product) => {
+                                                                    let mainImage = product.productId.images.images.filter((img) => img.mainImage);
+                                                                    return (
+                                                                        <div
+                                                                            key={product._id}
+                                                                            className="order-item d-flex align-items-center pb-1 mb-1"
+                                                                        >
+                                                                            {mainImage && mainImage[0].cdnUrl && (
+                                                                                <img
+                                                                                    src={mainImage[0].cdnUrl}
+                                                                                    alt={product.productName}
+                                                                                    className="order-image img-thumbnail me-3 p-0"
+                                                                                    style={{ maxWidth: '60px', maxHeight: '60px' }}
+                                                                                />
+                                                                            )}
+
+                                                                            <div className="order-details flex-grow-1">
+                                                                                <h6 className="order-item-name">{product.productName}</h6>
+                                                                            </div>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                                <p className="order-purchase-date d-flex justify-content-end">
+                                                                    Ordered on: {new Date(order.orderDate).toLocaleDateString()}
+                                                                </p>
+                                                                <h4 className='d-flex justify-content-end text-success font-monospace'>
+                                                                    ₹{order.orderTotal}
+                                                                </h4>
+                                                            </div>
+                                                        </ListGroup.Item>
+                                                    ))}
+                                            </>
+                                        ) : (
+                                            <h3 className='text-center pt-3 text-secondary font-monospace'>It looks like you haven't made any purchases yet.</h3>
+                                        )
+                                    )}
+
+                                </Tab>
+
+                                <Tab eventKey="pending" title="Pending Orders">
+                                    {loading ? (
+                                        Array(2).fill().map((_, index) => (
+                                            <li key={index} className="main-nav-list">
+                                                <Skeleton borderRadius={10} height={165} width={'100%'} />
+                                            </li>
+                                        ))
+                                    ) : (
+                                        orders && (
+                                            <>
+                                                {orders
+                                                    ?.filter((order) => order.paymentMethod === "pending")
+                                                    .slice()
+                                                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                                                    .map((order) => (
+                                                        <ListGroup.Item key={order._id} className="bg-dark">
+                                                            <div className="order-card mb-4 p-3">
+                                                                {order.products.map((product) => {
+                                                                    let mainImage = product.productId.images.images.filter(
+                                                                        (img) => img.mainImage
+                                                                    );
+                                                                    return (
+                                                                        <div
+                                                                            key={product._id}
+                                                                            className="order-item d-flex align-items-center pb-1 mb-1"
+                                                                        >
+                                                                            {mainImage && mainImage[0].cdnUrl && (
+                                                                                <img
+                                                                                    src={mainImage[0].cdnUrl}
+                                                                                    alt={product.productName}
+                                                                                    className="order-image img-thumbnail  me-3 p-0"
+                                                                                    style={{ maxWidth: "60px", maxHeight: "60px" }}
+                                                                                />
+                                                                            )}
+
+                                                                            <div className="order-details flex-grow-1">
+                                                                                <h6 className="order-item-name">{product.productName}</h6>
+                                                                            </div>
+                                                                        </div>
+                                                                    );
+                                                                })}
+
+                                                                <p className="order-purchase-date d-flex justify-content-end">
+                                                                    Ordered on: {new Date(order.orderDate).toLocaleDateString()}
+                                                                </p>
+                                                                <div className="order-summary ms-3">
+                                                                    <p className="order-item-total-price">
+                                                                        Payable Amount: ₹{order.orderTotal}
+                                                                    </p>
+                                                                    {activeOrderId === order._id ? (
+                                                                        <button
+                                                                            onClick={() => setActiveOrderId("")}
+                                                                            className="btn btn-secondary btn-sm mt-2 w-100 font-monospace p-2"
+                                                                        >
+                                                                            Cancel Order
+                                                                        </button>
+                                                                    ) : (
+                                                                        <button
+                                                                            onClick={() => setActiveOrderId(order._id)}
+                                                                            className="btn btn-secondary btn-sm mt-2 w-100 font-monospace p-2"
+                                                                        >
+                                                                            Continue Purchase
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+
+                                                                {/* Payment Method Section with Transition */}
+                                                                <div
+                                                                    className={`payment-method-container ${activeOrderId === order._id ? "show" : "hide"
+                                                                        }`}
+                                                                >
+                                                                    <div className="pt-3">
+                                                                        <div className="d-flex font-monospace justify-content-center mt-3 ps-3">
+                                                                            <h4>Select Payment Method</h4>
+                                                                        </div>
+                                                                        {order.orderTotal > 1000 ? (
+                                                                            <div className="d-flex justify-content-center ps-3 font-monospace pb-4">
+                                                                                {/* Online Payment Button */}
+                                                                                <button
+                                                                                    className={`btn ${paymentMethod === "Razorpay"
+                                                                                        ? "btn-primary"
+                                                                                        : "btn-outline-primary"
+                                                                                        } me-2`}
+                                                                                    onClick={() => setPaymentMethod("Razorpay")}
+                                                                                >
+                                                                                    Online
+                                                                                </button>
+                                                                                {/* COD Payment Button */}
+                                                                                <button
+                                                                                    className={`btn ${paymentMethod === "COD"
+                                                                                        ? "btn-primary"
+                                                                                        : "btn-outline-primary"
+                                                                                        }`}
+                                                                                    onClick={() => setPaymentMethod("COD")}
+                                                                                >
+                                                                                    COD
+                                                                                </button>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div>
+                                                                                <button className="btn btn-primary">Online</button>
+                                                                                <p className="mt-2">
+                                                                                    COD is only available for orders above ₹1000
+                                                                                </p>
+                                                                            </div>
                                                                         )}
 
-                                                                        <div className="order-details flex-grow-1">
-                                                                            <h5 className="order-item-name" >
-                                                                                {product.productName}
-                                                                            </h5>
-                                                                            <p className="order-item-color">Color: {product.selectedColor}</p>
-                                                                            <p className="order-item-size">Size: {product.selectedSize}</p>
-                                                                            <p className="order-item-quantity">Quantity: {product.quantity}</p>
-                                                                        </div>
-                                                                        <div className="order-summary ms-3">
-                                                                            <p className="order-item-total-price">Total Price: ₹{product.discountPrice * product.quantity}</p>
-                                                                            <p
-                                                                                className={`order-status ${product.orderStatus === 'pending' && 'text-warning'
-                                                                                    } ${product.orderStatus === 'canceled' && 'text-danger'
-                                                                                    } ${product.orderStatus === 'delivered' && 'text-success'
-                                                                                    }`}
-                                                                            >
-                                                                                Status: {product.orderStatus}
-                                                                            </p>
-                                                                            {product.orderStatus !== 'delivered' &&
-                                                                                product.orderStatus !== 'canceled' &&
-                                                                                product.orderStatus !== 'returned' && (
-                                                                                    <button
-                                                                                        className="btn btn-danger btn-sm mt-2"
-                                                                                        onClick={() => openModal(order.orderId, product._id, 'canceled')}
-                                                                                    >
-                                                                                        Cancel Order
-                                                                                    </button>
-                                                                                )}
-                                                                            {product.orderStatus === 'delivered' && (
-                                                                                <button
-                                                                                    className="btn btn-primary btn-sm mt-2"
-                                                                                    onClick={() => openModal(order.orderId, product._id, 'returned')}
-                                                                                >
-                                                                                    Return
-                                                                                </button>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                )
-                                                            })}
-                                                            <p className="order-purchase-date d-flex justify-content-end">
-                                                                Purchased on: {new Date(order.orderDate).toLocaleDateString()} at {new Date(order.orderDate).toLocaleTimeString()}
-                                                            </p>
-                                                            <Invoice order={order} />
-                                                        </div>
-                                                    </ListGroup.Item>
-                                                ))}
-
-                                        </>
-                                        : <div>
-                                            No orders to show
-                                        </div>
-                                    }
-
-                                </Tab>
-                                <Tab eventKey="pending" title="Pending Orders">
-                                    {orders ?
-                                        <>
-                                            {orders
-                                                ?.filter(order => order.paymentMethod === 'pending')
-                                                .slice()
-                                                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                                                .map(order => (
-                                                    <ListGroup.Item key={order._id} className='bg-dark'>
-                                                        <div className="order-card mb-4 p-3 border rounded">
-                                                            {order.products.map((product, index) => (
-                                                                <div
-                                                                    key={product._id}
-                                                                    className={`order-item d-flex align-items-start ${order.products.length > 1 && order.products.length - 1 !== index ? 'border-bottom' : ''
-                                                                        } pb-3 mb-3`}
-                                                                >
-                                                                    {product.productId.mainImage && (
-                                                                        <img
-                                                                            src={product.productId.mainImage.image}
-                                                                            alt={product.productName}
-                                                                            className="order-image img-thumbnail me-3"
-                                                                            style={{ maxWidth: '100px', maxHeight: '100px' }}
-                                                                        />
-                                                                    )}
-                                                                    <div className="order-details flex-grow-1">
-                                                                        <h5 className="order-item-name" onClick={() => handleDetailedOrder(product, order)}>
-                                                                            {product.productName}
-                                                                        </h5>
-                                                                        <p className="order-item-color">Color: {product.selectedColor}</p>
-                                                                        <p className="order-item-size">Size: {product.selectedSize}</p>
-                                                                        <p className="order-item-quantity">Quantity: {product.quantity}</p>
-                                                                    </div>
-                                                                    <div className="order-summary ms-3">
-                                                                        <p className="order-item-total-price"> ₹{product.discountPrice * product.quantity}</p>
+                                                                        {/* Show Pending Payment Component for selected method */}
+                                                                        {paymentMethod === "Razorpay" && (
+                                                                            <PendingPayment order={order} paymentMethod={"online"} />
+                                                                        )}
+                                                                        {paymentMethod === "COD" && (
+                                                                            <PendingPayment order={order} paymentMethod={"COD"} />
+                                                                        )}
                                                                     </div>
                                                                 </div>
-                                                            ))}
-                                                            <div className="order-summary ms-3">
-                                                                <p className="order-item-total-price">Payable Amount: ₹{order.orderTotal}</p>
-                                                                <button
-                                                                    className="btn btn-success btn-sm mt-2"
-                                                                    onClick={() => { setShowPaymentMethod(true); setPaymentMethod('Razorpay') }}
-                                                                >
-                                                                    Continue Payment
-                                                                </button>
                                                             </div>
-                                                            {showPaymentMethod && (
-                                                                <div>
-                                                                    <div className='d-flex justify-content-between'>
-                                                                        <h4>Select Payment Method</h4>
-                                                                    </div>
-                                                                    {order.orderTotal > 1000 ? (
-                                                                        <>
-                                                                            <div className='mt-3'>
-                                                                                <input
-                                                                                    type="radio"
-                                                                                    id="razorpay"
-                                                                                    name="payment-method"
-                                                                                    value="Razorpay"
-                                                                                    className='form-check-input radio-btn'
-                                                                                    checked={paymentMethod === 'Razorpay'}
-                                                                                    onChange={() => setPaymentMethod('Razorpay')}
-                                                                                />
-                                                                                <label htmlFor="razorpay">Online</label>
-                                                                                {paymentMethod === 'Razorpay' && (
-                                                                                    <PendingPayment order={order} paymentMethod={'online'} />
-                                                                                )}
-                                                                            </div>
-                                                                            <div className='mt-3'>
-                                                                                <input
-                                                                                    type="radio"
-                                                                                    id="cod"
-                                                                                    name="payment-method"
-                                                                                    value="COD"
-                                                                                    className='form-check-input radio-btn'
-                                                                                    checked={paymentMethod === 'COD'}
-                                                                                    onChange={() => setPaymentMethod('COD')}
-                                                                                />
-                                                                                <label htmlFor="cod">Cash on Delivery</label>
-                                                                                <>
-                                                                                    {paymentMethod === 'COD' && (
-                                                                                        <PendingPayment order={order} paymentMethod={'COD'} />
-                                                                                    )}
-                                                                                </>
-                                                                            </div>
-                                                                        </>
-                                                                    ) : (
-                                                                        <div>
-                                                                            <PendingPayment order={order} paymentMethod={'online'} />
-                                                                            Cash on delivery is only available for order greater than 1000
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </ListGroup.Item>
-                                                ))}
-                                        </>
-                                        : <div>
-                                            No pending orders
-                                        </div>
-                                    }
+                                                        </ListGroup.Item>
+                                                    ))}
+
+                                                {orders.filter((order) => order.paymentMethod === "pending").length ===
+                                                    0 && (
+                                                        <h3 className="text-center pt-3 text-secondary font-monospace">
+                                                            You don't have any orders awaiting payment.
+                                                        </h3>
+                                                    )}
+                                            </>
+                                        )
+                                    )}
+
                                 </Tab>
+
+
+
                             </Tabs>
                         </Card.Body>
                     </Card>
@@ -311,7 +317,6 @@ function Order() {
                         <DetailedOrder product={currentDetailedProduct} backToOrders={handleCancelDetailedOrder} openModal={openModal} />
                     </div>
                 )}
-
             </div>
 
             {/* Confirmation Modal */}
