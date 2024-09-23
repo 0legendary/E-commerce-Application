@@ -1,0 +1,37 @@
+.coupon-card {
+    border-radius: 12px;
+    background: linear-gradient(145deg, #f5f5f5, #e0e0e0);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .coupon-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .coupon-code {
+    color: #28a745;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+  
+  .no-coupons-available {
+    background-color: #ffffff;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+  }
+
+  
+  .bi-emoji-frown {
+    color: #888888;
+  }
+  
+  .no-coupons-available h5 {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .no-coupons-available p {
+    color: #888;
+  }
+  

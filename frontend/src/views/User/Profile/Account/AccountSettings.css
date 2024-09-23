@@ -1,12 +1,28 @@
-.acc-setting {
-    max-width: 600px;
-    margin: 0 auto;
-}
-
 .acc-setting .card {
     background-color: #343a40;
     border: none;
     border-radius: 8px;
+}
+
+.acc-setting .edit-button {
+    color: #3898ff;
+    transition: color 0.3s ease;
+    cursor: pointer;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+
+.acc-setting .edit-button:hover {
+    color: blue;
 }
 
 .acc-setting .card-body {
@@ -36,6 +52,13 @@
     color: #f8f9fa;
     border-color: #007bff;
 }
+
+.disabled-input {
+    cursor: not-allowed;
+    color: #768088 !important;
+    background-color: #383e44  !important;
+}
+
 
 .acc-setting .btn-primary {
     background-color: #007bff;

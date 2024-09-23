@@ -7,11 +7,11 @@ import { createResponse } from '../../utils/responseHelper.js';
 
 export const getUserProfile = async (req, res) => {
     try {
-        const user = await User.findOne({ email: req.user.email }).select('name email mobile');
+        const user = await User.findOne({ email: req.user.email }).select('name email mobile profileImg');
         if (!user) {
             return res.status(404).json(createResponse(false, 'User not found'));
         }
-        res.json(createResponse(true, 'User profile fetched successfully', { name: user.name, email: user.email, mobile: user.mobile }));
+        res.json(createResponse(true, 'User profile fetched successfully', { name: user.name, email: user.email, mobile: user.mobile, profileImg: user.profileImg }));
     } catch (error) {
         res.status(500).json(createResponse(false, 'Error fetching user'));
     }
@@ -48,7 +48,7 @@ export const editUserPassword = async (req, res) => {
         }
         const isMatch = await bcrypt.compare(currentPassword, user.password);
         if (!isMatch) {
-            return res.status(400).json(createResponse(false, 'Current password is incorrect'));
+            return res.status(200).json(createResponse(false, 'Current password is incorrect'));
         }
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         user.password = hashedPassword;

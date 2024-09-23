@@ -23,6 +23,7 @@ function AccountSettings() {
     const [showOtpPage, setShowOtpPage] = useState(false)
     const [otp, setOtp] = useState('')
     const [showNewPassInput, setShowNewPassInput] = useState(false)
+    const [initialData, setInitialData] = useState({})
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -60,6 +61,7 @@ function AccountSettings() {
     }, [countdown]);
 
     const handleEditClick = () => {
+        setInitialData({ name, mobile });
         setIsEditing(true);
         setIsUpdatingPassword(false);
     };
@@ -130,7 +132,8 @@ function AccountSettings() {
             try {
                 const response = await axiosInstance.put('/user/edit-password', { currentPassword, newPassword });
                 const { success, message } = await handleApiResponse(response);
-
+                console.log(message);
+                
                 if (success) {
                     setNewPassword('');
                     setCurrentPassword('');
@@ -343,58 +346,63 @@ function AccountSettings() {
 
 
     return (
-        <div className="container acc-setting mt-5">
+        <div className="container acc-setting font-monospace text-white">
             <ToastContainer />
-            {!isEditing && !isUpdatingPassword && !showOtpPage && !showNewPassInput && (
-                <div className="card bg-dark text-white">
-                    <div className="card-body">
-                        <h2 className="card-title">Account Settings</h2>
-                        <p className="card-text"><strong>Name:</strong> {name}</p>
-                        <p className="card-text"><strong>Email:</strong> {email}</p>
-                        <p className="card-text"><strong>Mobile number:</strong> {mobile ? mobile : 'No mobile number'}</p>
-                        <div className="d-flex justify-content-between mt-3">
-                            <button className="btn btn-primary" onClick={handleEditClick}>Edit</button>
-                            <button className="btn btn-secondary" onClick={handleUpdatePasswordClick}>Update Password</button>
-                        </div>
+            <div>
+                <h3>Account Settings</h3>
+                <div className='pt-3'>
+                    <div>
+                        <label className="form-label mt-2">Personal info {!isEditing ? <i class="bi bi-pen edit-button" onClick={handleEditClick}></i> : <i class="bi bi-x-square edit-button" onClick={() => {setIsEditing(false); setName(initialData.name); setMobile(initialData.mobile);}}></i>}</label>
+                        <input
+                            type="text"
+                            className={`form-control w-50 ${!isEditing ? 'disabled-input' : ''}`}
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            disabled={!isEditing}
+                        />
+                        {errors.name && <p className="text-danger mt-2 mb-0">{errors.name}</p>}
                     </div>
-                </div>
-            )}
-
-            {isEditing && (
-                <div className="card bg-dark text-white mt-4">
-                    <div className="card-body">
-                        <h2 className="card-title">Edit Account</h2>
-                        <div className="mb-3">
-                            <label className="form-label">Name</label>
-                            <input
-                                type="text"
-                                className="form-control"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                            />
-                            {errors.name && <p className="text-danger mt-2">{errors.name}</p>}
-                        </div>
-                        <div className="mb-3">
-                            <label className="form-label">Mobile</label>
+                    <div className='d-flex w-100'>
+                        <div className='w-50'>
                             <input
                                 type="number"
-                                className="form-control"
+                                className={`form-control mt-4 ${!isEditing ? 'disabled-input' : ''}`}
                                 value={mobile}
                                 onChange={(e) => setMobile(e.target.value)}
+                                placeholder={mobile ? mobile : 'Add mobile number'}
+                                disabled={!isEditing}
                             />
-                            {errors.mobile && <p className="text-danger mt-2">{errors.mobile}</p>}
+                            {errors.mobile && <p className="text-danger mt-2 mb-0">{errors.mobile}</p>}
                         </div>
-                        <div className="d-flex justify-content-between mt-3">
-                            <button className="btn btn-primary" onClick={handleSave}>Save</button>
-                            <button className="btn btn-secondary" onClick={() => setIsEditing(false)}>Cancel</button>
-                        </div>
+                        {isEditing &&
+                            <div>
+                                <button className='btn btn-primary ms-3 mt-4' onClick={handleSave}>Save</button>
+                            </div>
+                        }
+                    </div>
+                    <div>
+                        <input
+                            type="text"
+                            className={`form-control w-50 mt-4 ${!isEditing ? 'disabled-input' : ''}`}
+                            value={email}
+                            disabled
+                        />
+                    </div>
+                    <div>
+                        <label className="form-label mt-4">Password {!isUpdatingPassword ? <i class="bi bi-pen edit-button" onClick={handleUpdatePasswordClick}></i> : <i class="bi bi-x-square edit-button" onClick={() => setIsUpdatingPassword(false)}></i>}</label>
+                        <input
+                            type="password"
+                            className={`form-control w-50 ${!isUpdatingPassword ? 'disabled-input' : ''}`}
+                            placeholder='*******************'
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            disabled={!isUpdatingPassword}
+                        />
+                        {errors.currPass && <p className="text-danger mt-2">{errors.currPass}</p>}
                     </div>
                 </div>
-            )}
-
-
+            </div>
             {isUpdatingPassword && (
-                <div className="card bg-dark text-white mt-4">
+                <div className="card text-white mt-4">
                     <div className="card-body">
                         <h2 className="card-title">Update Password</h2>
                         <div className="mb-3">
