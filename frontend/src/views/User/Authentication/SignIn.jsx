@@ -8,6 +8,7 @@ import { loginAuthenticate } from '../../../config/authenticateCondition';
 import GoogleAuth from './Google/GoogleAuth';
 import OTPInput from 'react-otp-input';
 import { validateEmailForOTP, otpVerification, signUpGoogleAuthenticate } from '../../../config/authenticateCondition';
+import LoadingSpinner from '../../Loading/LoadingSpinner';
 
 function SignIn({ handleLoginClick, handleSignUpClick }) {
   const [errors, setErrors] = useState({});
@@ -17,6 +18,7 @@ function SignIn({ handleLoginClick, handleSignUpClick }) {
   const [showOtpPage, setShowOtpPage] = useState(false)
   const [buttonEnabled, setButtonEnabled] = useState(false);
   const [showNewPassInput, setShowNewPassInput] = useState(false)
+  const [isLoadingAction, setIsLoadingAction] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -71,6 +73,7 @@ function SignIn({ handleLoginClick, handleSignUpClick }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoadingAction(true)
     let newErrors = {};
     newErrors = loginAuthenticate(formData.email, formData.password);
     setErrors(newErrors);
@@ -99,11 +102,14 @@ function SignIn({ handleLoginClick, handleSignUpClick }) {
       } catch (error) {
         setErrors({ unAuthorised: 'Unauthorized' });
         console.error('Error sending login data:', error);
+      }finally{
+        setIsLoadingAction(false)
       }
     }
   };
   
   const openGoogleSignIn = async (googleUserData) => {
+    setIsLoadingAction(true)
     setErrors({});
     const credential = googleUserData.credential;
   
@@ -124,6 +130,8 @@ function SignIn({ handleLoginClick, handleSignUpClick }) {
       }
     } catch (error) {
       console.error('Error verifying Google credential:', error);
+    }finally{
+      setIsLoadingAction(false)
     }
   };
   
@@ -146,7 +154,8 @@ function SignIn({ handleLoginClick, handleSignUpClick }) {
 
   const sendOTP = async (e) => {
     e.preventDefault();
-  
+    setIsLoadingAction(true)
+
     const apiCall = axiosInstance.post('/forgot-pass/send-otp', { email: formData.email });
     const response = await handleApiResponse(apiCall);
   
@@ -158,13 +167,16 @@ function SignIn({ handleLoginClick, handleSignUpClick }) {
       setTimeout(() => {
         setSuccessMsg({ newOTPSend: '' });
       }, 2000);
+      setIsLoadingAction(false)
     } else {
+      setIsLoadingAction(false)
       setErrors({ unAuthorised: response.message });
     }
   };
   
 
   const verifyOTP = async (e) => {
+    setIsLoadingAction(true)
     e.preventDefault();
 
     let newErrors = otpVerification(formOtp);
@@ -188,12 +200,15 @@ function SignIn({ handleLoginClick, handleSignUpClick }) {
       } catch (error) {
         console.error('Error verifying OTP:', error);
         setErrors({ otp: 'Error occurred while verifying OTP' });
+      }finally{
+        setIsLoadingAction(false)
       }
     }
   };
 
 
   const updatePassword = async (e) => {
+    setIsLoadingAction(true)
     e.preventDefault();
 
     let newErrors = signUpGoogleAuthenticate(newPassForm.password, newPassForm.confirmPassword);
@@ -228,12 +243,15 @@ function SignIn({ handleLoginClick, handleSignUpClick }) {
         setShowOtpPage(false);
         setShowNewPassInput(false);
         setShowManualLogin(true);
+      }finally{
+        setIsLoadingAction(false)
       }
     }
   };
 
   return (
     <div>
+      <LoadingSpinner isLoadingAction={isLoadingAction} />
       <div className='authPage'>
         <div className="background">
           <div className="shape"></div>

@@ -8,6 +8,7 @@ import GoogleAuth from '../../User/Authentication/Google/GoogleAuth';
 import OTPInput from 'react-otp-input';
 import { validateEmailForOTP, otpVerification, signUpGoogleAuthenticate } from '../../../config/authenticateCondition';
 import { handleApiResponse } from '../../../utils/utilsHelper';
+import LoadingSpinner from '../../Loading/LoadingSpinner';
 
 function Login() {
   const [errors, setErrors] = useState({});
@@ -17,6 +18,7 @@ function Login() {
   const [showOtpPage, setShowOtpPage] = useState(false)
   const [buttonEnabled, setButtonEnabled] = useState(false);
   const [showNewPassInput, setShowNewPassInput] = useState(false)
+  const [isLoadingAction, setIsLoadingAction] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -72,6 +74,7 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoadingAction(true)
     let newErrors = loginAuthenticate(formData.email, formData.password);
     setErrors(newErrors);
   
@@ -100,11 +103,14 @@ function Login() {
       } catch (error) {
         setErrors({ unAuthorised: 'Error occurred during login' });
         console.error('Error sending login data:', error);
+      }finally{
+        setIsLoadingAction(false)
       }
     }
   };
   
 const openGoogleSignIn = async (googleUserData) => {
+  setIsLoadingAction(true)
   setErrors({});
   const credential = googleUserData.credential;
 
@@ -126,6 +132,8 @@ const openGoogleSignIn = async (googleUserData) => {
   } catch (error) {
     setErrors({ unAuthorised: 'Error occurred during Google login' });
     console.error('Error verifying Google credential:', error);
+  }finally{
+    setIsLoadingAction(false)
   }
 };
 
@@ -143,11 +151,11 @@ const openGoogleSignIn = async (googleUserData) => {
       setShowManualLogin(false)
       setShowOtpPage(true)
     }
-
   }
 
 
   const sendOTP = async (e) => {
+    setIsLoadingAction(true)
     e.preventDefault();
     try {
       const apiCall = axiosInstance.post('/admin/forgot-pass/send-otp', { email: formData.email });
@@ -167,10 +175,13 @@ const openGoogleSignIn = async (googleUserData) => {
     } catch (error) {
       console.error('Error sending OTP:', error);
       setErrors({ unAuthorised: 'Error occurred while sending OTP' });
+    }finally{
+      setIsLoadingAction(false)
     }
   };
   
   const verifyOTP = async (e) => {
+    setIsLoadingAction(true)
     e.preventDefault();
     let newErrors = otpVerification(formOtp);
     setErrors(newErrors);
@@ -193,11 +204,14 @@ const openGoogleSignIn = async (googleUserData) => {
       } catch (error) {
         console.error('Error verifying OTP:', error);
         setErrors({ unAuthorised: 'Error occurred during OTP verification' });
+      }finally{
+        setIsLoadingAction(false)
       }
     }
   };
   
   const updatePassword = async (e) => {
+    setIsLoadingAction(true)
     e.preventDefault();
     let newErrors = signUpGoogleAuthenticate(newPassForm.password, newPassForm.confirmPassword);
     setErrors(newErrors);
@@ -231,6 +245,8 @@ const openGoogleSignIn = async (googleUserData) => {
         setShowNewPassInput(false);
         setShowManualLogin(true);
         console.error('Error updating password:', error);
+      }finally{
+        setIsLoadingAction(false)
       }
     }
   };
@@ -238,13 +254,14 @@ const openGoogleSignIn = async (googleUserData) => {
 
   return (
     <div>
+      <LoadingSpinner isLoadingAction={isLoadingAction} />
       <div className='authPage'>
         <div className="background">
           <div className="shape"></div>
           <div className="shape"></div>
         </div>
         <form >
-          <h3>Login In</h3>
+          <h3>Sign In</h3>
           {showManualLogin && (
             <>
               <label htmlFor="email">Email</label>
@@ -340,7 +357,6 @@ const openGoogleSignIn = async (googleUserData) => {
               {errors.unAuthorised && <p className='successMsg text-danger'>{errors.unAuthorised}</p>}
               <div className='d-flex gap-2'>
                 <button onClick={updatePassword}>Submit</button>
-                {/* <button onClick={() => { setShowManualLogin(true); setShowGooglePass(false); setShowOtpPage(false) }}>Cancel</button> */}
               </div>
               {successMsg.passChanged && <p className='successMsg text-success'>{successMsg.passChanged}</p>}
 
