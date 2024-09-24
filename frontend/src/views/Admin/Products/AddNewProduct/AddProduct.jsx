@@ -9,6 +9,7 @@ import { uploadDirect } from '@uploadcare/upload-client';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ImageCropper from '../../../UploadFiles/ImageCropper';
+import LoadingSpinner from '../../../Loading/LoadingSpinner';
 
 function AddProduct() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,6 +17,7 @@ function AddProduct() {
   const [filteredColors, setFilteredColors] = useState([]);
   const [newErrors, setNewErrors] = useState({});
   const [successMsg, setSuccessMsg] = useState('');
+  const [isLoadingAction, setIsLoadingAction] = useState(false)
   const [product, setProduct] = useState({
     name: '',
     description: '',
@@ -129,6 +131,7 @@ function AddProduct() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoadingAction(true)
     // Remove duplicate images
     const uniqueImageUrls = new Set();
     const uniqueCroppedImages = croppedImage.filter((image) => {
@@ -193,6 +196,7 @@ function AddProduct() {
         const response = await handleApiResponse(apiCall);
 
         if (response.success) {
+          setIsLoadingAction(false)
           toast.success(response.message, {
             autoClose: 2000,
             hideProgressBar: false,
@@ -207,6 +211,7 @@ function AddProduct() {
             navigate('/admin/products');
           }, 2000);
         } else {
+          setIsLoadingAction(false)
           console.error('Error:', response.message);
           toast.error(response.message, {
             autoClose: 2000,
@@ -234,6 +239,7 @@ function AddProduct() {
   return (
     <div className="add-product">
       <ToastContainer />
+      <LoadingSpinner isLoadingAction={isLoadingAction} />
       <h1>Add New Product</h1>
       {successMsg && <h3 className='text-success m-4'>{successMsg}</h3>}
       <form className="form" onSubmit={handleSubmit}>

@@ -8,6 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { deleteFile, UploadcareSimpleAuthSchema } from '@uploadcare/rest-client';
 import { uploadDirect } from '@uploadcare/upload-client';
 import { handleApiResponse } from '../../../../utils/utilsHelper'
+import LoadingSpinner from '../../../Loading/LoadingSpinner';
 
 
 function EditProduct() {
@@ -17,6 +18,7 @@ function EditProduct() {
   const [filteredColors, setFilteredColors] = useState([]);
   const [product, setProduct] = useState({ variations: [] })
   const [newErrors, setNewErrors] = useState({})
+  const [isLoadingAction, setIsLoadingAction] = useState(false)
 
 
   const [filesID, setFilesID] = useState(null)
@@ -209,6 +211,7 @@ function EditProduct() {
     const { success, message } = await handleApiResponse(apiCall);
 
     if (success) {
+      setIsLoadingAction(false);
       toast.success(message || "Product updated", {
         autoClose: 2000,
         hideProgressBar: false,
@@ -222,6 +225,7 @@ function EditProduct() {
         navigate('/admin/products');
       }, 1000);
     } else {
+      setIsLoadingAction(false);
       console.error('Error:', message);
       toast.error(message || "Error updating product", {
         autoClose: 2000,
@@ -236,6 +240,7 @@ function EditProduct() {
   };
 
   const handleSubmit = async (e) => {
+    setIsLoadingAction(true);
     const uniqueImageUrls = new Set();
     const uniqueCroppedImages = croppedImage.filter((image) => {
       if (!uniqueImageUrls.has(image.url || image.cdnUrl)) {
@@ -337,6 +342,7 @@ function EditProduct() {
 
     <div className="add-product">
       <ToastContainer />
+      <LoadingSpinner isLoadingAction={isLoadingAction} />
       <h1>Edit Product</h1>
       <form className="form" onSubmit={handleSubmit}>
         <div className='d-flex w-100 gap-3'>

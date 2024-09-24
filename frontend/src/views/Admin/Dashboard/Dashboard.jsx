@@ -9,6 +9,7 @@ import './Dashboard.css';
 import axiosInstance from '../../../config/axiosConfig';
 import { handleApiResponse } from '../../../utils/utilsHelper';
 import LedgerBook from './LedgerBook';
+import Skeleton from 'react-loading-skeleton';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -27,6 +28,7 @@ const Dashboard = () => {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [showLedger, setShowLedger] = useState(false)
+    const [loading, setLoading] = useState(true);
     const [chartData, setChartData] = useState({
         labels: [],
         datasets: [
@@ -54,6 +56,7 @@ const Dashboard = () => {
                 } else {
                     console.error('Error fetching orders:', message);
                 }
+                setLoading(false);
             } catch (error) {
                 console.error('Error fetching orders:', error);
             }
@@ -503,28 +506,46 @@ const Dashboard = () => {
 
             <Row className="my-4">
                 <Col md={4}>
-                    <Card className="text-center cards-active">
-                        <Card.Body>
-                            <Card.Title>Total Sales</Card.Title>
-                            <Card.Text>₹{totalSales}</Card.Text>
-                        </Card.Body>
-                    </Card>
+                    {loading ?
+                        <div>
+                            <Skeleton height={77} width={'100%'} />
+                        </div>
+                        :
+                        <Card className="text-center cards-active">
+                            <Card.Body>
+                                <Card.Title>Total Sales</Card.Title>
+                                <Card.Text>{`₹${totalSales}`}</Card.Text>
+                            </Card.Body>
+                        </Card>
+                    }
                 </Col>
                 <Col md={4}>
-                    <Card className="text-center cards-active">
-                        <Card.Body>
-                            <Card.Title>Number of Orders</Card.Title>
-                            <Card.Text>{totalOrders}</Card.Text>
-                        </Card.Body>
-                    </Card>
+                    {loading ?
+                        <div>
+                            <Skeleton height={77} width={'100%'} />
+                        </div>
+                        :
+                        <Card className="text-center cards-active">
+                            <Card.Body>
+                                <Card.Title>Number of Orders</Card.Title>
+                                <Card.Text>{totalOrders}</Card.Text>
+                            </Card.Body>
+                        </Card>
+                    }
                 </Col>
                 <Col md={4}>
-                    <Card className="text-center cards-active">
-                        <Card.Body>
-                            <Card.Title>Average Order Value</Card.Title>
-                            <Card.Text>₹ {averageOrderVal}</Card.Text>
-                        </Card.Body>
-                    </Card>
+                    {loading ?
+                        <div>
+                            <Skeleton height={77} width={'100%'} />
+                        </div>
+                        :
+                        <Card className="text-center cards-active">
+                            <Card.Body>
+                                <Card.Title>Average Order Value</Card.Title>
+                                <Card.Text>₹ {averageOrderVal}</Card.Text>
+                            </Card.Body>
+                        </Card>
+                    }
                 </Col>
             </Row>
 
@@ -532,95 +553,131 @@ const Dashboard = () => {
 
             <Row className="my-4">
                 <Col md={8} className="chart-container">
-                    <Card className='cards-active'>
-                        <Card.Header>
-                            <h5>Sales Chart</h5>
-                        </Card.Header>
-                        <Card.Body>
-                            <Line data={chartData} options={{ scales: { x: { type: 'category' }, y: { beginAtZero: true } } }} />
-                        </Card.Body>
-                    </Card>
+                    {loading ?
+                        <div>
+                            <Skeleton height={590} width={'100%'} />
+                        </div>
+                        :
+                        <Card className='cards-active'>
+                            <Card.Header>
+                                <h5>Sales Chart</h5>
+                            </Card.Header>
+                            <Card.Body>
+                                <Line data={chartData} options={{ scales: { x: { type: 'category' }, y: { beginAtZero: true } } }} />
+                            </Card.Body>
+                        </Card>
+                    }
                 </Col>
                 <Col md={4}>
-                    <Card className="text-center cards-active">
-                        <Card.Body>
-                            <Card.Title>Return Rate</Card.Title>
-                            <Card.Text>{!isNaN(returnRate) ? returnRate : 0}%</Card.Text>
-                        </Card.Body>
-                    </Card>
-                    <Card className="text-center my-4 cards-active">
-                        <Card.Body>
-                            <Card.Title>Discount Impact</Card.Title>
-                            <Card.Text>{!isNaN(discountImpact) ? discountImpact : 0}%</Card.Text>
-                        </Card.Body>
-                    </Card>
-                    <Card className='cards-active'>
-                        <Card.Header>
-                            <h5>Top Products</h5>
-                        </Card.Header>
-                        <Card.Body>
-                            {topProducts.length > 0 ? (
-                                <ul className="list-group">
-                                    {topProducts.map((product, index) => (
-                                        <li key={index} className="list-group-item">
-                                            {product.name} - {product.quantity} units - ₹ {product.totalRevenue.toFixed(2)}
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <div>
-                                    No products
-                                </div>
-                            )}
+                    {loading ?
+                        <div>
+                            <Skeleton height={77} width={'100%'} />
+                        </div>
+                        :
+                        <Card className="text-center cards-active">
+                            <Card.Body>
+                                <Card.Title>Return Rate</Card.Title>
+                                <Card.Text>{!isNaN(returnRate) ? returnRate : 0}%</Card.Text>
+                            </Card.Body>
+                        </Card>
+                    }
+                    {loading ?
+                        <div className='my-4'>
+                            <Skeleton height={77} width={'100%'} />
+                        </div>
+                        :
+                        <Card className="text-center my-4 cards-active">
+                            <Card.Body>
+                                <Card.Title>Discount Impact</Card.Title>
+                                <Card.Text>{!isNaN(discountImpact) ? discountImpact : 0}%</Card.Text>
+                            </Card.Body>
+                        </Card>
+                    }
+                    {loading ?
+                        <div>
+                            <Skeleton height={380} width={'100%'} />
+                        </div>
+                        :
+                        <Card className='cards-active'>
+                            <Card.Header>
+                                <h5>Top Products</h5>
+                            </Card.Header>
+                            <Card.Body>
+                                {topProducts.length > 0 ? (
+                                    <ul className="list-group">
+                                        {topProducts.map((product, index) => (
+                                            <li key={index} className="list-group-item">
+                                                {product.name} - {product.quantity} units - ₹ {product.totalRevenue.toFixed(2)}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <div>
+                                        No products
+                                    </div>
+                                )}
 
-                        </Card.Body>
-                    </Card>
+                            </Card.Body>
+                        </Card>
+                    }
                 </Col>
             </Row>
             <Row className="my-4">
                 <Col>
-                    <Card className='cards-active'>
-                        <Card.Header>
-                            <h5>Best selling Categories</h5>
-                        </Card.Header>
-                        <Card.Body>
-                            {topCategories.length > 0 ? (
-                                <ul className="list-group">
-                                    {topCategories.map((category, index) => (
-                                        <li key={index} className="list-group-item">
-                                            {category.category} - {category.totalSold}
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <div>
-                                    No Categories
-                                </div>
-                            )}
-                        </Card.Body>
-                    </Card>
+                    {loading ?
+                        <div>
+                            <Skeleton height={370} width={'100%'} />
+                        </div>
+                        :
+                        <Card className='cards-active'>
+                            <Card.Header>
+                                <h5>Best selling Categories</h5>
+                            </Card.Header>
+                            <Card.Body>
+                                {topCategories.length > 0 ? (
+                                    <ul className="list-group">
+                                        {topCategories.map((category, index) => (
+                                            <li key={index} className="list-group-item">
+                                                {category.category} - {category.totalSold}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <div>
+                                        No Categories
+                                    </div>
+                                )}
+                            </Card.Body>
+                        </Card>
+                    }
                 </Col>
                 <Col>
-                    <Card className='cards-active'>
-                        <Card.Header>
-                            <h5>Best selling Brands</h5>
-                        </Card.Header>
-                        <Card.Body>
-                            {topBrands.length > 0 ? (
-                                <ul className="list-group">
-                                    {topBrands.map((brand, index) => (
-                                        <li key={index} className="list-group-item">
-                                            {brand.brand} - {brand.totalSold}
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <div>
-                                    No Brands
-                                </div>
-                            )}
-                        </Card.Body>
-                    </Card>
+                    {loading ?
+                        <div>
+                            <Skeleton height={370} width={'100%'} />
+                        </div>
+                        :
+                        <Card className='cards-active'>
+                            <Card.Header>
+                                <h5>Best selling Brands</h5>
+                            </Card.Header>
+                            <Card.Body>
+                                {topBrands.length > 0 ? (
+                                    <ul className="list-group">
+                                        {topBrands.map((brand, index) => (
+                                            <li key={index} className="list-group-item">
+                                                {brand.brand} - {brand.totalSold}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <div>
+                                        No Brands
+                                    </div>
+                                )}
+                            </Card.Body>
+                        </Card>
+                    }
                 </Col>
             </Row>
             <Row className="my-4">

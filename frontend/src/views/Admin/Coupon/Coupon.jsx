@@ -5,6 +5,7 @@ import axiosInstance from '../../../config/axiosConfig';
 import { handleApiResponse } from '../../../utils/utilsHelper';
 import moment from 'moment';
 import EditCoupon from './EditCoupon';
+import Skeleton from 'react-loading-skeleton';
 
 
 function Coupon() {
@@ -13,6 +14,7 @@ function Coupon() {
     const [showEditForm, setShowEditForm] = useState(false)
     const [editData, setEditData] = useState({})
     const [coupons, setCoupons] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
 
@@ -28,6 +30,7 @@ function Coupon() {
                 } else {
                     console.error('Error fetching coupons:', response.message);
                 }
+                setLoading(false);
             } catch (error) {
                 console.error('Error fetching coupons:', error);
             }
@@ -117,28 +120,62 @@ function Coupon() {
                                 <th>Change</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {currentCoupons.length > 0 ? (
-                                currentCoupons.map((coupon, index) => (
+                        {loading ?
+                            <tbody>
+                                {[...Array(5)].map((_, index) => (
                                     <tr key={index}>
-                                        <td>{coupon.code}</td>
-                                        <td>{coupon.discountValue}</td>
-                                        <td>₹{coupon.minOrderAmount}</td>
-                                        <td>{moment(coupon.validFrom).format('MMMM D, YYYY')}</td>
-                                        <td>{moment(coupon.validUntil).format('MMMM D, YYYY')}</td>
-                                        <td>{coupon.usageLimit}</td>
-                                        <td>{coupon.usedCount}</td>
-                                        <td><Button onClick={() => handleEditCoupon(coupon)}>Edit</Button></td>
+                                        <td>
+                                            <Skeleton height={25} width={'80%'} />
+                                        </td>
+                                        <td>
+                                            <Skeleton height={25} width={'20%'} />
+                                        </td>
+                                        <td>
+                                            <Skeleton height={25} width={'25%'} />
+                                        </td>
+                                        <td>
+                                            <Skeleton height={25} width={'70%'} />
+                                        </td>
+                                        <td>
+                                            <Skeleton height={25} width={'80%'} />
+                                        </td>
+                                        <td>
+                                            <Skeleton height={25} width={'20%'} />
+                                        </td>
+                                        <td>
+                                            <Skeleton height={25} width={'20%'} />
+                                        </td>
+                                        <td>
+                                            <Skeleton height={35} width={'70%'} />
+                                        </td>
                                     </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="8" className="text-center">No coupons found</td>
-                                </tr>
-                            )}
-                        </tbody>
+                                ))}
+                            </tbody>
+                            :
+                            <tbody>
+
+                                {currentCoupons.length > 0 ? (
+                                    currentCoupons.map((coupon, index) => (
+                                        <tr key={index}>
+                                            <td>{coupon.code}</td>
+                                            <td>{coupon.discountValue}</td>
+                                            <td>₹{coupon.minOrderAmount}</td>
+                                            <td>{moment(coupon.validFrom).format('MMMM D, YYYY')}</td>
+                                            <td>{moment(coupon.validUntil).format('MMMM D, YYYY')}</td>
+                                            <td>{coupon.usageLimit}</td>
+                                            <td>{coupon.usedCount}</td>
+                                            <td><Button onClick={() => handleEditCoupon(coupon)}>Edit</Button></td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="8" className="text-center">No coupons found</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        }
                     </Table>
-                    {filteredCoupons.length > itemsPerPage &&
+                    {filteredCoupons.length > itemsPerPage && !loading &&
                         <nav className='d-flex justify-content-end'>
                             <Pagination>
                                 <Pagination.Prev

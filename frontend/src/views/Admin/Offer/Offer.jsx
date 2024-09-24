@@ -7,6 +7,8 @@ import EditOffer from './EditOffer';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { handleApiResponse } from '../../../utils/utilsHelper';
+import Skeleton from 'react-loading-skeleton';
+import LoadingSpinner from '../../Loading/LoadingSpinner';
 
 function Offer() {
     const [search, setSearch] = useState('');
@@ -17,6 +19,8 @@ function Offer() {
     const [products, setProducts] = useState([])
     const [categories, setCategories] = useState([])
     const [currentPage, setCurrentPage] = useState(1);
+    const [loading, setLoading] = useState(true);
+    const [isLoadingAction, setIsLoadingAction] = useState(false)
     const itemsPerPage = 5;
 
 
@@ -33,8 +37,13 @@ function Offer() {
                 } else {
                     console.error('Error fetching offers:', message);
                 }
+                setLoading(false);
+
             } catch (error) {
+                setLoading(false)
                 console.error('Error fetching offers:', error);
+            }finally{
+                setLoading(false);
             }
         };
 
@@ -82,6 +91,7 @@ function Offer() {
 
     const handleToggle = async (offer_id) => {
         try {
+            setIsLoadingAction(true);
             const apiCall = axiosInstance.put('/admin/toggle-offers', { offer_id });
             const { success, message } = await handleApiResponse(apiCall);
 
@@ -122,11 +132,14 @@ function Offer() {
                 progress: undefined,
                 theme: "dark",
             });
+        }finally{
+            setIsLoadingAction(false);
         }
     };
 
     const handleDeleteOffer = async (offer_id) => {
         try {
+            setIsLoadingAction(true);
             const apiCall = axiosInstance.post('/admin/delete-offer', { offer_id });
             const { success, message } = await handleApiResponse(apiCall);
             if (success) {
@@ -166,6 +179,8 @@ function Offer() {
                 progress: undefined,
                 theme: "dark",
             });
+        }finally{
+            setIsLoadingAction(false);
         }
     };
 
@@ -177,6 +192,7 @@ function Offer() {
 
     return (
         <div className="mt-5 font-monospace">
+            <LoadingSpinner isLoadingAction={isLoadingAction} />
             <ToastContainer />
             <h2 className="mb-4 text-uppercase">Manage Offers</h2>
             {showForm && (
@@ -218,38 +234,52 @@ function Offer() {
                                 <th>Block/Unblock</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {currentOffers.length > 0 ? (
-                                currentOffers.map((offer, index) => (
+                        {loading ?
+                            <tbody>
+                                {[...Array(5)].map((_, index) => (
                                     <tr key={index}>
-                                        <td>{offer.type}</td>
-                                        <td>{offer.description}</td>
-                                        <td>{offer.discountPercentage ? offer.discountPercentage : 0}%</td>
-                                        <td>{moment(offer.startDate).format('MMMM D, YYYY')}</td>
-                                        <td>{moment(offer.endDate).format('MMMM D, YYYY')}</td>
-                                        <td>{offer.discountAmount ? offer.discountAmount : 0}</td>
-                                        <td>
-                                            <Button type='button' onClick={() => handleEditOffer(offer)}>Edit</Button>
-                                        </td>
-                                        <td>
-                                            <Button variant='danger' onClick={() => handleDeleteOffer(offer._id)}>Delete</Button>
-                                        </td>
-                                        <td>
-                                            <Button
-                                                variant={offer.isActive ? 'warning' : 'secondary'}
-                                                onClick={() => handleToggle(offer._id)}
-                                            >
-                                                {offer.isActive ? 'Block' : 'Unblock'}
-                                            </Button>
-                                        </td>
+                                        {[...Array(9)].map((_, index) => (
+                                            <td>
+                                                <Skeleton height={25} width={'100%'} />
+                                            </td>
+                                        ))}
                                     </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="8" className="text-center">No offers found</td>
-                                </tr>
-                            )}
-                        </tbody>
+                                ))}
+                            </tbody>
+                            :
+                            <tbody>
+                                {currentOffers.length > 0 ? (
+                                    currentOffers.map((offer, index) => (
+                                        <tr key={index}>
+                                            <td>{offer.type}</td>
+                                            <td>{offer.description}</td>
+                                            <td>{offer.discountPercentage ? offer.discountPercentage : 0}%</td>
+                                            <td>{moment(offer.startDate).format('MMMM D, YYYY')}</td>
+                                            <td>{moment(offer.endDate).format('MMMM D, YYYY')}</td>
+                                            <td>{offer.discountAmount ? offer.discountAmount : 0}</td>
+                                            <td>
+                                                <Button type='button' onClick={() => handleEditOffer(offer)}>Edit</Button>
+                                            </td>
+                                            <td>
+                                                <Button variant='danger' onClick={() => handleDeleteOffer(offer._id)}>Delete</Button>
+                                            </td>
+                                            <td>
+                                                <Button
+                                                    variant={offer.isActive ? 'warning' : 'secondary'}
+                                                    onClick={() => handleToggle(offer._id)}
+                                                >
+                                                    {offer.isActive ? 'Block' : 'Unblock'}
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="8" className="text-center">No offers found</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        }
                     </Table>
                     {filteredOffers.length > itemsPerPage &&
                         <nav className='d-flex justify-content-end'>

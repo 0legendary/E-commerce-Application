@@ -5,6 +5,8 @@ import axiosInstance from '../../../config/axiosConfig';
 import { handleApiResponse } from '../../../utils/utilsHelper'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Skeleton from 'react-loading-skeleton';
+import LoadingSpinner from '../../Loading/LoadingSpinner';
 function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -13,19 +15,21 @@ function AdminProducts() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [loading, setLoading] = useState(true);
+  const [isLoadingAction, setIsLoadingAction] = useState(false)
 
   useEffect(() => {
     const fetchProducts = async () => {
       const result = await handleApiResponse(
         axiosInstance.get('/admin/getProducts')
       );
-
       if (result.success) {
         setProducts(result.data.products);
         setFilteredProducts(result.data.products);
       } else {
         console.error(result.message);
       }
+      setLoading(false);
     };
 
     fetchProducts();
@@ -37,7 +41,7 @@ function AdminProducts() {
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredProducts(filtered);
-      setCurrentPage(1); // Reset to the first page when searching
+      setCurrentPage(1);
     } else {
       setFilteredProducts(products);
     }
@@ -45,18 +49,18 @@ function AdminProducts() {
 
   const handleDelete = (_id) => {
     const product = products.find(p => p._id === _id);
-  
+
     if (product) {
       setConfirmDelete(product);
       setDeleteProduct(true);
     }
   };
-  
+
 
   const handleMoveToTrash = async (_id) => {
+    setIsLoadingAction(true);
     const apiCall = axiosInstance.post('/admin/moveToTrash', { product_id: _id });
     const { success, message } = await handleApiResponse(apiCall);
-
     if (success) {
       setProducts((prevProducts) => prevProducts.filter((product) => product._id !== _id));
 
@@ -70,7 +74,10 @@ function AdminProducts() {
         theme: "dark",
       });
       setDeleteProduct(false);
+      setIsLoadingAction(false);
+
     } else {
+      setIsLoadingAction(false);
       toast.error(message || "Failed to move to trash", {
         autoClose: 2000,
         hideProgressBar: false,
@@ -85,6 +92,7 @@ function AdminProducts() {
 
 
   const handleDeletePermanently = async (_id) => {
+    setIsLoadingAction(true);
     const apiCall = axiosInstance.post('/admin/deletePermanently', { product_id: _id });
     const { success, message } = await handleApiResponse(apiCall);
 
@@ -100,7 +108,9 @@ function AdminProducts() {
         progress: undefined,
         theme: "dark",
       });
+      setIsLoadingAction(false);
     } else {
+      setIsLoadingAction(false);
       toast.error(message || "Failed to delete permanently", {
         autoClose: 2000,
         hideProgressBar: false,
@@ -127,6 +137,7 @@ function AdminProducts() {
     <>
       <div className="admin-products">
         <ToastContainer />
+        <LoadingSpinner isLoadingAction={isLoadingAction} />
         <div className="header">
           <h2 className='text-uppercase font-monospace'>Products</h2>
           <Link to='/admin/addProduct'>
@@ -168,53 +179,67 @@ function AdminProducts() {
               <th scope="col">Actions</th>
             </tr>
           </thead>
-          <tbody>
-            {currentProducts.map((product, index) => {
-              const mainImage = product?.images?.images?.find(image => image.mainImage);
-              const displayImage = mainImage || product.images[0];
-              return (
-                <tr key={product._id}>
-                  <th scope="row">{indexOfFirstProduct + index + 1}</th>
-                  <td>
-                    <div className="product-image-wrapper">
-                      <img src={displayImage.cdnUrl} alt={product.name} className="product-image" style={{ width: '100px', height: '100px' }} />
-                      <img src={displayImage.cdnUrl} alt={product.name} className="product-image-hover" />
-                    </div>
-                  </td>
-                  <td>{product.name}</td>
-                  <td>{product.brand}</td>
-                  <td>{product.variations[0].price}</td>
-                  <td>{product.variations[0].stock}</td>
-                  <td>
-                    <Link to={`/admin/editProduct/${product._id}`}>
-                      <button className="btn btn-warning btn-sm">
-                        Edit
-                      </button>
-                    </Link>
-                    <button onClick={() => handleDelete(product._id, index)} className="btn btn-danger btn-sm">
-                      Delete
-                    </button>
+          {loading ?
+            <tbody>
+              {[...Array(7)].map((_, index) => (
+                <tr key={index}>
+                  <td colSpan={7}>
+                    <Skeleton height={80} width={'100%'} />
                   </td>
                 </tr>
-              )
-            })}
-          </tbody>
+              ))}
+            </tbody>
+            :
+            <tbody>
+              {currentProducts.map((product, index) => {
+                const mainImage = product?.images?.images?.find(image => image.mainImage);
+                const displayImage = mainImage || product.images[0];
+                return (
+                  <tr key={product._id}>
+                    <th scope="row">{indexOfFirstProduct + index + 1}</th>
+                    <td>
+                      <div className="product-image-wrapper">
+                        <img src={displayImage.cdnUrl} alt={product.name} className="product-image" style={{ width: '100px', height: '100px' }} />
+                        <img src={displayImage.cdnUrl} alt={product.name} className="product-image-hover" />
+                      </div>
+                    </td>
+                    <td>{product.name}</td>
+                    <td>{product.brand}</td>
+                    <td>{product.variations[0].price}</td>
+                    <td>{product.variations[0].stock}</td>
+                    <td>
+                      <Link to={`/admin/editProduct/${product._id}`}>
+                        <button className="btn btn-warning btn-sm">
+                          Edit
+                        </button>
+                      </Link>
+                      <button onClick={() => handleDelete(product._id, index)} className="btn btn-danger btn-sm">
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          }
         </table>
-        <nav aria-label="Page navigation">
-          <ul className="pagination justify-content-end">
-            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-              <button className="page-link" onClick={() => handlePageChange(currentPage - 1)}>&laquo; Previous</button>
-            </li>
-            {Array.from({ length: totalPages }, (_, index) => (
-              <li key={index + 1} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
-                <button className="page-link" onClick={() => handlePageChange(index + 1)}>{index + 1}</button>
+        {!loading &&
+          <nav aria-label="Page navigation">
+            <ul className="pagination justify-content-end">
+              <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                <button className="page-link" onClick={() => handlePageChange(currentPage - 1)}>&laquo; Previous</button>
               </li>
-            ))}
-            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-              <button className="page-link" onClick={() => handlePageChange(currentPage + 1)}>Next &raquo;</button>
-            </li>
-          </ul>
-        </nav>
+              {Array.from({ length: totalPages }, (_, index) => (
+                <li key={index + 1} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
+                  <button className="page-link" onClick={() => handlePageChange(index + 1)}>{index + 1}</button>
+                </li>
+              ))}
+              <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                <button className="page-link" onClick={() => handlePageChange(currentPage + 1)}>Next &raquo;</button>
+              </li>
+            </ul>
+          </nav>
+        }
       </div>
     </>
   );

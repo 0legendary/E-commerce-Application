@@ -6,9 +6,11 @@ import UploadFIles from '../../UploadFiles/UploadFIles';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { handleApiResponse } from '../../../utils/utilsHelper';
+import LoadingSpinner from '../../Loading/LoadingSpinner';
 
 function NewOffer({ cancelCreate, products, categories }) {
     const [errors, setErrors] = useState({})
+    const [isLoadingAction, setIsLoadingAction] = useState(false)
     const [files, setFiles] = useState([]);
     const [formData, setFormData] = useState({
         type: '',
@@ -40,6 +42,7 @@ function NewOffer({ cancelCreate, products, categories }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsLoadingAction(true);
         const newOfferData = { ...formData, images: files };
         const validationErrors = offerValidate(newOfferData);
         setErrors(validationErrors);
@@ -82,6 +85,8 @@ function NewOffer({ cancelCreate, products, categories }) {
                     progress: undefined,
                     theme: "dark",
                 });
+            }finally{
+                setIsLoadingAction(false)
             }
         }
     };
@@ -113,6 +118,7 @@ function NewOffer({ cancelCreate, products, categories }) {
     return (
         <div className="mt-4">
             <ToastContainer />
+            <LoadingSpinner isLoadingAction={isLoadingAction} />
             <Card className='p-3 mt-5'>
                 <h3 className='text-center pb-4'>Create New Offer</h3>
                 <Form onSubmit={handleSubmit}>

@@ -6,11 +6,13 @@ import UploadFIles from '../../UploadFiles/UploadFIles';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { handleApiResponse } from '../../../utils/utilsHelper';
+import LoadingSpinner from '../../Loading/LoadingSpinner';
 
 
 function EditOffer({ completeEditOffer, offer, products, categories }) {
   const [errors, setErrors] = useState({})
   const [formData, setFormData] = useState({});
+  const [isLoadingAction, setIsLoadingAction] = useState(false)
   const [files, setFiles] = useState([]);
 
   useEffect(() => {
@@ -38,6 +40,7 @@ function EditOffer({ completeEditOffer, offer, products, categories }) {
   const handleSubmit = async (e) => {
 
     e.preventDefault();
+    setIsLoadingAction(true);
     const editedData = { ...formData, images: files };
     const validationErrors = offerValidate(editedData);
     setErrors(validationErrors);
@@ -87,6 +90,8 @@ function EditOffer({ completeEditOffer, offer, products, categories }) {
           progress: undefined,
           theme: "dark",
         });
+      }finally{
+        setIsLoadingAction(false)
       }
     }
   };
@@ -122,6 +127,7 @@ function EditOffer({ completeEditOffer, offer, products, categories }) {
   return (
     <div className="mt-4">
       <ToastContainer />
+      <LoadingSpinner isLoadingAction={isLoadingAction} />
       <Card className='p-3 mt-5'>
         <h3 className='text-center pb-4'>Edit Offer</h3>
         {formData && (

@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { Form, Button, Card } from 'react-bootstrap';
 import { couponValidate } from '../../../config/validateCoupon';
 import axiosInstance from '../../../config/axiosConfig';
-import {handleApiResponse} from '../../../utils/utilsHelper';
+import { handleApiResponse } from '../../../utils/utilsHelper';
+import LoadingSpinner from '../../Loading/LoadingSpinner';
 
 
 function NewCoupon({ cancelCreate, coupons }) {
     const [errors, setErrors] = useState({})
+    const [isLoadingAction, setIsLoadingAction] = useState(false)
     const [formData, setFormData] = useState({
         code: '',
         discountValue: '',
@@ -31,44 +33,51 @@ function NewCoupon({ cancelCreate, coupons }) {
     };
 
 
-const handleSubmit = async (e) => {
-    e.preventDefault();
-    const validationErrors = couponValidate(formData, coupons);
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsLoadingAction(true);
+        const validationErrors = couponValidate(formData, coupons);
 
-    if (Object.keys(validationErrors).length === 0) {
-        try {
-            const apiCall = axiosInstance.post('/admin/create-coupon', formData);
-            const { success, data, message } = await handleApiResponse(apiCall);
+        if (Object.keys(validationErrors).length === 0) {
+            try {
+                const apiCall = axiosInstance.post('/admin/create-coupon', formData);
+                const { success, data, message } = await handleApiResponse(apiCall);
 
-            if (success) {
-                const { coupon } = data;
-                cancelCreate(coupon);
-                setFormData({
-                    code: '',
-                    description: '',
-                    discountValue: '',
-                    minOrderAmount: '',
-                    validFrom: '',
-                    validUntil: '',
-                    usageLimit: ''
-                });
-                setErrors({});
-            } else {
-                console.error('Error creating coupon:', message);
-                setErrors({ server: message });
+                if (success) {
+                    const { coupon } = data;
+                    
+                    setFormData({
+                        code: '',
+                        description: '',
+                        discountValue: '',
+                        minOrderAmount: '',
+                        validFrom: '',
+                        validUntil: '',
+                        usageLimit: ''
+                    });
+                    setErrors({});
+                    cancelCreate(coupon);
+                } else {
+                    console.error('Error creating coupon:', message);
+                    setErrors({ server: message });
+                }
+                setIsLoadingAction(false);
+            } catch (error) {
+                setIsLoadingAction(false);
+                console.error('Error during API request:', error);
+                setErrors({ server: 'An unexpected error occurred' });
+            } finally {
+                setIsLoadingAction(false);
             }
-        } catch (error) {
-            console.error('Error during API request:', error);
-            setErrors({ server: 'An unexpected error occurred' });
+        } else {
+            setErrors(validationErrors);
         }
-    } else {
-        setErrors(validationErrors);
-    }
-};
-    
+    };
+
 
     return (
         <Card className="p-3 mt-5">
+            <LoadingSpinner isLoadingAction={isLoadingAction} />
             <h2 className='text-center'>Create New Coupon</h2>
             <Form onSubmit={handleSubmit} className='d-flex gap-3 w-100'>
                 <div className='w-50'>

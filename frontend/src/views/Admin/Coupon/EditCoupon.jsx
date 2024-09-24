@@ -3,9 +3,11 @@ import { Form, Button, Card } from 'react-bootstrap';
 import { couponValidate } from '../../../config/validateCoupon';
 import axiosInstance from '../../../config/axiosConfig';
 import { handleApiResponse } from '../../../utils/utilsHelper';
+import LoadingSpinner from '../../Loading/LoadingSpinner';
 
 function EditCoupon({ completeEditCoupon, coupon, allCoupons }) {
     const [errors, setErrors] = useState({})
+    const [isLoadingAction, setIsLoadingAction] = useState(false)
     const [formData, setFormData] = useState({
         ...coupon,
         validFrom: coupon.validFrom ? coupon.validFrom.split('T')[0] : '',
@@ -26,14 +28,15 @@ function EditCoupon({ completeEditCoupon, coupon, allCoupons }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsLoadingAction(true);
         const allCouponsData = allCoupons.filter(val => val._id !== formData._id);
         const validationErrors = couponValidate(formData, allCouponsData);
-    
+
         if (Object.keys(validationErrors).length === 0) {
             try {
                 const apiCall = axiosInstance.post('/admin/edit-coupon', formData);
                 const { success, data, message } = await handleApiResponse(apiCall);
-    
+
                 if (success) {
                     completeEditCoupon(data.coupon);
                     setFormData({});
@@ -42,9 +45,13 @@ function EditCoupon({ completeEditCoupon, coupon, allCoupons }) {
                     console.error('Error editing coupon:', message);
                     setErrors({ server: message });
                 }
+                setIsLoadingAction(false);
             } catch (error) {
+                setIsLoadingAction(false);
                 console.error('Error during API request:', error);
                 setErrors({ server: 'An unexpected error occurred' });
+            } finally {
+                setIsLoadingAction(false);
             }
         } else {
             setErrors(validationErrors);
@@ -52,6 +59,7 @@ function EditCoupon({ completeEditCoupon, coupon, allCoupons }) {
     };
     return (
         <Card className="p-3 mt-5">
+            <LoadingSpinner isLoadingAction={isLoadingAction} />
             <h2 className='text-center'>Edit Coupon</h2>
             <Form onSubmit={handleSubmit} className='d-flex gap-3 w-100'>
                 <div className='w-50'>

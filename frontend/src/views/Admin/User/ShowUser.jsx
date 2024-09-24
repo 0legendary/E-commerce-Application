@@ -3,24 +3,30 @@ import axiosInstance from '../../../config/axiosConfig'
 import './ShowUser.css'
 import { handleApiResponse } from '../../../utils/utilsHelper';
 import { Card } from 'react-bootstrap';
+import Skeleton from 'react-loading-skeleton';
+import LoadingSpinner from '../../Loading/LoadingSpinner';
 
 function ShowUser() {
   const [users, setUsers] = useState([])
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [isLoadingAction, setIsLoadingAction] = useState(false)
+
   const itemsPerPage = 5;
   const defaultImg = 'https://e7.pngegg.com/pngimages/507/702/png-clipart-profile-icon-simple-user-icon-icons-logos-emojis-users-thumbnail.png'
   useEffect(() => {
     const fetchUsers = async () => {
       const apiCall = axiosInstance.get('/admin/getAllUsers');
-
       const { success, data, message } = await handleApiResponse(apiCall);
 
       if (success) {
         setUsers(data);
         setFilteredUsers(data);
+        setLoading(false);
       } else {
+        setLoading(false);
         console.error(message);
       }
     };
@@ -38,8 +44,8 @@ function ShowUser() {
 
 
   const handleBlockToggle = async (id, isBlocked) => {
+    setIsLoadingAction(true);
     const apiCall = axiosInstance.post('/admin/toggleBlockUser', { id, isBlocked: !isBlocked });
-
     const { success, message } = await handleApiResponse(apiCall);
 
     if (success) {
@@ -48,7 +54,9 @@ function ShowUser() {
           user._id === id ? { ...user, isBlocked: !isBlocked } : user
         )
       );
+      setIsLoadingAction(false);
     } else {
+      setIsLoadingAction(false);
       console.error(message);
     }
   };
@@ -62,8 +70,8 @@ function ShowUser() {
 
   return (
     <div className="users-list m-5">
+      <LoadingSpinner isLoadingAction={isLoadingAction} />
       <h2 className="mb-5 text-uppercase">User List</h2>
-
       <Card className='p-3'>
         <input
           type="text"
@@ -83,35 +91,62 @@ function ShowUser() {
               <th>Action</th>
             </tr>
           </thead>
-          <tbody>
-            {currentUsers.length > 0 ? (
-              currentUsers.map(user => (
-                <tr key={user._id}>
+          {loading ?
+            <tbody>
+              {[...Array(5)].map((_, index) => (
+                <tr key={index}>
                   <td>
-                    <img src={user.profileImg || defaultImg} alt="User" className="user-img rounded" style={{ width: '50px', height: '50px' }} />
+                    <Skeleton height={46} width={'42%'} />
                   </td>
-                  <td>{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>{user.isGoogleUser ? 'Yes' : 'No'}</td>
-                  <td>{new Date(user.createdAt).toLocaleDateString()}</td>
                   <td>
-                    <button
-                      className={`btn ${user.isBlocked ? 'btn-success' : 'btn-danger'}`}
-                      onClick={() => handleBlockToggle(user._id, user.isBlocked)}
-                    >
-                      {user.isBlocked ? 'Unblock' : 'Block'}
-                    </button>
+                    <Skeleton height={25} width={'80%'} />
+                  </td>
+                  <td>
+                    <Skeleton height={25} width={'70%'} />
+                  </td>
+                  <td>
+                    <Skeleton height={25} width={'25%'} />
+                  </td>
+                  <td>
+                    <Skeleton height={25} width={'100%'} />
+                  </td>
+                  <td>
+                    <Skeleton height={40} width={'45%'} />
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="6" className="text-center">No users found</td>
-              </tr>
-            )}
-          </tbody>
+              ))}
+            </tbody>
+            :
+            <tbody>
+              {currentUsers.length > 0 ? (
+                currentUsers.map(user => (
+                  <tr key={user._id}>
+                    <td>
+                      <img src={user.profileImg || defaultImg} alt="User" className="user-img rounded" style={{ width: '50px', height: '50px' }} />
+                    </td>
+                    <td>{user.name}</td>
+                    <td>{user.email}</td>
+                    <td>{user.isGoogleUser ? 'Yes' : 'No'}</td>
+                    <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                    <td>
+                      <button
+                        className={`btn ${user.isBlocked ? 'btn-success' : 'btn-danger'}`}
+                        onClick={() => handleBlockToggle(user._id, user.isBlocked)}
+                      >
+                        {user.isBlocked ? 'Unblock' : 'Block'}
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className="text-center">No users found</td>
+                </tr>
+              )}
+            </tbody>
+          }
         </table>
-        {filteredUsers.length > itemsPerPage && (
+        {filteredUsers.length > itemsPerPage && !loading && (
           <nav className='d-flex justify-content-end'>
             <ul className="pagination">
               {Array.from({ length: Math.ceil(filteredUsers.length / itemsPerPage) }, (_, index) => (

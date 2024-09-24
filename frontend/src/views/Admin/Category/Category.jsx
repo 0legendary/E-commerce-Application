@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Card } from 'react-bootstrap';
 import axiosInstance from '../../../config/axiosConfig';
 import { handleApiResponse } from '../../../utils/utilsHelper';
+import Skeleton from 'react-loading-skeleton';
+import LoadingSpinner from '../../Loading/LoadingSpinner';
 
 function Category() {
   const [showModal, setShowModal] = useState(false);
@@ -11,6 +13,8 @@ function Category() {
   const [editCategoryId, setEditCategoryId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isLoadingAction, setIsLoadingAction] = useState(false)
 
 
   useEffect(() => {
@@ -26,6 +30,8 @@ function Category() {
         }
       } catch (error) {
         console.error('Unexpected error fetching categories:', error);
+      }finally{
+        setLoading(false);
       }
     };
 
@@ -50,6 +56,7 @@ function Category() {
 
 
   const handleAddCategory = async () => {
+    setIsLoadingAction(true)
     const updatedCategories = [...categories, { ...newCategory }];
     setCategories(updatedCategories);
 
@@ -61,14 +68,16 @@ function Category() {
     if (success) {
       setCategories([...categories, data.newCategory]);
       handleCloseModal();
+      setIsLoadingAction(false)
     } else {
-      // Optionally handle error UI updates here
+      setIsLoadingAction(false)
       console.error('Error adding category:', message);
     }
   };
 
 
   const handleEditCategory = async () => {
+    setIsLoadingAction(true)
     const editedCategory = {
       _id: editCategoryId,
       ...newCategory
@@ -83,8 +92,9 @@ function Category() {
         category._id === editCategoryId ? data.existingCategory : category
       ));
       handleCloseModal();
+      setIsLoadingAction(false)
     } else {
-      // Optionally handle error UI updates here
+      setIsLoadingAction(false)
       console.error('Error editing category:', message);
     }
   };
@@ -107,6 +117,7 @@ function Category() {
   };
 
   const handleConfirmDelete = async () => {
+    setIsLoadingAction(true)
     if (categoryToDelete) {
       const apiCall = axiosInstance.delete(`/admin/deleteCategory/${categoryToDelete._id}`);
 
@@ -115,8 +126,9 @@ function Category() {
       if (success) {
         setCategories(categories.filter(category => category._id !== categoryToDelete._id));
         handleCloseDeleteModal();
+        setIsLoadingAction(false)
       } else {
-        // Optionally handle error UI updates here
+        setIsLoadingAction(false)
         console.error('Error deleting category:', message);
       }
     }
@@ -124,6 +136,7 @@ function Category() {
 
 
   const handleToggleCategory = async (category_id) => {
+    setIsLoadingAction(true)
     try {
       const apiCall = axiosInstance.put('/admin/toggleCategory', { category_id });
       const { success, data, message } = await handleApiResponse(apiCall);
@@ -137,37 +150,56 @@ function Category() {
       }
     } catch (error) {
       console.error('Error toggling category:', error);
+    }finally{
+      setIsLoadingAction(false)
     }
   };
 
   return (
     <div className="mt-5">
+      <LoadingSpinner isLoadingAction={isLoadingAction} />
       <h2 className="mb-4 text-uppercase font-monospace">Categories</h2>
       <Card className='p-3'>
         <div className="d-flex flex-wrap">
-          {categories.map(category => (
-            <div key={category._id} className="card m-2" >
-              <div className="card-body">
-                <h5 className="card-title">{category.name}</h5>
-                <p className="card-text">{category.description}</p>
-                <div className='d-flex gap-2'>
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => openEditModal(category)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="btn btn-danger "
-                    onClick={() => openDeleteModal(category)}
-                  >
-                    Delete
-                  </button>
-                  <button className={`btn ${!category.isBlocked ? 'btn-danger' : 'btn-success'}`} onClick={() => handleToggleCategory(category._id)}>{category.isBlocked ? 'Unblock' : 'Block'}</button>
+          {loading ? (
+            Array(5).fill().map((_, index) => (
+              <div key={index} className='card m-2'>
+                <div className='p-3'>
+                  <Skeleton height={20} width={100} />
+                  <div className='pt-2'>
+                    <Skeleton height={20} width={200} />
+                  </div>
+                  <div>
+                    <Skeleton count={3} containerClassName='d-flex gap-1 pt-3' height={35} width={100} />
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) :
+            categories.map(category => (
+              <div key={category._id} className="card m-2" >
+                <div className="card-body">
+                  <h5 className="card-title">{category.name}</h5>
+                  <p className="card-text">{category.description}</p>
+                  <div className='d-flex gap-2'>
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => openEditModal(category)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="btn btn-danger "
+                      onClick={() => openDeleteModal(category)}
+                    >
+                      Delete
+                    </button>
+                    <button className={`btn ${!category.isBlocked ? 'btn-danger' : 'btn-success'}`} onClick={() => handleToggleCategory(category._id)}>{category.isBlocked ? 'Unblock' : 'Block'}</button>
+                  </div>
+                </div>
+              </div>
+            ))
+          }
         </div>
       </Card>
 
