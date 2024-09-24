@@ -6,26 +6,41 @@ import { useCartWishlist } from './CartWishlistContext';
 function Header() {
     const location = useLocation();
     const { userDetails } = useCartWishlist();
-    
+
     const getRouteClass = (route) => {
         return location.pathname === route ? 'active-route' : '';
     };
 
     const getIconRouteClass = (route) => {
+        if (['/account/settings', '/account/address', '/account/coupons'].includes(location.pathname)) {
+            return route.startsWith('/account') ? '-fill' : '';
+        }
         return location.pathname === route ? '-fill' : '';
     };
 
     useEffect(() => {
-        const handleScroll = () => {
-            const header = document.querySelector('.home-header-nav');
-            const stickyPoint = header.offsetTop;
+        const header = document.querySelector('.header-container');
+        const stickyPoint = header.offsetTop;
 
+        const throttle = (fn, wait) => {
+            let lastCall = 0;
+            return function (...args) {
+                const now = new Date().getTime();
+                if (now - lastCall < wait) {
+                    return;
+                }
+                lastCall = now;
+                return fn(...args);
+            };
+        };
+
+        const handleScroll = throttle(() => {
             if (window.pageYOffset > stickyPoint) {
                 header.classList.add('sticky-header');
             } else {
                 header.classList.remove('sticky-header');
             }
-        };
+        }, 10);
 
         window.addEventListener('scroll', handleScroll);
 
@@ -36,59 +51,35 @@ function Header() {
 
     return (
         <div>
-            <div className="home-header-nav">
-                <div className="nav-container">
-                    {userDetails.name === null ? (
-                        <div className="logo">
-                            <span className="logo-text"><span>O'legendary</span></span>
-                        </div>
-                    ) : (
-                        <div className="logo">
-                            <span className="logo-text"><span>Hello, {userDetails.name}</span></span>
-                        </div>
-                    )}
-                    <div className="head-routes">
-                        <Link to="/">
-                            <span className={`home-route ${getRouteClass('/')}`}><span>HOME</span></span>
-                        </Link>
-                        {userDetails.name !== null ? (
-                            <Link to="/authentication" onClick={() => sessionStorage.removeItem('accessToken')}>
-                                <span className={`logout-route ${getRouteClass('/authentication')}`}><span>LOGOUT</span></span>
-                            </Link>
-                        ) : (
-                            <Link to="/authentication">
-                                <span className={`login-route ${getRouteClass('/authentication')}`}><span>LOGIN</span></span>
-                            </Link>
-                        )}
-
-                        <Link to="/shop">
-                            <span className={`shop-route ${getRouteClass('/shop')}`}><span>SHOP</span></span>
-                        </Link>
-                        <Link to="/orders">
-                            <span className={`order-route ${getRouteClass('/orders')}`}><span>ORDERS</span></span>
-                        </Link>
-                        <Link to="/wallet">
-                            <span className={`wallet-route ${getRouteClass('/wallet')}`}><span>WALLET</span></span>
-                        </Link>
+            <div className='header-container'>
+                <div className='d-flex align-items-center justify-content-between w-100'>
+                    <div className='d-flex align-items-center'>
+                        <h4 className='logo'>O'Legendary</h4>
                     </div>
-                    <div className="header-icons">
-                        <div className="cart-div">
-                            <Link to='/cart' style={{ textDecoration: 'none' }}>
-                                {userDetails.cartLength !== null && <p className='cart-quantity'>{userDetails.cartLength}</p>}
-                                <i className={`bi bi-cart${getIconRouteClass('/cart')} cart-icon`}></i>
-                            </Link>
-                        </div>
-                        <div className="wishlist-div">
-                            <Link to='/wishlist' style={{ textDecoration: 'none' }}>
-                                {userDetails.wishListLength !== null && <p className='wishlist-quantity'>{userDetails.wishListLength}</p>}
-                                <i className={`bi bi-heart${getIconRouteClass('/wishlist')} wishlist-icon`}></i>
-                            </Link>
-                        </div>
-                        <div className="acc-div">
-                            <Link to='/account/settings'>
-                                <i className={`bi bi-person${getIconRouteClass('/account')} acc-icon`}></i>
-                            </Link>
-                        </div>
+                    <div className='nav-routes d-flex me-5 gap-3'>
+                        <Link to="/" className='nav-links'>
+                            <h6 className={`nav-link ${getRouteClass('/')}`}>HOME</h6>
+                        </Link>
+                        <Link to="/shop" className='nav-links'>
+                            <h6 className={`nav-link ${getRouteClass('/shop')}`}>SHOP</h6>
+                        </Link>
+                        <Link to="/orders" className='nav-links'>
+                            <h6 className={`nav-link ${getRouteClass('/orders')}`}>ORDERS</h6>
+                        </Link>
+                        <Link to="/wallet" className='nav-links'>
+                            <h6 className={`nav-link ${getRouteClass('/wallet')}`}>WALLET</h6>
+                        </Link>
+                        <Link to='/cart' className='nav-links'>
+                            {userDetails.cartLength !== null && <p className='item-quantity'>{userDetails.cartLength}</p>}
+                            <i className={`bi bi-cart${getIconRouteClass('/cart')}`}></i>
+                        </Link>
+                        <Link to='/wishlist' className='nav-links'>
+                            {userDetails.wishListLength !== null && <p className='item-quantity'>{userDetails.wishListLength}</p>}
+                            <i className={`bi bi-heart${getIconRouteClass('/wishlist')}`}></i>
+                        </Link>
+                        <Link to='/account/settings' className='nav-links'>
+                            <i className={`bi bi-person${getIconRouteClass('/account/settings')}`}></i>
+                        </Link>
                     </div>
                 </div>
             </div>

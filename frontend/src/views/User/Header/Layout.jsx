@@ -7,7 +7,7 @@ function Layout({ mainHeading, breadcrumbs }) {
     return (
         <div>
             <section className="bg-image-section" style={{ backgroundImage: `url(${bgImage})` }}>
-                <div className="container text-end d-flex flex-wrap align-items-center justify-content-end">
+                <div className="container text-end d-flex flex-wrap align-items-center justify-content-start font-monospace">
                     <div className="col-first text-white heading-container">
                         <h1 className="display-4">{mainHeading}</h1>
                         <nav className="breadcrumb align-items-center bg-transparent">
