@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import './adminHomePage.css';
+import { SkeletonTheme } from 'react-loading-skeleton';
 
 function AdminHomePage() {
   const navigate = useNavigate();
@@ -31,9 +32,11 @@ function AdminHomePage() {
         </nav>
       </aside>
       <main className="content">
+        <SkeletonTheme baseColor='#d6d6d6' highlightColor='#ecebeb'>
         <div>
           <Outlet />
         </div>
+        </SkeletonTheme>
       </main>
     </div>
   );
