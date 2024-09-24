@@ -98,46 +98,46 @@ function AdminOrders() {
     const paginate = pageNumber => setCurrentPage(pageNumber);
 
     return (
-        <div className="mt-4 text-white">
+        <div className="mt-4 admin-orders">
             {!showSelectedOrder ? (
                 <div>
-                    <h2>All Orders</h2>
+                    <div className='d-flex justify-content-between'>
+                        <h2 className='text-uppercase font-monospace'>All Orders</h2>
+                        <Form className="mb-3 d-flex justify-content-end">
+                            <Form.Group controlId="paymentMethod" className='me-3'>
+                                <Form.Label>Payment Method</Form.Label>
+                                <Form.Control as="select" value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
+                                    <option value="">All</option>
+                                    <option value="online">Online</option>
+                                    <option value="COD">COD</option>
+                                </Form.Control>
+                            </Form.Group>
 
-                    <Form className="mb-3 d-flex justify-content-end">
-                        <Form.Group controlId="paymentMethod" className='me-3'>
-                            <Form.Label>Payment Method</Form.Label>
-                            <Form.Control as="select" value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
-                                <option value="">All</option>
-                                <option value="online">Online</option>
-                                <option value="COD">COD</option>
-                            </Form.Control>
-                        </Form.Group>
+                            <Form.Group controlId="orderStatus" className='me-3'>
+                                <Form.Label>Order Status</Form.Label>
+                                <Form.Control as="select" value={orderStatus} onChange={(e) => setOrderStatus(e.target.value)}>
+                                    <option value="">All</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="processing">Processing</option>
+                                    <option value="shipped">Shipped</option>
+                                    <option value="delivered">Delivered</option>
+                                    <option value="canceled">Canceled</option>
+                                    <option value="returned">Returned</option>
+                                </Form.Control>
+                            </Form.Group>
 
-                        <Form.Group controlId="orderStatus" className='me-3'>
-                            <Form.Label>Order Status</Form.Label>
-                            <Form.Control as="select" value={orderStatus} onChange={(e) => setOrderStatus(e.target.value)}>
-                                <option value="">All</option>
-                                <option value="pending">Pending</option>
-                                <option value="processing">Processing</option>
-                                <option value="shipped">Shipped</option>
-                                <option value="delivered">Delivered</option>
-                                <option value="canceled">Canceled</option>
-                                <option value="returned">Returned</option>
-                            </Form.Control>
-                        </Form.Group>
+                            <Form.Group controlId="startDate" className='me-2'>
+                                <Form.Label>Start Date</Form.Label>
+                                <Form.Control type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+                            </Form.Group>
 
-                        <Form.Group controlId="startDate" className='me-2'>
-                            <Form.Label>Start Date</Form.Label>
-                            <Form.Control type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-                        </Form.Group>
+                            <Form.Group controlId="endDate">
+                                <Form.Label>End Date</Form.Label>
+                                <Form.Control type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+                            </Form.Group>
+                        </Form>
+                    </div>
 
-                        <Form.Group controlId="endDate">
-                            <Form.Label>End Date</Form.Label>
-                            <Form.Control type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-                        </Form.Group>
-
-
-                    </Form>
                     <div className='d-flex justify-content-end'>
                         <Button variant="secondary" onClick={handleClearFilters}>Clear Filters</Button>
                     </div>
@@ -190,18 +190,19 @@ function AdminOrders() {
                                     )}
                                 </tbody>
                             </Table>
-
-                            <nav>
-                                <Pagination>
-                                    <Pagination.Prev onClick={() => setCurrentPage(prevPage => Math.max(prevPage - 1, 1))} />
-                                    {Array.from({ length: Math.ceil(filteredOrders.length / itemsPerPage) }, (_, index) => (
-                                        <Pagination.Item key={index + 1} active={currentPage === index + 1} onClick={() => paginate(index + 1)}>
-                                            {index + 1}
-                                        </Pagination.Item>
-                                    ))}
-                                    <Pagination.Next onClick={() => setCurrentPage(prevPage => Math.min(prevPage + 1, Math.ceil(filteredOrders.length / itemsPerPage)))} />
-                                </Pagination>
-                            </nav>
+                            {filteredOrders.length > itemsPerPage &&
+                                <nav className='d-flex justify-content-end'>
+                                    <Pagination>
+                                        <Pagination.Prev onClick={() => setCurrentPage(prevPage => Math.max(prevPage - 1, 1))} />
+                                        {Array.from({ length: Math.ceil(filteredOrders.length / itemsPerPage) }, (_, index) => (
+                                            <Pagination.Item key={index + 1} active={currentPage === index + 1} onClick={() => paginate(index + 1)}>
+                                                {index + 1}
+                                            </Pagination.Item>
+                                        ))}
+                                        <Pagination.Next onClick={() => setCurrentPage(prevPage => Math.min(prevPage + 1, Math.ceil(filteredOrders.length / itemsPerPage)))} />
+                                    </Pagination>
+                                </nav>
+                            }
                         </>
                     )}
                 </div>

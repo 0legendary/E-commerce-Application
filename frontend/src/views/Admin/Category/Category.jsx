@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
+import { Modal, Button, Form, Card } from 'react-bootstrap';
 import axiosInstance from '../../../config/axiosConfig';
 import { handleApiResponse } from '../../../utils/utilsHelper';
 
@@ -77,7 +77,7 @@ function Category() {
     const apiCall = axiosInstance.put('/admin/editCategory', editedCategory);
 
     const { success, data, message } = await handleApiResponse(apiCall);
-    
+
     if (success) {
       setCategories(categories.map(category =>
         category._id === editCategoryId ? data.existingCategory : category
@@ -108,66 +108,69 @@ function Category() {
 
   const handleConfirmDelete = async () => {
     if (categoryToDelete) {
-        const apiCall = axiosInstance.delete(`/admin/deleteCategory/${categoryToDelete._id}`);
+      const apiCall = axiosInstance.delete(`/admin/deleteCategory/${categoryToDelete._id}`);
 
-        const { success, message } = await handleApiResponse(apiCall);
+      const { success, message } = await handleApiResponse(apiCall);
 
-        if (success) {
-            setCategories(categories.filter(category => category._id !== categoryToDelete._id));
-            handleCloseDeleteModal();
-        } else {
-            // Optionally handle error UI updates here
-            console.error('Error deleting category:', message);
-        }
+      if (success) {
+        setCategories(categories.filter(category => category._id !== categoryToDelete._id));
+        handleCloseDeleteModal();
+      } else {
+        // Optionally handle error UI updates here
+        console.error('Error deleting category:', message);
+      }
     }
-};
+  };
 
 
   const handleToggleCategory = async (category_id) => {
     try {
-        const apiCall = axiosInstance.put('/admin/toggleCategory', { category_id });
-        const { success, data, message } = await handleApiResponse(apiCall);
+      const apiCall = axiosInstance.put('/admin/toggleCategory', { category_id });
+      const { success, data, message } = await handleApiResponse(apiCall);
 
-        if (success) {
-            setCategories(categories.map(category =>
-                category._id === category_id ? data.category : category
-            ));
-        } else {
-            console.error('Error toggling category:', message);
-        }
+      if (success) {
+        setCategories(categories.map(category =>
+          category._id === category_id ? data.category : category
+        ));
+      } else {
+        console.error('Error toggling category:', message);
+      }
     } catch (error) {
-        console.error('Error toggling category:', error);
+      console.error('Error toggling category:', error);
     }
-};
+  };
 
   return (
-    <div className="container mt-5 text-white">
-      <h2 className="mb-4">Categories</h2>
-      <div className="d-flex flex-wrap">
-        {categories.map(category => (
-          <div key={category._id} className="card m-2" >
-            <div className="card-body">
-              <h5 className="card-title">{category.name}</h5>
-              <p className="card-text">{category.description}</p>
-              <div className='d-flex gap-2'>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => openEditModal(category)}
-                >
-                  Edit
-                </button>
-                <button
-                  className="btn btn-danger "
-                  onClick={() => openDeleteModal(category)}
-                >
-                  Delete
-                </button>
-                <button className={`btn ${!category.isBlocked ? 'btn-danger' : 'btn-success'}`} onClick={() => handleToggleCategory(category._id)}>{category.isBlocked ? 'Unblock' : 'Block'}</button>
+    <div className="mt-5">
+      <h2 className="mb-4 text-uppercase font-monospace">Categories</h2>
+      <Card className='p-3'>
+        <div className="d-flex flex-wrap">
+          {categories.map(category => (
+            <div key={category._id} className="card m-2" >
+              <div className="card-body">
+                <h5 className="card-title">{category.name}</h5>
+                <p className="card-text">{category.description}</p>
+                <div className='d-flex gap-2'>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => openEditModal(category)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="btn btn-danger "
+                    onClick={() => openDeleteModal(category)}
+                  >
+                    Delete
+                  </button>
+                  <button className={`btn ${!category.isBlocked ? 'btn-danger' : 'btn-success'}`} onClick={() => handleToggleCategory(category._id)}>{category.isBlocked ? 'Unblock' : 'Block'}</button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </Card>
+
       {/* Modal for delete confirmation */}
       <Modal show={showDeleteModal} onHide={handleCloseDeleteModal}>
         <Modal.Header closeButton>

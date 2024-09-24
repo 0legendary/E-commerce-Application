@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Table, Button, Form } from 'react-bootstrap';
+import { Container, Row, Col, Card, Table, Button, Form, Dropdown, ButtonGroup } from 'react-bootstrap';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import jsPDF from 'jspdf';
@@ -444,8 +444,8 @@ const Dashboard = () => {
 
     return (
         <Container fluid>
-            <div className='d-flex justify-content-between align-items-center'>
-                <Form className='d-flex text-white'>
+            <div className='dashboard-container d-flex justify-content-between align-items-center' >
+                <Form className='d-flex'>
                     <Form.Group controlId="filterType" className='me-3'>
                         <Form.Label>Filter Type</Form.Label>
                         <Form.Control as="select" value={filterType} onChange={e => setFilterType(e.target.value)}>
@@ -478,16 +478,32 @@ const Dashboard = () => {
                         </>
                     )}
                 </Form>
+                <h2 className='text-uppercase font-monospace'>Dashboard</h2>
                 <div>
-                    <Button variant="primary" onClick={generatePDF}>Download PDF Report</Button>
-                    <Button variant="secondary" onClick={generateExcel} className="ms-2">Download Excel Report</Button>
+                    <Dropdown as={ButtonGroup}>
+                        <Button variant="primary" onClick={generatePDF}>Download Report</Button>
+
+                        <Dropdown.Toggle split variant="primary" id="dropdown-split-basic" className="d-flex align-items-center">
+                            <i className="bi bi-caret-down-fill ms-1"></i>
+                        </Dropdown.Toggle>
+
+                        <Dropdown.Menu>
+                            <Dropdown.Item onClick={generatePDF}>
+                                PDF <i className="bi bi-filetype-pdf"></i>
+                            </Dropdown.Item>
+                            <Dropdown.Item onClick={generateExcel}>
+                                Excel <i className="bi bi-file-earmark-excel"></i>
+                            </Dropdown.Item>
+                        </Dropdown.Menu>
+                    </Dropdown>
                 </div>
+
             </div>
 
 
             <Row className="my-4">
                 <Col md={4}>
-                    <Card className="text-center">
+                    <Card className="text-center cards-active">
                         <Card.Body>
                             <Card.Title>Total Sales</Card.Title>
                             <Card.Text>₹{totalSales}</Card.Text>
@@ -495,7 +511,7 @@ const Dashboard = () => {
                     </Card>
                 </Col>
                 <Col md={4}>
-                    <Card className="text-center">
+                    <Card className="text-center cards-active">
                         <Card.Body>
                             <Card.Title>Number of Orders</Card.Title>
                             <Card.Text>{totalOrders}</Card.Text>
@@ -503,7 +519,7 @@ const Dashboard = () => {
                     </Card>
                 </Col>
                 <Col md={4}>
-                    <Card className="text-center">
+                    <Card className="text-center cards-active">
                         <Card.Body>
                             <Card.Title>Average Order Value</Card.Title>
                             <Card.Text>₹ {averageOrderVal}</Card.Text>
@@ -516,7 +532,7 @@ const Dashboard = () => {
 
             <Row className="my-4">
                 <Col md={8} className="chart-container">
-                    <Card>
+                    <Card className='cards-active'>
                         <Card.Header>
                             <h5>Sales Chart</h5>
                         </Card.Header>
@@ -526,19 +542,19 @@ const Dashboard = () => {
                     </Card>
                 </Col>
                 <Col md={4}>
-                    <Card className="text-center">
+                    <Card className="text-center cards-active">
                         <Card.Body>
                             <Card.Title>Return Rate</Card.Title>
                             <Card.Text>{!isNaN(returnRate) ? returnRate : 0}%</Card.Text>
                         </Card.Body>
                     </Card>
-                    <Card className="text-center my-4">
+                    <Card className="text-center my-4 cards-active">
                         <Card.Body>
                             <Card.Title>Discount Impact</Card.Title>
                             <Card.Text>{!isNaN(discountImpact) ? discountImpact : 0}%</Card.Text>
                         </Card.Body>
                     </Card>
-                    <Card>
+                    <Card className='cards-active'>
                         <Card.Header>
                             <h5>Top Products</h5>
                         </Card.Header>
@@ -563,7 +579,7 @@ const Dashboard = () => {
             </Row>
             <Row className="my-4">
                 <Col>
-                    <Card>
+                    <Card className='cards-active'>
                         <Card.Header>
                             <h5>Best selling Categories</h5>
                         </Card.Header>
@@ -585,7 +601,7 @@ const Dashboard = () => {
                     </Card>
                 </Col>
                 <Col>
-                    <Card>
+                    <Card className='cards-active'>
                         <Card.Header>
                             <h5>Best selling Brands</h5>
                         </Card.Header>
@@ -609,7 +625,7 @@ const Dashboard = () => {
             </Row>
             <Row className="my-4">
                 <Col>
-                    <Card>
+                    <Card className='cards-active'>
                         <Card.Header>
                             <h5>Recent Orders</h5>
                         </Card.Header>

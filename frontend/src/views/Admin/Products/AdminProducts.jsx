@@ -128,7 +128,7 @@ function AdminProducts() {
       <div className="admin-products">
         <ToastContainer />
         <div className="header">
-          <h1>Products</h1>
+          <h2 className='text-uppercase font-monospace'>Products</h2>
           <Link to='/admin/addProduct'>
             <button className="btn btn-primary">
               Add New Product

@@ -6,6 +6,7 @@ import { useCartWishlist } from './CartWishlistContext';
 function Header() {
     const location = useLocation();
     const { userDetails } = useCartWishlist();
+    
 
     const getRouteClass = (route) => {
         return location.pathname === route ? 'active-route' : '';
@@ -70,16 +71,24 @@ function Header() {
                             <h6 className={`nav-link ${getRouteClass('/wallet')}`}>WALLET</h6>
                         </Link>
                         <Link to='/cart' className='nav-links'>
-                            {userDetails.cartLength !== null && <p className='item-quantity'>{userDetails.cartLength}</p>}
+                            {userDetails.cartLength !== null && userDetails.name !== null && <p className='item-quantity'>{userDetails.cartLength}</p>}
                             <i className={`bi bi-cart${getIconRouteClass('/cart')}`}></i>
                         </Link>
                         <Link to='/wishlist' className='nav-links'>
-                            {userDetails.wishListLength !== null && <p className='item-quantity'>{userDetails.wishListLength}</p>}
+                            {userDetails.wishListLength !== null && userDetails.name !== null && <p className='item-quantity'>{userDetails.wishListLength}</p>}
                             <i className={`bi bi-heart${getIconRouteClass('/wishlist')}`}></i>
                         </Link>
-                        <Link to='/account/settings' className='nav-links'>
-                            <i className={`bi bi-person${getIconRouteClass('/account/settings')}`}></i>
-                        </Link>
+
+                        {userDetails.name ?
+                            <Link to='/account/settings' className='nav-links'>
+                                <i className={`bi bi-person${getIconRouteClass('/account/settings')}`}></i>
+                            </Link>
+                            :
+                            <Link to='/authentication' className='nav-links'>
+                                <i className='bi bi-door-open'></i>
+                            </Link>
+                        }
+
                     </div>
                 </div>
             </div>

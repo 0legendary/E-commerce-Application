@@ -1,5 +1,9 @@
-/* Add this in your CSS file */
-.table td, .table th {
+.admin-orders .btn {
+    min-width: 100px;
+}
+
+.table td,
+.table th {
     vertical-align: middle;
 }
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Form, Button, Container } from 'react-bootstrap';
+import { Form, Button, Card } from 'react-bootstrap';
 import { couponValidate } from '../../../config/validateCoupon';
 import axiosInstance from '../../../config/axiosConfig';
 import { handleApiResponse } from '../../../utils/utilsHelper';
@@ -51,8 +51,8 @@ function EditCoupon({ completeEditCoupon, coupon, allCoupons }) {
         }
     };
     return (
-        <Container className="mt-5">
-            <h2>Edit Coupon</h2>
+        <Card className="p-3 mt-5">
+            <h2 className='text-center'>Edit Coupon</h2>
             <Form onSubmit={handleSubmit} className='d-flex gap-3 w-100'>
                 <div className='w-50'>
                     <Form.Group controlId="formCode" className='my-3'>
@@ -183,7 +183,7 @@ function EditCoupon({ completeEditCoupon, coupon, allCoupons }) {
                     </Form.Group>
                 </div>
             </Form>
-        </Container>
+        </Card>
     )
 }
 

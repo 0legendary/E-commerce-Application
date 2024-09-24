@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Form, InputGroup, Button, Pagination } from 'react-bootstrap';
+import { Table, Form, InputGroup, Button, Pagination, Card } from 'react-bootstrap';
 import NewCoupon from './NewCoupon';
 import axiosInstance from '../../../config/axiosConfig';
 import { handleApiResponse } from '../../../utils/utilsHelper';
@@ -22,7 +22,7 @@ function Coupon() {
             try {
                 const apiCall = axiosInstance.get('/admin/get-coupons');
                 const response = await handleApiResponse(apiCall);
-                
+
                 if (response.success) {
                     setCoupons(response.data.coupons);
                 } else {
@@ -32,7 +32,7 @@ function Coupon() {
                 console.error('Error fetching coupons:', error);
             }
         };
-    
+
         fetchCoupons();
     }, []);
 
@@ -77,8 +77,8 @@ function Coupon() {
 
 
     return (
-        <div className="container mt-5 text-white font-monospace">
-            <h2 className="mb-4">Manage Coupons</h2>
+        <div className="mt-5 font-monospace">
+            <h2 className="mb-4 text-uppercase">Manage Coupons</h2>
             {showForm && (
                 <div>
                     <NewCoupon cancelCreate={handleCreateCoupon} coupons={coupons} />
@@ -90,7 +90,7 @@ function Coupon() {
                 </div>
             )}
             {!showForm && !showEditForm && (
-                <div>
+                <Card className='p-3'>
                     <Form className="mb-4 d-flex">
                         <Button variant="outline-success" className='me-5' onClick={handleCreateCoupon}>Create</Button>
                         <InputGroup>
@@ -138,28 +138,30 @@ function Coupon() {
                             )}
                         </tbody>
                     </Table>
-                    <nav className='d-flex justify-content-end'>
-                        <Pagination>
-                            <Pagination.Prev
-                                onClick={() => setCurrentPage(prevPage => Math.max(prevPage - 1, 1))}
-                                disabled={currentPage === 1}
-                            />
-                            {Array.from({ length: pageCount }, (_, index) => (
-                                <Pagination.Item
-                                    key={index + 1}
-                                    active={currentPage === index + 1}
-                                    onClick={() => setCurrentPage(index + 1)}
-                                >
-                                    {index + 1}
-                                </Pagination.Item>
-                            ))}
-                            <Pagination.Next
-                                onClick={() => setCurrentPage(prevPage => Math.min(prevPage + 1, pageCount))}
-                                disabled={currentPage === pageCount}
-                            />
-                        </Pagination>
-                    </nav>
-                </div>
+                    {filteredCoupons.length > itemsPerPage &&
+                        <nav className='d-flex justify-content-end'>
+                            <Pagination>
+                                <Pagination.Prev
+                                    onClick={() => setCurrentPage(prevPage => Math.max(prevPage - 1, 1))}
+                                    disabled={currentPage === 1}
+                                />
+                                {Array.from({ length: pageCount }, (_, index) => (
+                                    <Pagination.Item
+                                        key={index + 1}
+                                        active={currentPage === index + 1}
+                                        onClick={() => setCurrentPage(index + 1)}
+                                    >
+                                        {index + 1}
+                                    </Pagination.Item>
+                                ))}
+                                <Pagination.Next
+                                    onClick={() => setCurrentPage(prevPage => Math.min(prevPage + 1, pageCount))}
+                                    disabled={currentPage === pageCount}
+                                />
+                            </Pagination>
+                        </nav>
+                    }
+                </Card>
             )}
 
         </div>

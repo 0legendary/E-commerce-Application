@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Form, InputGroup, Button, Pagination } from 'react-bootstrap';
+import { Table, Form, InputGroup, Button, Pagination, Card } from 'react-bootstrap';
 import axiosInstance from '../../../config/axiosConfig';
 import moment from 'moment';
 import NewOffer from './NewOffer';
 import EditOffer from './EditOffer';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import {handleApiResponse} from '../../../utils/utilsHelper';
+import { handleApiResponse } from '../../../utils/utilsHelper';
 
 function Offer() {
     const [search, setSearch] = useState('');
@@ -25,7 +25,7 @@ function Offer() {
             try {
                 const apiCall = axiosInstance.get('/admin/get-offers');
                 const { success, data, message } = await handleApiResponse(apiCall);
-                
+
                 if (success) {
                     setProducts(data.products);
                     setCategories(data.categories);
@@ -176,9 +176,9 @@ function Offer() {
     const pageCount = Math.ceil(filteredOffers.length / itemsPerPage);
 
     return (
-        <div className="container mt-5 text-white font-monospace">
+        <div className="mt-5 font-monospace">
             <ToastContainer />
-            <h2 className="mb-4">Manage Offers</h2>
+            <h2 className="mb-4 text-uppercase">Manage Offers</h2>
             {showForm && (
                 <div>
                     <NewOffer cancelCreate={handleCreateOffer} products={products} categories={categories} />
@@ -190,7 +190,7 @@ function Offer() {
                 </div>
             )}
             {!showForm && !showEditForm && (
-                <div>
+                <Card className='p-3'>
                     <Form className="mb-4 d-flex">
                         <Button variant="outline-success" className='me-5' onClick={handleCreateOffer}>Create</Button>
                         <InputGroup>
@@ -229,7 +229,7 @@ function Offer() {
                                         <td>{moment(offer.endDate).format('MMMM D, YYYY')}</td>
                                         <td>{offer.discountAmount ? offer.discountAmount : 0}</td>
                                         <td>
-                                            <Button type='button' onClick={() =>  handleEditOffer(offer)}>Edit</Button>
+                                            <Button type='button' onClick={() => handleEditOffer(offer)}>Edit</Button>
                                         </td>
                                         <td>
                                             <Button variant='danger' onClick={() => handleDeleteOffer(offer._id)}>Delete</Button>
@@ -251,28 +251,30 @@ function Offer() {
                             )}
                         </tbody>
                     </Table>
-                    <nav className='d-flex justify-content-end'>
-                        <Pagination>
-                            <Pagination.Prev
-                                onClick={() => setCurrentPage(prevPage => Math.max(prevPage - 1, 1))}
-                                disabled={currentPage === 1}
-                            />
-                            {Array.from({ length: pageCount }, (_, index) => (
-                                <Pagination.Item
-                                    key={index + 1}
-                                    active={currentPage === index + 1}
-                                    onClick={() => setCurrentPage(index + 1)}
-                                >
-                                    {index + 1}
-                                </Pagination.Item>
-                            ))}
-                            <Pagination.Next
-                                onClick={() => setCurrentPage(prevPage => Math.min(prevPage + 1, pageCount))}
-                                disabled={currentPage === pageCount}
-                            />
-                        </Pagination>
-                    </nav>
-                </div>
+                    {filteredOffers.length > itemsPerPage &&
+                        <nav className='d-flex justify-content-end'>
+                            <Pagination>
+                                <Pagination.Prev
+                                    onClick={() => setCurrentPage(prevPage => Math.max(prevPage - 1, 1))}
+                                    disabled={currentPage === 1}
+                                />
+                                {Array.from({ length: pageCount }, (_, index) => (
+                                    <Pagination.Item
+                                        key={index + 1}
+                                        active={currentPage === index + 1}
+                                        onClick={() => setCurrentPage(index + 1)}
+                                    >
+                                        {index + 1}
+                                    </Pagination.Item>
+                                ))}
+                                <Pagination.Next
+                                    onClick={() => setCurrentPage(prevPage => Math.min(prevPage + 1, pageCount))}
+                                    disabled={currentPage === pageCount}
+                                />
+                            </Pagination>
+                        </nav>
+                    }
+                </Card>
             )}
         </div>
     )

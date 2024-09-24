@@ -1,109 +1,65 @@
 .admin-container {
   display: flex;
-  height: 100vh;
-}
-
-.sidebar {
-  width: 20%;
-  background: #343a40;
-  color: #fff;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebar-header {
-  font-size: 1.5rem;
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-
-.sidebar ul {
-  padding: 0;
-}
-
-.sidebar ul li {
-  padding: 10px 0;
-}
-
-.sidebar ul li a {
-  color: #fff;
-  text-decoration: none;
-  padding: 10px;
-  display: block;
-}
-
-.sidebar ul li a:hover {
-  background: #495057;
-  border-radius: 4px;
-}
-
-.content {
-  width: 80%;
-  padding: 20px;
-  background: #f8f9fa;
-  overflow-y: auto;
-}
-
-.content h2 {
-  margin-bottom: 20px;
-}
-
-
-/* AdminHomePage.css */
-.admin-container {
-  display: flex;
   min-height: 100vh;
 }
 
 .sidebar {
-  width: 18%;
-  height: 34rem;
-  background-color: #343a40;
+  width: 250px;
+  height: 100%;
+  background-color: #2c3e50;
   color: #fff;
   padding: 20px;
-  border-bottom-right-radius: 15px;
+  border-right: 1px solid #34495e;
 }
 
 .sidebar-header {
   text-align: center;
   margin-bottom: 20px;
+  font-size: 1.5rem;
+  font-weight: bold;
 }
 
 .sidebar-nav ul {
-  font-family: Saira Stencil One;
   list-style: none;
   padding: 0;
 }
 
 .sidebar-nav ul li {
-  margin: 10px 0;
+  margin: 15px 0;
 }
 
 .sidebar-nav ul li a {
-  color: #fff;
+  color: #ecf0f1;
   text-decoration: none;
   display: flex;
   align-items: center;
   padding: 10px;
-  transition: background 0.3s;
+  border-radius: 5px;
+  transition: background 0.3s, transform 0.2s;
 }
 
 .sidebar-nav ul li a:hover {
-  background-color: #495057;
+  background-color: #2980b9;
+  transform: translateX(5px);
 }
 
-.sidebar-nav ul li a .fa-icon {
+.sidebar-nav ul li a i {
   margin-right: 10px;
 }
 
-.content {
-  width: 100%;
-  padding: 20px;
-  background-color: #000000;
+.active {
+  background-color: #3498db;
+  color: white;
 }
 
-.content-header {
+.content {
+  flex: 1;
+  padding: 20px;
+  color: black;
+  background-color: #ecf0f1;
+}
+
+.content h2 {
   margin-bottom: 20px;
 }
 
@@ -111,5 +67,22 @@
   background-color: #fff;
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+
+.admin-container .logout-btn {
+  color: #ecf0f1;
+  text-decoration: none;
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+  padding: 10px;
+  border-radius: 5px;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.admin-container .logout-btn:hover {
+  background-color: #2980b9;
+  transform: translateX(5px);
 }
