@@ -9,6 +9,7 @@ import { useCartWishlist } from '../Header/CartWishlistContext';
 import { handleApiResponse } from '../../../utils/utilsHelper';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
+import LoadingSpinner from '../../Loading/LoadingSpinner';
 
 function ShoppingPage() {
     const { updateWishlistLength, updateCartLength } = useCartWishlist();
@@ -24,6 +25,7 @@ function ShoppingPage() {
     const [offers, setOffers] = useState([])
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(true);
+    const [isLoadingAction, setIsLoadingAction] = useState(false)
     const itemsPerPage = 8;
 
     const mainHeading = "Shop Category";
@@ -151,6 +153,7 @@ function ShoppingPage() {
 
     const addToCart = async (productId) => {
         try {
+            setIsLoadingAction(true);
             const result = await handleApiResponse(axiosInstance.post('/user/add-to-cart', { productId }));
 
             if (result.success) {
@@ -177,6 +180,7 @@ function ShoppingPage() {
                 });
             }
         } catch (error) {
+            setIsLoadingAction(false);
             toast.error('Something went wrong', {
                 autoClose: 2000,
                 hideProgressBar: false,
@@ -186,14 +190,15 @@ function ShoppingPage() {
                 progress: undefined,
                 theme: 'dark',
             });
-            console.error('Error adding to cart:', error);
+        } finally {
+            setIsLoadingAction(false);
         }
     };
 
 
     const addToWishlist = async (productId) => {
-        axiosInstance.post('/user/add-to-wishlist', { productId })
         try {
+            setIsLoadingAction(true)
             const response = await axiosInstance.post('/user/add-to-wishlist', { productId })
             const { success } = await handleApiResponse(response);
 
@@ -212,7 +217,10 @@ function ShoppingPage() {
             }
 
         } catch (error) {
+            setIsLoadingAction(false);
             console.error('Error sending data:', error);
+        } finally {
+            setIsLoadingAction(false);
         }
     };
 
@@ -263,6 +271,7 @@ function ShoppingPage() {
 
     return (
         <div>
+            <LoadingSpinner isLoadingAction={isLoadingAction} />
             <SkeletonTheme baseColor='#d6d6d6' highlightColor='#ecebeb'>
                 <Layout mainHeading={mainHeading} breadcrumbs={breadcrumbs} />
                 <ToastContainer />
@@ -327,7 +336,7 @@ function ShoppingPage() {
                                     {loading ? (
                                         Array(5).fill().map((_, index) => (
                                             <li key={index} className="main-nav-list">
-                                                <Skeleton borderRadius={10} height={45} width={'100%'} />   
+                                                <Skeleton borderRadius={10} height={45} width={'100%'} />
                                             </li>
                                         ))
                                     ) : (

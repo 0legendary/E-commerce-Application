@@ -209,6 +209,7 @@
   display: flex;
 }
 .related-products .product-background {
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;

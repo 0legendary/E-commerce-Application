@@ -26,9 +26,16 @@
 }
 
 .cart-item {
+    cursor: pointer;
     color: white;
     border: 1px solid #ddd;
+    transition: border-color 0.3s ease;
 }
+
+.cart-item:hover {
+    border-color: #28a745;
+}
+
 
 .cart-item img {
     max-width: 100%;

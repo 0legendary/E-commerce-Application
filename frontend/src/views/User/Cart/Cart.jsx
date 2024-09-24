@@ -9,10 +9,12 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useCartWishlist } from '../Header/CartWishlistContext';
 import { handleApiResponse } from '../../../utils/utilsHelper';
 import Skeleton from 'react-loading-skeleton';
+import LoadingSpinner from '../../Loading/LoadingSpinner';
 
 function Cart() {
     const { updateCartLength } = useCartWishlist();
     const [loading, setLoading] = useState(true);
+    const [isLoadingAction, setIsLoadingAction] = useState(false)
     const mainHeading = "Cart";
     const breadcrumbs = [
         { name: "Home", path: "/" },
@@ -38,6 +40,7 @@ function Cart() {
 
     const handleRemoveFromCart = async (item_id) => {
         try {
+            setIsLoadingAction(true);
             const result = await handleApiResponse(axiosInstance.delete(`/user/delete-cart-items/${item_id}`));
 
             if (result.success) {
@@ -64,6 +67,7 @@ function Cart() {
                 });
             }
         } catch (error) {
+            setIsLoadingAction(false);
             toast.error('Something went wrong', {
                 autoClose: 2000,
                 hideProgressBar: false,
@@ -74,6 +78,8 @@ function Cart() {
                 theme: 'dark',
             });
             console.error('Error removing item from cart:', error);
+        } finally {
+            setIsLoadingAction(false);
         }
     };
 
@@ -140,6 +146,7 @@ function Cart() {
 
 
         try {
+            setIsLoadingAction(true);
             const result = await handleApiResponse(axiosInstance.put(`/user/update-cart-item/${item_id}`, { quantity: newQuantity }));
 
             if (!result.success) {
@@ -154,6 +161,7 @@ function Cart() {
                 });
             }
         } catch (error) {
+            setIsLoadingAction(false);
             toast.error('Something went wrong', {
                 autoClose: 2000,
                 hideProgressBar: false,
@@ -164,6 +172,8 @@ function Cart() {
                 theme: 'dark',
             });
             console.error('Error updating cart item quantity:', error);
+        } finally {
+            setIsLoadingAction(false);
         }
     };
     const getApplicableOffer = (productId, categoryId, price) => {
@@ -223,6 +233,7 @@ function Cart() {
 
     return (
         <div>
+            <LoadingSpinner isLoadingAction={isLoadingAction} />
             <Layout mainHeading={mainHeading} breadcrumbs={breadcrumbs} />
             <ToastContainer />
             <div className="container text-white p-3 mb-4 ">
@@ -272,7 +283,7 @@ function Cart() {
                                         // const finalPrice = item.discountedPrice - offerPrice
                                         let mainImage = item.images.filter((img) => img.mainImage)
                                         return (
-                                            <div key={item._id} className="cart-item d-flex align-items-center mb-3 border rounded p-3">
+                                            <Link key={item._id} to={`/shop/${item.productId}`} className="text-decoration-none cart-item d-flex align-items-center mb-3 rounded p-3">
                                                 <div className="cart-item-image me-3">
                                                     <img src={mainImage[0].cdnUrl} alt={item.name} className="img-thumbnail" />
                                                 </div>
@@ -282,7 +293,7 @@ function Cart() {
                                                             <h5 className="me-3">{item.name}</h5>
                                                             <span className="text-white">{item.brand}</span>
                                                         </div>
-                                                        <Button variant="danger" onClick={() => handleRemoveFromCart(item._id)}>
+                                                        <Button variant="danger" onClick={(e) =>{e.preventDefault(); e.stopPropagation(); handleRemoveFromCart(item._id)}}>
                                                             <i className="bi bi-trash3-fill"> Remove</i>
                                                         </Button>
                                                     </div>
@@ -291,9 +302,9 @@ function Cart() {
                                                         <span className="me-3">Color: {item.selectedColor}</span>
                                                     </div>
                                                     <div className="d-flex align-items-center mb-2">
-                                                        <i className="bi bi-dash-circle me-2" onClick={() => handleQuantityChange(item._id, -1)}></i>
+                                                        <i className="bi bi-dash-circle me-2" onClick={(e) =>{e.preventDefault(); e.stopPropagation(); handleQuantityChange(item._id, -1)}}></i>
                                                         <span className="me-2">{item.quantity}</span>
-                                                        <i className="bi bi-plus-circle" onClick={() => handleQuantityChange(item._id, +1)}></i>
+                                                        <i className="bi bi-plus-circle" onClick={(e) =>{e.preventDefault(); e.stopPropagation(); handleQuantityChange(item._id, +1)}}></i>
                                                     </div>
                                                     <div className="mb-2">
                                                         <span className="me-2">${offerPrice > 0 ? item.discountedPrice - offerPrice : item.discountedPrice}</span>
@@ -304,7 +315,7 @@ function Cart() {
                                                     </div>
 
                                                 </div>
-                                            </div>
+                                            </Link>
                                         )
                                     })}
                                 </div>

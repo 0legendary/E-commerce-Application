@@ -6,10 +6,14 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ReviewForm from './ReviewForm';
 import Invoice from '../Invoice/Invoice';
+import LoadingSpinner from '../../Loading/LoadingSpinner';
+
 
 function DetailedOrder({ product, backToOrders, openModal }) {
     const { order } = product;
     const [showReviewForm, setShowReviewForm] = useState(false)
+    const [isLoadingAction, setIsLoadingAction] = useState(false)
+
     const formatAddress = () => {
         const address = order.shippingAddress;
         return `${address.name}\n${address.address}, ${address.locality}, ${address.city} - ${address.pincode}, ${address.state}\nPhone number\n${address.mobile}`;
@@ -37,6 +41,7 @@ function DetailedOrder({ product, backToOrders, openModal }) {
 
     const handleReviewSubmit = async (reviewData) => {
         try {
+            setIsLoadingAction(true);
             const response = await axiosInstance.post('/user/add-review', reviewData);
             const { success, message } = await handleApiResponse(response);
 
@@ -63,6 +68,7 @@ function DetailedOrder({ product, backToOrders, openModal }) {
                 });
             }
         } catch (error) {
+            setIsLoadingAction(false);
             console.error('Error while submitting review:', error);
             toast.error('Error while submitting review', {
                 autoClose: 2000,
@@ -73,12 +79,15 @@ function DetailedOrder({ product, backToOrders, openModal }) {
                 progress: undefined,
                 theme: "dark",
             });
+        } finally {
+            setIsLoadingAction(false);
         }
     };
 
 
     return (
         <div className="container mt-5">
+            <LoadingSpinner isLoadingAction={isLoadingAction} />
             <ToastContainer />
             <button className="btn btn-secondary mb-4" onClick={() => backToOrders()}>
                 Back to Orders
@@ -151,7 +160,7 @@ function DetailedOrder({ product, backToOrders, openModal }) {
                                         </div>
                                         <div className='d-flex justify-content-end mt-4'>
                                             {product.orderStatus === 'delivered' && (
-                                                <button className='btn btn-secondary' onClick={() => setShowReviewForm(!showReviewForm)}>Add Reveiw</button>
+                                                <button className='btn btn-secondary' onClick={() => setShowReviewForm(!showReviewForm)}>{showReviewForm ? "Hide Review" : "Add Review"}</button>
                                             )}
                                         </div>
 

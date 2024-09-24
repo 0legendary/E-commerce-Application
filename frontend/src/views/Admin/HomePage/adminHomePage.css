@@ -47,7 +47,7 @@
   margin-right: 10px;
 }
 
-.active {
+.admin-container .active {
   background-color: #3498db;
   color: white;
 }

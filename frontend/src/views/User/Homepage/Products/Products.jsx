@@ -10,6 +10,7 @@ import { handleApiResponse } from '../../../../utils/utilsHelper';
 import { Carousel } from 'react-bootstrap';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
+import LoadingSpinner from '../../../Loading/LoadingSpinner';
 
 
 function Products() {
@@ -19,6 +20,7 @@ function Products() {
     const [wishlistProducts, setWishlistProducts] = useState([])
     const [offers, setOffers] = useState([])
     const [loading, setLoading] = useState(true);
+    const [isLoadingAction, setIsLoadingAction] = useState(false)
 
     useEffect(() => {
         const fetchHomeProducts = async () => {
@@ -45,6 +47,7 @@ function Products() {
 
     const addToCart = async (productId) => {
         try {
+            setIsLoadingAction(true);
             const result = await handleApiResponse(axiosInstance.post('/user/add-to-cart', { productId }));
 
             if (result.success) {
@@ -71,6 +74,7 @@ function Products() {
                 });
             }
         } catch (error) {
+            isLoadingAction(false);
             toast.error('Something went wrong', {
                 autoClose: 2000,
                 hideProgressBar: false,
@@ -80,12 +84,14 @@ function Products() {
                 progress: undefined,
                 theme: 'dark',
             });
+        }finally{
+            setIsLoadingAction(false);
         }
     };
 
     const addToWishlist = async (productId) => {
-        axiosInstance.post('/user/add-to-wishlist', { productId })
         try {
+            setIsLoadingAction(true);
             const response = await axiosInstance.post('/user/add-to-wishlist', { productId })
             const { success } = await handleApiResponse(response);
 
@@ -104,7 +110,19 @@ function Products() {
             }
 
         } catch (error) {
+            setIsLoadingAction(false);
+            toast.error('Something went wrong', {
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: 'dark',
+            });
             console.error('Error sending data:', error);
+        }finally{
+            setIsLoadingAction(false);
         }
     };
 
@@ -122,6 +140,7 @@ function Products() {
     return (
         <div className="container-fluid products-container home-page">
             <ToastContainer />
+            <LoadingSpinner isLoadingAction={isLoadingAction} />
             <div className="offers-section mb-4 text-success">
 
                 {loading ? (
@@ -131,7 +150,7 @@ function Products() {
                 ) : offers && offers.length > 0 ? (
                     <Carousel>
                         {offers.map((offer) => (
-                            <Carousel.Item key={offer._id}>
+                            <Carousel.Item key={offer._id} className='rounded-4'>
                                 <img
                                     className="d-block w-100 offer-image"
                                     src={offer.imageID.images[0].cdnUrl}
