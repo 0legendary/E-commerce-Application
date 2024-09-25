@@ -1,15 +1,15 @@
 import React, { useState } from 'react'
 import '../Error/error.css'
+import LoadingSpinner from '../Loading/LoadingSpinner'
 
 function Error() {
     const [isLoading, setIsLoading] = useState(true)
 
-    setTimeout(() => setIsLoading(false), 1000)
+    setTimeout(() => setIsLoading(false), 2000)
     return (
-
         <div className='error-container'>
             {isLoading ? (
-                <div className='err-msg d-flex justify-content-center text-center text-white'>Loading...</div>
+                <LoadingSpinner isLoadingAction={isLoading} />
             ) : (
                 <section className="page_403">
                     <div className="container">

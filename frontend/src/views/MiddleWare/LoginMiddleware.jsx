@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../config/axiosConfig';
+import LoadingSpinner from '../Loading/LoadingSpinner';
 
 const PrivateRoute = () => {
   const [route, setRoute] = useState(null);
@@ -33,7 +34,7 @@ const PrivateRoute = () => {
     }
   }, [route, navigate]);
 
-  return route === null ? <div>Loading...</div> : <Outlet />;
+  return route === null ? <LoadingSpinner isLoadingAction={true}/> : <Outlet />;
 };
 
 export default PrivateRoute;
