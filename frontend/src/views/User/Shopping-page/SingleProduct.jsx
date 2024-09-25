@@ -10,10 +10,13 @@ import Reviews from './Reviews';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { Carousel } from 'react-bootstrap';
+import LoadingSpinner from '../../Loading/LoadingSpinner';
+import { useCartWishlist } from '../Header/CartWishlistContext';
 
 
 function SingleProduct() {
   const { id } = useParams();
+  const { updateWishlistLength, updateCartLength } = useCartWishlist();
   const [product, setProduct] = useState({});
   const [selectedVariation, setSelectedVariation] = useState(null);
   const [mainImage, setMainImage] = useState(null);
@@ -23,8 +26,9 @@ function SingleProduct() {
   const [isProductInWishlist, setIsProductInWishlist] = useState(false)
   const [reviews, setReviews] = useState([])
   const [relatedProdcts, setRelatedProdcts] = useState([])
-
+  const [isLoadingAction, setIsLoadingAction] = useState(false)
   const [offers, setOffers] = useState([])
+
   useEffect(() => {
     const fetchProductDetails = async () => {
       const result = await handleApiResponse(axiosInstance.get(`/user/shop/${id}`));
@@ -77,6 +81,7 @@ function SingleProduct() {
 
   const handleAddToCart = async () => {
     try {
+      setIsLoadingAction(true)
       const result = await handleApiResponse(
         axiosInstance.post('/user/shop/add-to-cart', {
           productId: product._id,
@@ -91,6 +96,7 @@ function SingleProduct() {
 
       if (result.success) {
         if (result.data.product) {
+          updateCartLength(1);
           setCartProducts(prevProducts => [...prevProducts, result.data.product]);
           toast.success('Added to Cart', {
             autoClose: 2000,
@@ -124,6 +130,8 @@ function SingleProduct() {
         theme: 'dark',
       });
       console.error('Error adding product to cart:', error);
+    }finally{
+      setIsLoadingAction(false)
     }
   };
   const isProductInCart = cartProducts.some(cartProduct =>
@@ -133,11 +141,13 @@ function SingleProduct() {
 
   const addToWishlist = async (productId) => {
     try {
+      setIsLoadingAction(true)
       const response = await axiosInstance.post('/user/add-to-wishlist', { productId });
 
       const { success } = await handleApiResponse(response);
 
       if (success) {
+        updateWishlistLength(1);
         setIsProductInWishlist(true);
         toast.success("Added to Wishlist", {
           autoClose: 2000,
@@ -160,6 +170,8 @@ function SingleProduct() {
         progress: undefined,
         theme: "dark",
       });
+    }finally{
+      setIsLoadingAction(false)
     }
   };
 
@@ -167,6 +179,7 @@ function SingleProduct() {
   return (
     <div className="single-product-container container text-white" style={{ marginTop: '15rem', color: 'white' }}>
       <ToastContainer />
+      <LoadingSpinner isLoadingAction={isLoadingAction} />
       <div className="product-details">
         {product.name ? (
           <>

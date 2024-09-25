@@ -110,6 +110,8 @@ function DetailedOrder({ product, backToOrders, openModal }) {
                     <div className="col-md-4">
                         <div className="card mb-4">
                             {order.products.map((product) => {
+                                console.log(order);
+                                
                                 let mainImage = product.productId.images.images.filter((img) => img.mainImage)
                                 return (
                                     <div className="card-body" key={product._id}>
@@ -217,7 +219,7 @@ function DetailedOrder({ product, backToOrders, openModal }) {
                             <div className="card-body font-monospace">
                                 <div>
                                     <h4 className='d-flex text-success font-monospace'>
-                                        Total Amount:  ₹{order.orderTotal}
+                                        Total Amount:  ₹{(order.orderTotal - order.offerDiscount).toFixed(2)}
                                     </h4>
                                 </div>
                                 <h5>Purchased Date: {order.createdAt.slice(0, 10)}</h5>

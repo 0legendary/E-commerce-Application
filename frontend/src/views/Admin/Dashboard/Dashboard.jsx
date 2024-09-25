@@ -680,45 +680,49 @@ const Dashboard = () => {
                     }
                 </Col>
             </Row>
-            <Row className="my-4">
-                <Col>
-                    <Card className='cards-active'>
-                        <Card.Header>
-                            <h5>Recent Orders</h5>
-                        </Card.Header>
-                        <Card.Body>
-                            <Table striped bordered hover>
-                                <thead>
-                                    <tr>
-                                        <th>Order ID</th>
-                                        <th>Customer</th>
-                                        <th>Total</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {recentOrders.map((order, index) => (
-                                        <tr key={index}>
-                                            <td>{order.orderId ? order.orderId : 'Pending Payment'}</td>
-                                            <td>{order.customer}</td>
-                                            <td>₹ {order.total.toFixed(2)}</td>
-                                            <td>{order.status}</td>
+            {!loading &&
+                <Row className="my-4">
+                    <Col>
+                        <Card className='cards-active'>
+                            <Card.Header>
+                                <h5>Recent Orders</h5>
+                            </Card.Header>
+                            <Card.Body>
+                                <Table striped bordered hover>
+                                    <thead>
+                                        <tr>
+                                            <th>Order ID</th>
+                                            <th>Customer</th>
+                                            <th>Total</th>
+                                            <th>Status</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </Table>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
-            <Row>
-                <div className='d-flex justify-content-end'>
-                    <button className='btn btn-info' onClick={() => setShowLedger(!showLedger)}>{showLedger ? 'Close Ledger' : 'Show Ledger'}</button>
-                </div>
-                {showLedger && (
-                    <LedgerBook orders={orders} />
-                )}
-            </Row>
+                                    </thead>
+                                    <tbody>
+                                        {recentOrders.map((order, index) => (
+                                            <tr key={index}>
+                                                <td>{order.orderId ? order.orderId : 'Pending Payment'}</td>
+                                                <td>{order.customer}</td>
+                                                <td>₹ {order.total.toFixed(2)}</td>
+                                                <td>{order.status}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </Table>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
+            }
+            {!loading &&
+                <Row>
+                    <div className='d-flex justify-content-end'>
+                        <button className='btn btn-info' onClick={() => setShowLedger(!showLedger)}>{showLedger ? 'Close Ledger' : 'Show Ledger'}</button>
+                    </div>
+                    {showLedger && (
+                        <LedgerBook orders={orders} />
+                    )}
+                </Row>
+            }
         </Container>
     );
 };
