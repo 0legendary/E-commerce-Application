@@ -165,7 +165,7 @@ function AdminOrders() {
                                         currentOrders.map((order, index) => (
                                             <tr key={order._id}>
                                                 <td>{index + 1}</td>
-                                                <td>{order.orderId}</td>
+                                                <td>{order.orderId ? order.orderId : 'pending'}</td>
                                                 <td>{order.customerId.name}</td>
                                                 <td>{new Date(order.orderDate).toLocaleDateString()}</td>
                                                 <td>${order.orderTotal}</td>

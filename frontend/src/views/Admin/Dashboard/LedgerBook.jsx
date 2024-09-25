@@ -5,7 +5,7 @@ const LedgerBook = ({ orders }) => {
     const totalAmount = orders.reduce((acc, order) => acc + order.orderTotal, 0);
   return (
     <div className="ledger-book">
-      <h2 className='text-white'>Order Ledger</h2>
+      <h2 className='text-uppercase font-monospace'>Order Ledger</h2>
       <Table striped bordered hover>
         <thead>
           <tr>
