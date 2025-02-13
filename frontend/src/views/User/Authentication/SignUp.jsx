@@ -21,10 +21,10 @@ function SignUp({ handleLoginClick, handleSignUpClick }) {
   const [buttonEnabled, setButtonEnabled] = useState(false);
   const [addReferral, setAddReferral] = useState(false);
   const [formData, setFormData] = useState({
-    username: 'alenmm',
-    email: 'alenmullassery123@gmail.com',
-    password: 'a1234567',
-    confirmPassword: 'a1234567',
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
     otp: '',
     referralCode: ''
   });
